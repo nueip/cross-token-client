@@ -1,5 +1,5 @@
 {
-  "name": "token-injection",
+  "name": "cross-token-client",
   "version": "0.1.0",
   "scripts": {
     "build": "rollup -c rollup.config.js",

@@ -4827,6 +4827,12 @@
 
   var promise_prototype_finally = bound;
 
+  /**
+   * 物件參數轉序列字串
+   * 
+   * @param {object} params - 參數物件
+   * @returns {string} 參數序列字串
+   */
   function queryString(params) {
     return Object.keys(params).map(function (key) {
       return key + '=' + params[key];
@@ -4864,7 +4870,7 @@
 
       this.RefreshTokenName = "token_refresh_token"; // Token建立時間 變數名稱 - LocalStorage中
 
-      this.TokenCreatetimeName = "token_createtime"; // Token過期時間 變數名稱 - LocalStorage中
+      this.TokenCreateTimeName = "token_create_time"; // Token過期時間 變數名稱 - LocalStorage中
 
       this.TokenExpiredName = "token_expires_in"; // Token過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
 
@@ -4874,7 +4880,7 @@
 
       this.TokenAutoSyncInterval = 500; // LocalStorage Token資料Key值
 
-      this.TokenKeys = ["token_access_token", "token_expires_in", "token_type", "token_scope", "token_refresh_token", "token_checksum", "token_createtime"]; // jqXHR cache
+      this.TokenKeys = ["token_access_token", "token_expires_in", "token_type", "token_scope", "token_refresh_token", "token_checksum", "token_create_time"]; // jqXHR cache
 
       this.jqXhrSync = null;
       this.jqXhrRefresh = null;
@@ -5105,7 +5111,7 @@
               // 現在時間
               var nowTime = parseInt(Date.now() / 1000),
                   // Token建立時間
-              createTime = parseInt(localStorage.getItem(self.TokenCreatetimeName)),
+              createTime = parseInt(localStorage.getItem(self.TokenCreateTimeName)),
                   // Token過期時間
               expireTime = parseInt(localStorage.getItem(self.TokenExpiredName)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
 
