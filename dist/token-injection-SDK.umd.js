@@ -225,7 +225,7 @@
    * _.isFunction(/abc/);
    * // => false
    */
-  function isFunction$5(value) {
+  function isFunction$4(value) {
     if (!isObject$4(value)) {
       return false;
     }
@@ -235,7 +235,7 @@
     return tag == funcTag$1 || tag == genTag || tag == asyncTag || tag == proxyTag;
   }
 
-  var isFunction_1 = isFunction$5;
+  var isFunction_1 = isFunction$4;
 
   var root = _root;
 
@@ -293,7 +293,7 @@
 
   var _toSource = toSource$1;
 
-  var isFunction$4 = isFunction_1,
+  var isFunction$3 = isFunction_1,
       isMasked = _isMasked,
       isObject$3 = isObject_1,
       toSource = _toSource;
@@ -335,7 +335,7 @@
     if (!isObject$3(value) || isMasked(value)) {
       return false;
     }
-    var pattern = isFunction$4(value) ? reIsNative : reIsHostCtor;
+    var pattern = isFunction$3(value) ? reIsNative : reIsHostCtor;
     return pattern.test(toSource(value));
   }
 
@@ -764,7 +764,7 @@
 
   var isLength_1 = isLength$2;
 
-  var isFunction$3 = isFunction_1,
+  var isFunction$2 = isFunction_1,
       isLength$1 = isLength_1;
 
   /**
@@ -793,7 +793,7 @@
    * // => false
    */
   function isArrayLike$4(value) {
-    return value != null && isLength$1(value.length) && !isFunction$3(value);
+    return value != null && isLength$1(value.length) && !isFunction$2(value);
   }
 
   var isArrayLike_1 = isArrayLike$4;
@@ -2120,7 +2120,7 @@
    * @param {Object} val The value to test
    * @returns {boolean} True if value is a Function, otherwise false
    */
-  function isFunction$2(val) {
+  function isFunction$1(val) {
     return toString.call(val) === '[object Function]';
   }
 
@@ -2131,7 +2131,7 @@
    * @returns {boolean} True if value is a Stream, otherwise false
    */
   function isStream(val) {
-    return isObject(val) && isFunction$2(val.pipe);
+    return isObject(val) && isFunction$1(val.pipe);
   }
 
   /**
@@ -2303,7 +2303,7 @@
     isDate: isDate,
     isFile: isFile,
     isBlob: isBlob,
-    isFunction: isFunction$2,
+    isFunction: isFunction$1,
     isStream: isStream,
     isURLSearchParams: isURLSearchParams,
     isStandardBrowserEnv: isStandardBrowserEnv,
@@ -3696,7 +3696,7 @@
   var concat = Array.prototype.concat;
   var origDefineProperty = Object.defineProperty;
 
-  var isFunction$1 = function (fn) {
+  var isFunction = function (fn) {
   	return typeof fn === 'function' && toStr$1.call(fn) === '[object Function]';
   };
 
@@ -3716,7 +3716,7 @@
   var supportsDescriptors = origDefineProperty && arePropertyDescriptorsSupported();
 
   var defineProperty = function (object, name, value, predicate) {
-  	if (name in object && (!isFunction$1(predicate) || !predicate())) {
+  	if (name in object && (!isFunction(predicate) || !predicate())) {
   		return;
   	}
   	if (supportsDescriptors) {
@@ -4829,18 +4829,20 @@
 
   function queryString(params) {
     return Object.keys(params).map(function (key) {
-      return key + '=' + params[key];
-    }).join('&');
+      return key + "=" + params[key];
+    }).join("&");
+  }
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
   var assignIn = assignIn_1;
   var isPlainObject = isPlainObject_1;
   var forEach = forEach_1;
-  var isFunction = isFunction_1;
   var cookies = js_cookie.exports;
-  var axios = axios$1;
+  var axios = axios$1["default"];
   var promiseFinally = promise_prototype_finally;
-  promiseFinally.shim(); // 參數預設值
+  promiseFinally.shim(); // 初始預設值
 
   var DEFAULTS = {
     SSO_URL: "",
@@ -4848,6 +4850,11 @@
   };
 
   var TokenInjection = /*#__PURE__*/function () {
+    /**
+     * 建構子
+     *
+     * @param {object} options
+     */
     function TokenInjection() {
       var _options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
@@ -4864,7 +4871,7 @@
 
       this.RefreshTokenName = "token_refresh_token"; // Token建立時間 變數名稱 - LocalStorage中
 
-      this.TokenCreatetimeName = "token_createtime"; // Token過期時間 變數名稱 - LocalStorage中
+      this.TokenCreateTimeName = "token_create_time"; // Token過期時間 變數名稱 - LocalStorage中
 
       this.TokenExpiredName = "token_expires_in"; // Token過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
 
@@ -4874,11 +4881,13 @@
 
       this.TokenAutoSyncInterval = 500; // LocalStorage Token資料Key值
 
-      this.TokenKeys = ["token_access_token", "token_expires_in", "token_type", "token_scope", "token_refresh_token", "token_checksum", "token_createtime"]; // jqXHR cache
+      this.TokenKeys = ["token_access_token", "token_expires_in", "token_type", "token_scope", "token_refresh_token", "token_checksum", "token_create_time"]; // Axios cache
 
-      this.jqXhrSync = null;
-      this.jqXhrRefresh = null;
-      this.jqXhrValidate = null; // Schedule cache
+      this.axiosSync = null;
+      this.axiosRefresh = null;
+      this.axiosValidate = null;
+      this.axiosSyncReadyState = null;
+      this.axiosRefreshReadyState = null; // Schedule cache
 
       this.intervalSync = null;
       this.intervalRefresh = null;
@@ -4920,54 +4929,45 @@
       /**
        * 同步 Token 內容 - oAuth & 前端 - 執行一次
        *
-       * - 向 oAuth Server 同步Token資訊
-       * - 同步錯誤時，檢查是否為登入狀態，否時刪除Token
+       * - 向 oAuth Server 同步 Token 資訊
+       * - 同步錯誤時，檢查是否為登入狀態，否時刪除 Token
        *
-       * @param {function} successCallback - 同步成功的回調函式
-       * @param {function} failCallback - 同步失敗的回調函式
-       * @returns jqXHR
+       * @returns {Promise}
        */
 
     }, {
       key: "sync",
-      value: function sync(successCallback, failCallback) {
-        var _this = this;
-
+      value: function sync() {
         var self = this;
         var options = this.options; // 抓取資料
 
-        self.jqXhrSync = axios.get(options.SSO_URL + "/oauth2/token/api", {
+        self.axiosSync = axios.get(options.SSO_URL + "/oauth2/token/api", {
+          // 允許跨域
           withCredentials: true
         }).then(function (response) {
-          var tokenInfo = response.data; // 寫至 LocalStorage
+          self.axiosSyncReadyState = response.request.readyState;
+          var tokenInfo = response.data || {}; // 寫至 LocalStorage
 
           forEach(tokenInfo, function (value, key) {
             localStorage.setItem(key, value);
-          }); // 同步成功的回調函式
-
-          if (isFunction(successCallback)) {
-            successCallback(response);
-          }
-        })["catch"](function (err) {
+          });
+          return response;
+        })["catch"](function (error) {
           // 檢查-是否為登入狀態
           if (!self.isLogin()) {
-            // 非登入時刪除token資料
-            forEach(_this.TokenKeys, function (key, value) {
+            // 非登入時刪除 token 資料
+            forEach(self.TokenKeys, function (key, value) {
               localStorage.removeItem(key);
             });
-          } // 同步成功的回調函式
-
-
-          if (isFunction(failCallback)) {
-            failCallback(err);
           }
-        })["finally"](function (res) {// Always executed
+
+          return error;
         });
-        return self.jqXhrSync;
+        return self.axiosSync;
       }
       /**
        * 取得 Local Storage Token
-       * 
+       *
        * @returns {String} Access Token
        */
 
@@ -4981,57 +4981,53 @@
        *
        * - 向 oAuth Server 執行 Refresh Token
        * - 執行條件
-       *   - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
-       *   - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
+       *  - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
+       *  - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
        *
-       * @param {function} successCallback - 刷新成功的回調函式
-       * @param {function} failCallback - 刷新失敗的回調函式
        * @throws 沒有 Refresh Token 時丟出例外
-       * @returns jqXHR
+       * @returns {Promise}
        */
 
     }, {
       key: "refresh",
-      value: function refresh(successCallback, failCallback) {
+      value: function refresh() {
         var self = this;
         var options = this.options; // Refresh Token 值
 
         var refreshToken = localStorage.getItem(self.RefreshTokenName); // 金鑰不存在時丟出例外
 
         if (!refreshToken) {
-          throw new self.exception("Need Refresh Token !", 401);
+          throw self.exception("Need Refresh Token !", 401);
         } // 執行刷新金鑰
 
 
-        self.jqXhrRefresh = axios.post(options.SSO_URL + "/oauth2/token/api", queryString({
+        self.axiosRefresh = axios.post(options.SSO_URL + "/oauth2/token/api?v=" + rand(11111, 99999), queryString({
           refresh_token: refreshToken
         }), {
-          withCredentials: true
+          // 允許跨域
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
         }).then(function (response) {
-          // 刷新成功的回調函式
-          if (isFunction(successCallback)) {
-            successCallback(response);
-          }
+          self.axiosRefreshReadyState = response.request.readyState;
+          return response;
         })["catch"](function (error) {
-          // 刷新失敗的回調函式
-          if (isFunction(failCallback)) {
-            failCallback(error);
-          }
-        })["finally"](function (response) {// Always executed
+          return error;
         });
-        return self.jqXhrRefresh;
+        return self.axiosRefresh;
       }
       /**
        * 同步 Token 內容 - oAuth & 前端 - 定期執行
        *
        * - 向 oAuth Server 同步Token資訊
        * - 執行條件
-       *   - Cookie 中 tkchecksum 是否與LocalStorage中的 token_checksum 不一樣
-       *   - ajax未執行過或已執行完成
+       *  - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
+       *  - axios未執行過或已執行完成
        * - 多視窗時有可能同時執行，待觀察
        * - 執行錯誤時關閉自動同步3秒後重啟
        *
-       * @param {Number} interval - 多少個間隔，每個間為500毫秒
+       * @param {number} interval - 多少個間隔，每個間為500毫秒
        */
 
     }, {
@@ -5045,19 +5041,15 @@
 
         if (!self.intervalSync) {
           self.intervalSync = setInterval(function () {
-            // tkchecksum != token_checksum , ajax未執行過或已執行完成
-            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + "tkchecksum") != localStorage.getItem("token_checksum") && (self.jqXhrSync == null || self.jqXhrSync.readyState == 4)) {
-              var failCallback = function failCallback() {
+            // tkchecksum != token_checksum , axios未執行過或已執行完成
+            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + "tkchecksum") != localStorage.getItem("token_checksum") && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
+              self.sync()["catch"](function (error) {
                 // 執行錯誤時關閉自動同步3秒後重啟
                 self.autoSyncStop();
                 setTimeout(function () {
-                  self.autoSync();
+                  return self.autoSync();
                 }, 3000);
-              };
-
-              var successCallback = function successCallback() {};
-
-              self.sync(successCallback, failCallback);
+              });
             }
           }, interval);
         }
@@ -5075,7 +5067,7 @@
           // 停止定期執行
           clearInterval(self.intervalSync);
           self.intervalSync = null;
-          self.jqXhrSync = null;
+          self.axiosSync = null;
         }
       }
       /**
@@ -5083,19 +5075,27 @@
        *
        * - 向 oAuth Server 同步Token資訊
        * - 執行條件
-       *   - 即將過期
-       *   - ajax未執行過或已執行完成
+       *  - 即將過期
+       *  - axios未執行過或已執行完成
        * - 多視窗時有可能同時執行，待觀察
        * - 執行錯誤時關閉自動同步3秒後重啟
        *
-       * @param {Number} interval 多少秒
+       * @param {Number} interval - 多少秒
        */
 
     }, {
       key: "autoRefresh",
       value: function autoRefresh() {
         var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        var self = this; // 間隔秒數
+        var self = this; // 執行錯誤時關閉自動同步3秒後重啟
+
+        var refreshStop = function refreshStop() {
+          self.autoRefreshStop();
+          setTimeout(function () {
+            return self.autoRefresh();
+          }, 3000);
+        }; // 間隔秒數
+
 
         interval = interval * 1000 || self.TokenAutoRefreshInterval * 1000; // 定期執行
 
@@ -5105,31 +5105,21 @@
               // 現在時間
               var nowTime = parseInt(Date.now() / 1000),
                   // Token建立時間
-              createTime = parseInt(localStorage.getItem(self.TokenCreatetimeName)),
+              createTime = parseInt(localStorage.getItem(self.TokenCreateTimeName)),
                   // Token過期時間
               expireTime = parseInt(localStorage.getItem(self.TokenExpiredName)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
 
-              if (nowTime >= createTime + expireTime - self.TokenRefreshBefore && (self.jqXhrRefresh == null || self.jqXhrRefresh.readyState == 4)) {
-                var failCallback = function failCallback() {
+              if (nowTime >= createTime + expireTime - self.TokenRefreshBefore && (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)) {
+                self.refresh()["catch"](function (error) {
                   // 執行錯誤時關閉自動同步3秒後重啟
-                  self.autoRefreshStop();
-                  setTimeout(function () {
-                    self.autoRefresh();
-                  }, 3000);
-                };
-
-                var successCallback = function successCallback() {};
-
-                self.refresh(successCallback, failCallback);
+                  refreshStop();
+                });
               }
             } catch (e) {
               // 例外訊息
               console.log("[" + e.code + "] " + e.message); // 執行錯誤時關閉自動同步3秒後重啟
 
-              self.autoRefreshStop();
-              setTimeout(function () {
-                self.autoRefresh();
-              }, 3000);
+              refreshStop();
             }
           }, interval);
         }
@@ -5147,44 +5137,33 @@
           // 停止定期執行
           clearInterval(self.intervalRefresh);
           self.intervalRefresh = null;
-          self.jqXhrRefresh = null;
+          self.axiosRefresh = null;
         }
       }
       /**
        * 驗證Token
        *
        * @param {string} token - 本地端要被驗證的 Token
-       * @param {function} successCallback - 驗證成功的回調函式
-       * @param {function} failCallback - 驗證失敗的回調函式
-       * @returns {axios}
+       * @returns {Promise}
        */
 
     }, {
       key: "validate",
-      value: function validate(token, successCallback, failCallback) {
+      value: function validate(token) {
         var self = this;
         var options = this.options;
         var validateToken = token || ""; // 驗證金鑰是否正確
 
-        self.jqXhrValidate = axios.get(options.SSO_URL + "/api/oauth2/token", {
+        self.axiosValidate = axios.get(options.SSO_URL + "/api/oauth2/token", {
           headers: {
             Authorization: "Bearer " + validateToken
           },
+          // 允許跨域
           withCredentials: true
-        }).then(function (response) {
-          // 驗證成功的回調函式
-          if (isFunction(successCallback)) {
-            successCallback(response);
-          }
-        })["catch"](function (error) {
-          // 驗證失敗的回調函式
-          if (isFunction(failCallback)) {
-            failCallback(error);
-          }
-        })["finally"](function (res) {// Always executed
-        }); // 回傳 jqXHR
+        })["finally"](function (response) {// Always executed
+        }); // 回傳 axios
 
-        return self.jqXhrValidate;
+        return self.axiosValidate;
       }
       /**
        * 檢查-是否為登入狀態
