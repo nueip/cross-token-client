@@ -4827,11 +4827,46 @@
 
   var promise_prototype_finally = bound;
 
+  // Token
+  var ACCESS_TOKEN_NAME = "token_access_token"; // Refresh Token
+
+  var REFRESH_TOKEN_NAME = "token_refresh_token"; // Token 建立時間
+
+  var TOKEN_CREATE_TIME_NAME = "token_createtime"; // Token 過期時間
+
+  var TOKEN_EXPIRED_NAME = "token_expires_in"; // Token 過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
+
+  var TOKEN_REFRESH_BEFORE = parseInt(2000 + Math.random() * 300); // Token 過期 前 x 秒 時， 每 y 秒 更新一次 - y = 300
+
+  var TOKEN_AUTO_REFRESH_INTERVAL = 300; // 每 x 毫秒 檢查是否需與後端同步Token - x = 500
+
+  var TOKEN_AUTO_SYNC_INTERVAL = 500; // Token 授權類型
+
+  var TOKEN_TYPE = "token_type"; // Token 授權範圍
+
+  var TOKEN_SCOPE = "token_scope"; // Token 檢查總時數
+
+  var TOKEN_CHECK_SUM = "token_checksum";
+
+  /**
+   * 參數序列化
+   * 
+   * @param {Object} params - 參數物件
+   * @returns {string} 序列化字串
+   */
   function queryString(params) {
     return Object.keys(params).map(function (key) {
       return key + "=" + params[key];
     }).join("&");
   }
+  /**
+   * 亂數產生器
+   * 
+   * @param {number} min - 最小值
+   * @param {number} max - 最大值
+   * @returns {number} 產生的亂數值
+   */
+
   function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
@@ -4844,10 +4879,10 @@
   var promiseFinally = promise_prototype_finally;
   promiseFinally.shim(); // 初始預設值
 
-  var DEFAULTS = {
+  var DEFAULTS = Object.freeze({
     SSO_URL: "",
     COOKIE_DEFAULT_PREFIX: ""
-  };
+  });
 
   var TokenInjection = /*#__PURE__*/function () {
     /**
@@ -4865,23 +4900,10 @@
         return cookies.get(options.COOKIE_DEFAULT_PREFIX + "login") == "1";
       });
 
-      this.options = assignIn({}, DEFAULTS, isPlainObject(_options) && _options); // Token 變數名稱 - LocalStorage中
+      // 變更選項屬性
+      this.options = assignIn({}, DEFAULTS, isPlainObject(_options) && _options); // LocalStorage Token資料Key值
 
-      this.AccessTokenName = "token_access_token"; // Refresh Token 變數名稱 - LocalStorage中
-
-      this.RefreshTokenName = "token_refresh_token"; // Token建立時間 變數名稱 - LocalStorage中
-
-      this.TokenCreateTimeName = "token_create_time"; // Token過期時間 變數名稱 - LocalStorage中
-
-      this.TokenExpiredName = "token_expires_in"; // Token過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
-
-      this.TokenRefreshBefore = parseInt(2000 + Math.random() * 300); // Token過期 前x秒 時， 每y秒 更新一次 - y = 300
-
-      this.TokenAutoRefreshInterval = 300; // 每 x毫秒 檢查是否需與後端同步Token - x = 500
-
-      this.TokenAutoSyncInterval = 500; // LocalStorage Token資料Key值
-
-      this.TokenKeys = ["token_access_token", "token_expires_in", "token_type", "token_scope", "token_refresh_token", "token_checksum", "token_create_time"]; // Axios cache
+      this.TokenKeys = [ACCESS_TOKEN_NAME, TOKEN_EXPIRED_NAME, TOKEN_TYPE, TOKEN_SCOPE, REFRESH_TOKEN_NAME, TOKEN_CHECK_SUM, TOKEN_CREATE_TIME_NAME]; // Axios cache
 
       this.axiosSync = null;
       this.axiosRefresh = null;
@@ -4890,7 +4912,8 @@
       this.axiosRefreshReadyState = null; // Schedule cache
 
       this.intervalSync = null;
-      this.intervalRefresh = null;
+      this.intervalRefresh = null; // 初始化 TokenInjection 實例
+
       this.init();
     }
     /**
@@ -4974,15 +4997,15 @@
     }, {
       key: "getLocalStorageToken",
       value: function getLocalStorageToken() {
-        return localStorage.getItem(this.AccessTokenName);
+        return localStorage.getItem(ACCESS_TOKEN_NAME);
       }
       /**
        * 刷新 Token - oAuth & 前端 - 執行一次
        *
        * - 向 oAuth Server 執行 Refresh Token
        * - 執行條件
-       *  - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
-       *  - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
+       * - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
+       * - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
        *
        * @throws 沒有 Refresh Token 時丟出例外
        * @returns {Promise}
@@ -4994,7 +5017,7 @@
         var self = this;
         var options = this.options; // Refresh Token 值
 
-        var refreshToken = localStorage.getItem(self.RefreshTokenName); // 金鑰不存在時丟出例外
+        var refreshToken = localStorage.getItem(REFRESH_TOKEN_NAME); // 金鑰不存在時丟出例外
 
         if (!refreshToken) {
           throw self.exception("Need Refresh Token !", 401);
@@ -5022,8 +5045,8 @@
        *
        * - 向 oAuth Server 同步Token資訊
        * - 執行條件
-       *  - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
-       *  - axios未執行過或已執行完成
+       * - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
+       * - axios未執行過或已執行完成
        * - 多視窗時有可能同時執行，待觀察
        * - 執行錯誤時關閉自動同步3秒後重啟
        *
@@ -5037,7 +5060,7 @@
         var self = this;
         var options = this.options; // 間隔毫秒數
 
-        interval = interval * 500 || self.TokenAutoSyncInterval; // 定期執行
+        interval = interval * 500 || TOKEN_AUTO_SYNC_INTERVAL; // 定期執行
 
         if (!self.intervalSync) {
           self.intervalSync = setInterval(function () {
@@ -5075,8 +5098,8 @@
        *
        * - 向 oAuth Server 同步Token資訊
        * - 執行條件
-       *  - 即將過期
-       *  - axios未執行過或已執行完成
+       * - 即將過期
+       * - axios未執行過或已執行完成
        * - 多視窗時有可能同時執行，待觀察
        * - 執行錯誤時關閉自動同步3秒後重啟
        *
@@ -5097,7 +5120,7 @@
         }; // 間隔秒數
 
 
-        interval = interval * 1000 || self.TokenAutoRefreshInterval * 1000; // 定期執行
+        interval = interval * 1000 || TOKEN_AUTO_REFRESH_INTERVAL * 1000; // 定期執行
 
         if (!self.intervalRefresh) {
           self.intervalRefresh = setInterval(function () {
@@ -5105,11 +5128,11 @@
               // 現在時間
               var nowTime = parseInt(Date.now() / 1000),
                   // Token建立時間
-              createTime = parseInt(localStorage.getItem(self.TokenCreateTimeName)),
+              createTime = parseInt(localStorage.getItem(TOKEN_CREATE_TIME_NAME)),
                   // Token過期時間
-              expireTime = parseInt(localStorage.getItem(self.TokenExpiredName)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
+              expireTime = parseInt(localStorage.getItem(TOKEN_EXPIRED_NAME)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
 
-              if (nowTime >= createTime + expireTime - self.TokenRefreshBefore && (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)) {
+              if (nowTime >= createTime + expireTime - TOKEN_REFRESH_BEFORE && (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)) {
                 self.refresh()["catch"](function (error) {
                   // 執行錯誤時關閉自動同步3秒後重啟
                   refreshStop();
@@ -5160,7 +5183,11 @@
           },
           // 允許跨域
           withCredentials: true
-        })["finally"](function (response) {// Always executed
+        }).then(function (response) {
+          return response;
+        })["catch"](function (error) {
+          return error;
+        })["finally"](function () {// Always executed
         }); // 回傳 axios
 
         return self.axiosValidate;

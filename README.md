@@ -7,8 +7,9 @@ dist/
 ├── token-injection-SDK.umd.js (UMD)
 └── token-injection-SDK.umd.min.js (UMD, compressed)
 src/
-├── token-injection.js
-└── lib.js
+├── constant.js
+├── lib.js
+└── token-injection.js
 ```
 
 # 依賴
@@ -20,7 +21,7 @@ src/
 - **js-cookie**
 - **promise.prototype.finally**
 
-Note: 依賴套件已打包進 `token-injection-SDK.umd.js` | `token-injection-SDK.umd.min.js`
+Note: 依賴套件已打包封裝，不需再外部引用
 
 # 使用說明
 
@@ -43,21 +44,14 @@ var tokenInjection = new TokenInjection(options);
   - 參考 [options](#options).
 
 ## 範例
+#### 以 jQuery 方法示例
 
 ```js
-// SSO 伺服器
-var SSO_URL =
-  system_meta && system_meta.sso.url
-    ? system_meta.sso.url.replace(/\/$/, "")
-    : "";
-// Cookie前綴
-var COOKIE_DEFAULT_PREFIX =
-  system_meta && system_meta.cookie.prefix ? system_meta.cookie.prefix : "";
 
 // 實體化 TokenInjection
 var tokenInjection = new TokenInjection({
-  SSO_URL: SSO_URL,
-  COOKIE_DEFAULT_PREFIX: COOKIE_DEFAULT_PREFIX,
+  SSO_URL: 'Your sso server url',
+  COOKIE_DEFAULT_PREFIX: 'Your cookie prefix',
 });
 
 $(document).ready(function () {
@@ -111,22 +105,15 @@ $(document).ready(function () {
  */
 function validate() {
   // 清除Token驗證狀態
-  $("#token-status").text("");
+  $('#token-status').text('');
 
-  tokenInjection
-    .validate($("#token").val())
-    .then(function (res) {
-      // 驗證成功的回呼函式
-      $("#token-status")
-        .html("Success: " + res.data)
-        .css({ color: "blue" });
-    })
-    .catch(function (err) {
-      // 驗證失敗的回呼函式
-      $("#token-status")
-        .html("Error: " + err)
-        .css({ color: "red" });
-    });
+  tokenInjection.validate($('#token').val()).then(function(res){
+    $('#token-status').html('Success: ' + res.data).css({color:'blue'});
+  }).catch(function(error){
+    $('#token-status').html('Error: ' + error).css({color:'red'});
+  }).finally(function(){
+    console.log('Always executed');
+  });
 }
 ```
 
@@ -136,13 +123,13 @@ function validate() {
 
 - Type: `String`
 - Default: `null`
-- note: SSO 伺服器
+- note: SSO 伺服器 URL
 
 ### COOKIE_DEFAULT_PREFIX
 
 - Type: `String`
 - Default: `null`
-- note: Cookie 前綴，正式環境: 空字串； 測試環境：'dev\_'
+- note: Cookie 自定義前綴字串
 
 # Methods
 
@@ -152,10 +139,7 @@ function validate() {
 
 - 向 oAuth Server 同步 Token 資訊
 - 同步錯誤時，檢查是否為登入狀態，否時刪除 Token
-
-### @returns
-
-- **Promise**
+- 回傳 Promise 方法
 
 ## autoSync(interval)
 
@@ -164,19 +148,16 @@ function validate() {
 - 向 oAuth Server 同步 Token 資訊
 - 執行條件
   - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
-  - ajax 未執行過或已執行完成
+  - API 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 執行錯誤時關閉自動同步 3 秒後重啟
-
-### @param
-
-- **interval**
+- 參數
   - Type: `Number`
   - Note: 多少個間隔，每個間為 500 毫秒
 
 ## autoSyncStop()
 
-停止 自動同步 Token 內容
+停止自動同步 Token 內容
 
 ## refresh()
 
@@ -184,16 +165,11 @@ function validate() {
 
 - 向 oAuth Server 執行 Refresh Token
 - 執行條件
-  - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
-  - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
-
-### @throws
-
-- 沒有 Refresh Token 時丟出例外
-
-### @returns
-
-- **Promise**
+  - 必需有 refresh_token 金鑰：localStorage.token_refresh_token
+  - 當現在時間超過到期時間 - TokenRefreshBefore 時觸發更新 token
+- 例外處理
+  - 沒有 Refresh Token 時丟出
+- 回傳 Promise 方法
 
 ## autoRefresh(interval)
 
@@ -205,40 +181,28 @@ function validate() {
   - ajax 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 執行錯誤時關閉自動同步 3 秒後重啟
-
-### @param
-
-- **interval**
+- 參數
   - Type: `Number`
-  - Note: 多少秒
+  - Note: 多少個間隔，每個間為 500 毫秒
 
 ## autoRefreshStop
 
-停止 自動刷新 Token
+停止自動刷新 Token
 
 ## getLocalStorageToken()
 
 取得 Local Storage Token
-
-### @return
-
-- **token**
+- 回傳
   - Type: `String`
-  - Note: Local Storage 的 Token
+  - Local Storage 中的 Token
 
-## validate( token )
+## validate(token)
 
 驗證 Token
-
-### @params
-
-- **token**
+- 參數
   - Type: `String`
-  - Note: 本地端要被驗證的 Token
-
-### @returns
-
-- **Promise**
+  - 本地端要被驗證的 Token
+- 回傳 Promise 方法  
 
 ## loginIAM()
 
@@ -255,8 +219,6 @@ function validate() {
 - ### Firefox (latest)
 
 - ### Safari (latest)
-
-- ### Opera (latest)
 
 - ### Edge (latest)
 
