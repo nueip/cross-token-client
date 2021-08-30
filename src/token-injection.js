@@ -12,15 +12,17 @@ const forEach = require("lodash/forEach");
 const cookies = require("js-cookie");
 const axios = require("axios").default;
 const promiseFinally = require("promise.prototype.finally");
+
+import * as TC from "./constant.js";
 import { queryString, rand } from "./lib.js";
 
 promiseFinally.shim();
 
 // 初始預設值
-const DEFAULTS = {
+const DEFAULTS = Object.freeze({
     SSO_URL: "",
     COOKIE_DEFAULT_PREFIX: "",
-};
+});
 
 class TokenInjection {
     /**
@@ -29,38 +31,18 @@ class TokenInjection {
      * @param {object} options
      */
     constructor(options = {}) {
+        // 變更選項屬性
         this.options = assignIn({}, DEFAULTS, isPlainObject(options) && options);
-
-        // Token 變數名稱 - LocalStorage中
-        this.AccessTokenName = "token_access_token";
-
-        // Refresh Token 變數名稱 - LocalStorage中
-        this.RefreshTokenName = "token_refresh_token";
-
-        // Token建立時間 變數名稱 - LocalStorage中
-        this.TokenCreateTimeName = "token_create_time";
-
-        // Token過期時間 變數名稱 - LocalStorage中
-        this.TokenExpiredName = "token_expires_in";
-
-        // Token過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
-        this.TokenRefreshBefore = parseInt(2000 + Math.random() * 300);
-
-        // Token過期 前x秒 時， 每y秒 更新一次 - y = 300
-        this.TokenAutoRefreshInterval = 300;
-
-        // 每 x毫秒 檢查是否需與後端同步Token - x = 500
-        this.TokenAutoSyncInterval = 500;
 
         // LocalStorage Token資料Key值
         this.TokenKeys = [
-            "token_access_token",
-            "token_expires_in",
-            "token_type",
-            "token_scope",
-            "token_refresh_token",
-            "token_checksum",
-            "token_create_time",
+            TC.ACCESS_TOKEN_NAME,
+            TC.TOKEN_EXPIRED_NAME,
+            TC.TOKEN_TYPE,
+            TC.TOKEN_SCOPE,
+            TC.REFRESH_TOKEN_NAME,
+            TC.TOKEN_CHECK_SUM,
+            TC.TOKEN_CREATE_TIME_NAME,
         ];
 
         // Axios cache
@@ -74,6 +56,7 @@ class TokenInjection {
         this.intervalSync = null;
         this.intervalRefresh = null;
 
+        // 初始化 TokenInjection 實例
         this.init();
     }
 
@@ -155,7 +138,7 @@ class TokenInjection {
      * @returns {String} Access Token
      */
     getLocalStorageToken() {
-        return localStorage.getItem(this.AccessTokenName);
+        return localStorage.getItem(TC.ACCESS_TOKEN_NAME);
     }
 
     /**
@@ -163,8 +146,8 @@ class TokenInjection {
      *
      * - 向 oAuth Server 執行 Refresh Token
      * - 執行條件
-     *  - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
-     *  - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
+     * - 必需有 refresh_token 金鑰: localStorage.token_refresh_token
+     * - 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 token
      *
      * @throws 沒有 Refresh Token 時丟出例外
      * @returns {Promise}
@@ -174,7 +157,7 @@ class TokenInjection {
         const { options } = this;
 
         // Refresh Token 值
-        const refreshToken = localStorage.getItem(self.RefreshTokenName);
+        const refreshToken = localStorage.getItem(TC.REFRESH_TOKEN_NAME);
 
         // 金鑰不存在時丟出例外
         if (!refreshToken) {
@@ -209,8 +192,8 @@ class TokenInjection {
      *
      * - 向 oAuth Server 同步Token資訊
      * - 執行條件
-     *  - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
-     *  - axios未執行過或已執行完成
+     * - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
+     * - axios未執行過或已執行完成
      * - 多視窗時有可能同時執行，待觀察
      * - 執行錯誤時關閉自動同步3秒後重啟
      *
@@ -221,7 +204,7 @@ class TokenInjection {
         const { options } = this;
 
         // 間隔毫秒數
-        interval = interval * 500 || self.TokenAutoSyncInterval;
+        interval = interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL;
 
         // 定期執行
         if (!self.intervalSync) {
@@ -261,8 +244,8 @@ class TokenInjection {
      *
      * - 向 oAuth Server 同步Token資訊
      * - 執行條件
-     *  - 即將過期
-     *  - axios未執行過或已執行完成
+     * - 即將過期
+     * - axios未執行過或已執行完成
      * - 多視窗時有可能同時執行，待觀察
      * - 執行錯誤時關閉自動同步3秒後重啟
      *
@@ -278,7 +261,7 @@ class TokenInjection {
         };
 
         // 間隔秒數
-        interval = interval * 1000 || self.TokenAutoRefreshInterval * 1000;
+        interval = interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000;
 
         // 定期執行
         if (!self.intervalRefresh) {
@@ -288,14 +271,14 @@ class TokenInjection {
                     const nowTime = parseInt(Date.now() / 1000),
                         // Token建立時間
                         createTime = parseInt(
-                            localStorage.getItem(self.TokenCreateTimeName)
+                            localStorage.getItem(TC.TOKEN_CREATE_TIME_NAME)
                         ),
                         // Token過期時間
-                        expireTime = parseInt(localStorage.getItem(self.TokenExpiredName));
+                        expireTime = parseInt(localStorage.getItem(TC.TOKEN_EXPIRED_NAME));
 
                     // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
                     if (
-                        nowTime >= createTime + expireTime - self.TokenRefreshBefore &&
+                        nowTime >= createTime + expireTime - TC.TOKEN_REFRESH_BEFORE &&
                         (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)
                     ) {
                         self.refresh().catch((error) => {
@@ -348,7 +331,13 @@ class TokenInjection {
                 // 允許跨域
                 withCredentials: true,
             })
-            .finally((response) => {
+            .then((response) => {
+                return response;
+            })
+            .catch((error) => {
+                return error;
+            })
+            .finally(() => {
                 // Always executed
             });
 
