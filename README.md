@@ -12,7 +12,7 @@ src/
 └── token-injection.js
 ```
 
-# 依賴
+# 依賴 & 注意事項
 
 - **axios**
 - **lodash/isPlainObject**
@@ -21,7 +21,10 @@ src/
 - **js-cookie**
 - **promise.prototype.finally**
 
-Note: 依賴套件已打包封裝，不需再外部引用
+注意事項：
+- 依賴套件已打包封裝，無需再外部引用
+- API 採用 Axios 技術
+- Axios 支援 finally，引用 promise.prototype.finally 方法
 
 # 使用說明
 
@@ -44,7 +47,7 @@ var tokenInjection = new TokenInjection(options);
   - 參考 [options](#options).
 
 ## 範例
-#### 以 jQuery 方法示例
+#### jQuery 方法示例
 
 ```js
 
@@ -135,82 +138,78 @@ function validate() {
 
 ## sync()
 
-同步 Token 內容 - oAuth & 前端 - 執行一次
+- return
+  - Promise 方法
 
-- 向 oAuth Server 同步 Token 資訊
-- 同步錯誤時，檢查是否為登入狀態，否時刪除 Token
-- 回傳 Promise 方法
+- 執行一次，向 oAuth Server 同步 Token 資訊，同步錯誤時，檢查是否為登入狀態，否時刪除 Token
 
 ## autoSync(interval)
 
-同步 Token 內容 - oAuth & 前端 - 定期執行
-
-- 向 oAuth Server 同步 Token 資訊
+- interval
+  - Type: `Number`
+  - Note: 多少個間隔，每個間為 500 毫秒
+- 定期執行，向 oAuth Server 同步 Token 資訊
 - 執行條件
   - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
   - API 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 執行錯誤時關閉自動同步 3 秒後重啟
-- 參數
-  - Type: `Number`
-  - Note: 多少個間隔，每個間為 500 毫秒
+
 
 ## autoSyncStop()
 
-停止自動同步 Token 內容
+- 停止自動同步 Token 內容
 
 ## refresh()
 
-刷新 Token - oAuth & 前端 - 執行一次
-
-- 向 oAuth Server 執行 Refresh Token
+- return
+  - Promise 方法
+- throw
+  - 沒有 Refresh Token 時丟出
+- 執行一次，向 oAuth Server 執行 Refresh Token
 - 執行條件
   - 必需有 refresh_token 金鑰：localStorage.token_refresh_token
   - 當現在時間超過到期時間 - TokenRefreshBefore 時觸發更新 token
-- 例外處理
-  - 沒有 Refresh Token 時丟出
-- 回傳 Promise 方法
 
 ## autoRefresh(interval)
 
-刷新 Token - oAuth & 前端 - 定期執行
-
-- 向 oAuth Server 同步 Token 資訊
-- 執行條件
-  - 即將過期
-  - ajax 未執行過或已執行完成
-- 多視窗時有可能同時執行，待觀察
-- 執行錯誤時關閉自動同步 3 秒後重啟
-- 參數
+- interval
   - Type: `Number`
   - Note: 多少個間隔，每個間為 500 毫秒
+- 定期執行，向 oAuth Server 同步 Token 資訊
+- 執行條件
+  - 即將過期
+  - axios 未執行過或已執行完成
+- 多視窗時有可能同時執行，待觀察
+- 執行錯誤時關閉自動同步 3 秒後重啟
 
 ## autoRefreshStop
 
-停止自動刷新 Token
+- 停止自動刷新 Token
 
 ## getLocalStorageToken()
-
-取得 Local Storage Token
-- 回傳
+- return
   - Type: `String`
   - Local Storage 中的 Token
+- 取得 Local Storage Token
+
 
 ## validate(token)
 
 驗證 Token
-- 參數
+- token
   - Type: `String`
   - 本地端要被驗證的 Token
-- 回傳 Promise 方法  
+- return
+  - Promise 方法 
 
 ## loginIAM()
 
-開啟登入頁面
+- 開啟 IAM 登入頁面，另開新視窗
 
 ## logoutIAM()
 
-開啟登出頁面
+- 開啟 IAM 登出頁面
 
 # 瀏覽器支援
 
