@@ -350,7 +350,7 @@ class TokenInjection {
      *
      * @returns {boolean}
      */
-    isLogin = function() {
+    isLogin() {
         const { options } = this;
         return cookies.get(options.COOKIE_DEFAULT_PREFIX + "login") == "1";
     };
