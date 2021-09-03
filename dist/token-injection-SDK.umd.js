@@ -26,21 +26,6 @@
     return Constructor;
   }
 
-  function _defineProperty$1(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   /** Detect free variable `global` from Node.js. */
@@ -4891,17 +4876,12 @@
      * @param {object} options
      */
     function TokenInjection() {
-      var _options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       _classCallCheck(this, TokenInjection);
 
-      _defineProperty$1(this, "isLogin", function () {
-        var options = this.options;
-        return cookies.get(options.COOKIE_DEFAULT_PREFIX + "login") == "1";
-      });
-
       // 變更選項屬性
-      this.options = assignIn({}, DEFAULTS, isPlainObject(_options) && _options); // LocalStorage Token資料Key值
+      this.options = assignIn({}, DEFAULTS, isPlainObject(options) && options); // LocalStorage Token資料Key值
 
       this.TokenKeys = [ACCESS_TOKEN_NAME, TOKEN_EXPIRED_NAME, TOKEN_TYPE, TOKEN_SCOPE, REFRESH_TOKEN_NAME, TOKEN_CHECK_SUM, TOKEN_CREATE_TIME_NAME]; // Axios cache
 
@@ -5198,6 +5178,12 @@
        * @returns {boolean}
        */
 
+    }, {
+      key: "isLogin",
+      value: function isLogin() {
+        var options = this.options;
+        return cookies.get(options.COOKIE_DEFAULT_PREFIX + "login") == "1";
+      }
     }, {
       key: "exception",
       value:
