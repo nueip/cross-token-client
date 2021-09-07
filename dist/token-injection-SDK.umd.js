@@ -5045,7 +5045,7 @@
         if (!self.intervalSync) {
           self.intervalSync = setInterval(function () {
             // tkchecksum != token_checksum , axios未執行過或已執行完成
-            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + "tkchecksum") != localStorage.getItem("token_checksum") && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
+            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + "tkchecksum") !== localStorage.getItem("token_checksum") && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
               self.sync()["catch"](function (error) {
                 // 執行錯誤時關閉自動同步3秒後重啟
                 self.autoSyncStop();
