@@ -14,6 +14,7 @@ src/
 
 # 依賴 & 注意事項
 
+依賴：
 - **axios**
 - **lodash/isPlainObject**
 - **lodash/assignIn**
@@ -26,13 +27,23 @@ src/
 - API 採用 Axios 技術
 - Axios 支援 finally，引用 promise.prototype.finally 方法
 
+# 跨域信任域名
+
+- `nueip.com`
+- `nueip.dev`
+
 # 使用說明
 
 ## 安裝
 
+Script tag
 ```html
-<!-- CDN引入 -->
-<script src="token-injection-SDK.umd.min.js"></script>
+<script src="your-path/token-injection-SDK.umd.min.js"></script>
+```
+
+npm
+```bash
+npm i @nueip/cross-token-client
 ```
 
 ## 用法
@@ -44,7 +55,7 @@ var tokenInjection = new TokenInjection(options);
 
 - **options**
   - Type: `Object`
-  - 參考 [options](#options).
+  - 參考 [options](#options)
 
 ## 範例
 #### jQuery 方法示例
