@@ -15,6 +15,7 @@ src/
 # 依賴 & 注意事項
 
 依賴：
+
 - **axios**
 - **lodash/isPlainObject**
 - **lodash/assignIn**
@@ -23,6 +24,7 @@ src/
 - **promise.prototype.finally**
 
 注意事項：
+
 - 依賴套件已打包封裝，無需再外部引用
 - API 採用 Axios 技術
 - Axios 支援 finally，引用 promise.prototype.finally 方法
@@ -37,11 +39,13 @@ src/
 ## 安裝
 
 Script tag
+
 ```html
 <script src="your-path/token-injection-SDK.umd.min.js"></script>
 ```
 
 npm
+
 ```bash
 npm i @nueip/cross-token-client
 ```
@@ -58,76 +62,84 @@ var tokenInjection = new TokenInjection(options);
   - 參考 [options](#options)
 
 ## 範例
-#### jQuery 方法示例
+
+#### 方法示例
 
 ```js
-
 // 實體化 TokenInjection
 var tokenInjection = new TokenInjection({
-  SSO_URL: 'Your sso server url',
-  COOKIE_DEFAULT_PREFIX: 'Your cookie prefix',
-});
-
-$(document).ready(function () {
-  // 綁定登入頁面事件
-  $("#login").on("click", function () {
-    tokenInjection.loginIAM();
-  });
-
-  // 綁定登出頁面事件
-  $("#logout").on("click", function () {
-    tokenInjection.logoutIAM();
-  });
-
-  // 綁定驗證事件
-  $("#validte").on("click", function () {
-    // 驗證Token
-    validate();
-  });
-
-  // 綁定取得Token事件
-  var ScheduleEvent = 1;
-  $("#tokenSync").on("click", function () {
-    // 取得Token資料
-
-    if (ScheduleEvent == null) {
-      // 開啟自動同步
-      ScheduleEvent = 1;
-      tokenInjection.autoSync();
-      $(this).val("tokenSync On");
-    } else {
-      // 關閉自動同步
-      ScheduleEvent = null;
-      tokenInjection.autoSyncStop();
-      $(this).val("tokenSync Off");
-    }
-  });
-
-  // 綁定更新Token事件
-  $("#refresh").on("click", function () {
-    try {
-      // 更新Token資料
-      tokenInjection.refresh();
-    } catch (e) {
-      console.log("[" + e.code + "] " + e.message);
-    }
-  });
+  SSO_URL: "Your sso server url",
+  COOKIE_DEFAULT_PREFIX: "Your cookie prefix",
 });
 
 /**
- * 驗證Token
+ * 登入頁面
+ */
+function loginIAM() {
+  tokenInjection.loginIAM();
+}
+
+/**
+ * 登出頁面
+ */
+function logoutIAM() {
+  tokenInjection.logoutIAM();
+}
+
+/**
+ * 驗證 Token
  */
 function validate() {
-  // 清除Token驗證狀態
-  $('#token-status').text('');
+  // 取得本地 local storage 的 token
+  var localToken = tokenInjection.getLocalStorageToken();
 
-  tokenInjection.validate($('#token').val()).then(function(res){
-    $('#token-status').html('Success: ' + res.data).css({color:'blue'});
-  }).catch(function(error){
-    $('#token-status').html('Error: ' + error).css({color:'red'});
-  }).finally(function(){
-    console.log('Always executed');
-  });
+  // 持此 token 進行驗證
+  tokenInjection
+    .validate(localToken)
+    .then(function (res) {
+      // 驗證成功
+      console.log("Success: " + res.data);
+    })
+    .catch(function (error) {
+      // 驗證失敗
+      console.log("Error: " + error);
+    })
+    .finally(function () {
+      console.log("Always executed");
+    });
+}
+
+/**
+ * 取得 Token
+ *
+ * @param ScheduleEvent - flag, 是否開啟同步
+ */
+function tokenSync(ScheduleEvent = 1) {
+  // 取得Token資料
+
+  if (ScheduleEvent == null) {
+    // 開啟自動同步
+    ScheduleEvent = 1;
+    tokenInjection.autoSync();
+    console.log("tokenSync On");
+  } else {
+    // 關閉自動同步
+    ScheduleEvent = null;
+    tokenInjection.autoSyncStop();
+    console.log("tokenSync Off");
+  }
+}
+
+/**
+ * 更新 Token
+ */
+function refresh() {
+  try {
+    // 更新Token資料
+    tokenInjection.refresh();
+  } catch (e) {
+    console.log("[" + e.code + "] " + e.message);
+  }
 }
 ```
 
@@ -150,6 +162,7 @@ function validate() {
 ## sync()
 
 - return
+
   - Promise 方法
 
 - 執行一次，向 oAuth Server 同步 Token 資訊，同步錯誤時，檢查是否為登入狀態，否時刪除 Token
@@ -165,7 +178,6 @@ function validate() {
   - API 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 執行錯誤時關閉自動同步 3 秒後重啟
-
 
 ## autoSyncStop()
 
@@ -199,20 +211,21 @@ function validate() {
 - 停止自動刷新 Token
 
 ## getLocalStorageToken()
+
 - return
   - Type: `String`
   - Local Storage 中的 Token
 - 取得 Local Storage Token
 
-
 ## validate(token)
 
 驗證 Token
+
 - token
   - Type: `String`
   - 本地端要被驗證的 Token
 - return
-  - Promise 方法 
+  - Promise 方法
 
 ## loginIAM()
 
