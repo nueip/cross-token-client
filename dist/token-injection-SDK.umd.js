@@ -140,7 +140,7 @@
    * @param {*} value The value to query.
    * @returns {string} Returns the `toStringTag`.
    */
-  function baseGetTag$4(value) {
+  function baseGetTag$6(value) {
     if (value == null) {
       return value === undefined ? undefinedTag : nullTag;
     }
@@ -149,7 +149,7 @@
       : objectToString(value);
   }
 
-  var _baseGetTag = baseGetTag$4;
+  var _baseGetTag = baseGetTag$6;
 
   /**
    * Checks if `value` is the
@@ -177,15 +177,15 @@
    * // => false
    */
 
-  function isObject$5(value) {
+  function isObject$6(value) {
     var type = typeof value;
     return value != null && (type == 'object' || type == 'function');
   }
 
-  var isObject_1 = isObject$5;
+  var isObject_1 = isObject$6;
 
-  var baseGetTag$3 = _baseGetTag,
-      isObject$4 = isObject_1;
+  var baseGetTag$5 = _baseGetTag,
+      isObject$5 = isObject_1;
 
   /** `Object#toString` result references. */
   var asyncTag = '[object AsyncFunction]',
@@ -211,12 +211,12 @@
    * // => false
    */
   function isFunction$4(value) {
-    if (!isObject$4(value)) {
+    if (!isObject$5(value)) {
       return false;
     }
     // The use of `Object#toString` avoids issues with the `typeof` operator
     // in Safari 9 which returns 'object' for typed arrays and other constructors.
-    var tag = baseGetTag$3(value);
+    var tag = baseGetTag$5(value);
     return tag == funcTag$1 || tag == genTag || tag == asyncTag || tag == proxyTag;
   }
 
@@ -280,7 +280,7 @@
 
   var isFunction$3 = isFunction_1,
       isMasked = _isMasked,
-      isObject$3 = isObject_1,
+      isObject$4 = isObject_1,
       toSource = _toSource;
 
   /**
@@ -317,7 +317,7 @@
    *  else `false`.
    */
   function baseIsNative$1(value) {
-    if (!isObject$3(value) || isMasked(value)) {
+    if (!isObject$4(value) || isMasked(value)) {
       return false;
     }
     var pattern = isFunction$3(value) ? reIsNative : reIsHostCtor;
@@ -555,7 +555,7 @@
   var apply = _apply;
 
   /* Built-in method references for those with the same name as other `lodash` methods. */
-  var nativeMax = Math.max;
+  var nativeMax$1 = Math.max;
 
   /**
    * A specialized version of `baseRest` which transforms the rest array.
@@ -567,11 +567,11 @@
    * @returns {Function} Returns the new function.
    */
   function overRest$1(func, start, transform) {
-    start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
+    start = nativeMax$1(start === undefined ? (func.length - 1) : start, 0);
     return function() {
       var args = arguments,
           index = -1,
-          length = nativeMax(args.length - start, 0),
+          length = nativeMax$1(args.length - start, 0),
           array = Array(length);
 
       while (++index < length) {
@@ -777,11 +777,11 @@
    * _.isArrayLike(_.noop);
    * // => false
    */
-  function isArrayLike$4(value) {
+  function isArrayLike$5(value) {
     return value != null && isLength$1(value.length) && !isFunction$2(value);
   }
 
-  var isArrayLike_1 = isArrayLike$4;
+  var isArrayLike_1 = isArrayLike$5;
 
   /** Used as references for various `Number` constants. */
 
@@ -811,9 +811,9 @@
   var _isIndex = isIndex$2;
 
   var eq = eq_1,
-      isArrayLike$3 = isArrayLike_1,
+      isArrayLike$4 = isArrayLike_1,
       isIndex$1 = _isIndex,
-      isObject$2 = isObject_1;
+      isObject$3 = isObject_1;
 
   /**
    * Checks if the given arguments are from an iteratee call.
@@ -826,12 +826,12 @@
    *  else `false`.
    */
   function isIterateeCall$1(value, index, object) {
-    if (!isObject$2(object)) {
+    if (!isObject$3(object)) {
       return false;
     }
     var type = typeof index;
     if (type == 'number'
-          ? (isArrayLike$3(object) && isIndex$1(index, object.length))
+          ? (isArrayLike$4(object) && isIndex$1(index, object.length))
           : (type == 'string' && index in object)
         ) {
       return eq(object[index], value);
@@ -926,14 +926,14 @@
    * // => false
    */
 
-  function isObjectLike$4(value) {
+  function isObjectLike$6(value) {
     return value != null && typeof value == 'object';
   }
 
-  var isObjectLike_1 = isObjectLike$4;
+  var isObjectLike_1 = isObjectLike$6;
 
-  var baseGetTag$2 = _baseGetTag,
-      isObjectLike$3 = isObjectLike_1;
+  var baseGetTag$4 = _baseGetTag,
+      isObjectLike$5 = isObjectLike_1;
 
   /** `Object#toString` result references. */
   var argsTag$1 = '[object Arguments]';
@@ -946,13 +946,13 @@
    * @returns {boolean} Returns `true` if `value` is an `arguments` object,
    */
   function baseIsArguments$1(value) {
-    return isObjectLike$3(value) && baseGetTag$2(value) == argsTag$1;
+    return isObjectLike$5(value) && baseGetTag$4(value) == argsTag$1;
   }
 
   var _baseIsArguments = baseIsArguments$1;
 
   var baseIsArguments = _baseIsArguments,
-      isObjectLike$2 = isObjectLike_1;
+      isObjectLike$4 = isObjectLike_1;
 
   /** Used for built-in method references. */
   var objectProto$5 = Object.prototype;
@@ -982,7 +982,7 @@
    * // => false
    */
   var isArguments$2 = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
-    return isObjectLike$2(value) && hasOwnProperty$4.call(value, 'callee') &&
+    return isObjectLike$4(value) && hasOwnProperty$4.call(value, 'callee') &&
       !propertyIsEnumerable.call(value, 'callee');
   };
 
@@ -1012,9 +1012,9 @@
    * // => false
    */
 
-  var isArray$3 = Array.isArray;
+  var isArray$4 = Array.isArray;
 
-  var isArray_1 = isArray$3;
+  var isArray_1 = isArray$4;
 
   var isBuffer$2 = {exports: {}};
 
@@ -1079,9 +1079,9 @@
   module.exports = isBuffer;
   }(isBuffer$2, isBuffer$2.exports));
 
-  var baseGetTag$1 = _baseGetTag,
+  var baseGetTag$3 = _baseGetTag,
       isLength = isLength_1,
-      isObjectLike$1 = isObjectLike_1;
+      isObjectLike$3 = isObjectLike_1;
 
   /** `Object#toString` result references. */
   var argsTag = '[object Arguments]',
@@ -1095,7 +1095,7 @@
       objectTag$1 = '[object Object]',
       regexpTag = '[object RegExp]',
       setTag = '[object Set]',
-      stringTag = '[object String]',
+      stringTag$1 = '[object String]',
       weakMapTag = '[object WeakMap]';
 
   var arrayBufferTag = '[object ArrayBuffer]',
@@ -1123,7 +1123,7 @@
   typedArrayTags[errorTag] = typedArrayTags[funcTag] =
   typedArrayTags[mapTag] = typedArrayTags[numberTag] =
   typedArrayTags[objectTag$1] = typedArrayTags[regexpTag] =
-  typedArrayTags[setTag] = typedArrayTags[stringTag] =
+  typedArrayTags[setTag] = typedArrayTags[stringTag$1] =
   typedArrayTags[weakMapTag] = false;
 
   /**
@@ -1134,8 +1134,8 @@
    * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
    */
   function baseIsTypedArray$1(value) {
-    return isObjectLike$1(value) &&
-      isLength(value.length) && !!typedArrayTags[baseGetTag$1(value)];
+    return isObjectLike$3(value) &&
+      isLength(value.length) && !!typedArrayTags[baseGetTag$3(value)];
   }
 
   var _baseIsTypedArray = baseIsTypedArray$1;
@@ -1221,7 +1221,7 @@
 
   var baseTimes = _baseTimes,
       isArguments$1 = isArguments_1,
-      isArray$2 = isArray_1,
+      isArray$3 = isArray_1,
       isBuffer$1 = isBuffer$2.exports,
       isIndex = _isIndex,
       isTypedArray = isTypedArray_1;
@@ -1241,7 +1241,7 @@
    * @returns {Array} Returns the array of property names.
    */
   function arrayLikeKeys$2(value, inherited) {
-    var isArr = isArray$2(value),
+    var isArr = isArray$3(value),
         isArg = !isArr && isArguments$1(value),
         isBuff = !isArr && !isArg && isBuffer$1(value),
         isType = !isArr && !isArg && !isBuff && isTypedArray(value),
@@ -1311,7 +1311,7 @@
 
   var _nativeKeysIn = nativeKeysIn$1;
 
-  var isObject$1 = isObject_1,
+  var isObject$2 = isObject_1,
       isPrototype$1 = _isPrototype,
       nativeKeysIn = _nativeKeysIn;
 
@@ -1329,7 +1329,7 @@
    * @returns {Array} Returns the array of property names.
    */
   function baseKeysIn$1(object) {
-    if (!isObject$1(object)) {
+    if (!isObject$2(object)) {
       return nativeKeysIn(object);
     }
     var isProto = isPrototype$1(object),
@@ -1347,7 +1347,7 @@
 
   var arrayLikeKeys$1 = _arrayLikeKeys,
       baseKeysIn = _baseKeysIn,
-      isArrayLike$2 = isArrayLike_1;
+      isArrayLike$3 = isArrayLike_1;
 
   /**
    * Creates an array of the own and inherited enumerable property names of `object`.
@@ -1373,7 +1373,7 @@
    * // => ['a', 'b', 'c'] (iteration order is not guaranteed)
    */
   function keysIn$1(object) {
-    return isArrayLike$2(object) ? arrayLikeKeys$1(object, true) : baseKeysIn(object);
+    return isArrayLike$3(object) ? arrayLikeKeys$1(object, true) : baseKeysIn(object);
   }
 
   var keysIn_1 = keysIn$1;
@@ -1443,9 +1443,9 @@
 
   var _getPrototype = getPrototype$1;
 
-  var baseGetTag = _baseGetTag,
+  var baseGetTag$2 = _baseGetTag,
       getPrototype = _getPrototype,
-      isObjectLike = isObjectLike_1;
+      isObjectLike$2 = isObjectLike_1;
 
   /** `Object#toString` result references. */
   var objectTag = '[object Object]';
@@ -1492,7 +1492,7 @@
    * // => true
    */
   function isPlainObject$2(value) {
-    if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
+    if (!isObjectLike$2(value) || baseGetTag$2(value) != objectTag) {
       return false;
     }
     var proto = getPrototype(value);
@@ -1614,7 +1614,7 @@
 
   var arrayLikeKeys = _arrayLikeKeys,
       baseKeys = _baseKeys,
-      isArrayLike$1 = isArrayLike_1;
+      isArrayLike$2 = isArrayLike_1;
 
   /**
    * Creates an array of the own enumerable property names of `object`.
@@ -1644,14 +1644,14 @@
    * _.keys('hi');
    * // => ['0', '1']
    */
-  function keys$2(object) {
-    return isArrayLike$1(object) ? arrayLikeKeys(object) : baseKeys(object);
+  function keys$3(object) {
+    return isArrayLike$2(object) ? arrayLikeKeys(object) : baseKeys(object);
   }
 
-  var keys_1 = keys$2;
+  var keys_1 = keys$3;
 
   var baseFor = _baseFor,
-      keys$1 = keys_1;
+      keys$2 = keys_1;
 
   /**
    * The base implementation of `_.forOwn` without support for iteratee shorthands.
@@ -1662,12 +1662,12 @@
    * @returns {Object} Returns `object`.
    */
   function baseForOwn$1(object, iteratee) {
-    return object && baseFor(object, iteratee, keys$1);
+    return object && baseFor(object, iteratee, keys$2);
   }
 
   var _baseForOwn = baseForOwn$1;
 
-  var isArrayLike = isArrayLike_1;
+  var isArrayLike$1 = isArrayLike_1;
 
   /**
    * Creates a `baseEach` or `baseEachRight` function.
@@ -1682,7 +1682,7 @@
       if (collection == null) {
         return collection;
       }
-      if (!isArrayLike(collection)) {
+      if (!isArrayLike$1(collection)) {
         return eachFunc(collection, iteratee);
       }
       var length = collection.length,
@@ -1733,7 +1733,7 @@
   var arrayEach = _arrayEach,
       baseEach = _baseEach,
       castFunction = _castFunction,
-      isArray$1 = isArray_1;
+      isArray$2 = isArray_1;
 
   /**
    * Iterates over elements of `collection` and invokes `iteratee` for each element.
@@ -1766,11 +1766,476 @@
    * // => Logs 'a' then 'b' (iteration order is not guaranteed).
    */
   function forEach$2(collection, iteratee) {
-    var func = isArray$1(collection) ? arrayEach : baseEach;
+    var func = isArray$2(collection) ? arrayEach : baseEach;
     return func(collection, castFunction(iteratee));
   }
 
   var forEach_1 = forEach$2;
+
+  /**
+   * The base implementation of `_.findIndex` and `_.findLastIndex` without
+   * support for iteratee shorthands.
+   *
+   * @private
+   * @param {Array} array The array to inspect.
+   * @param {Function} predicate The function invoked per iteration.
+   * @param {number} fromIndex The index to search from.
+   * @param {boolean} [fromRight] Specify iterating from right to left.
+   * @returns {number} Returns the index of the matched value, else `-1`.
+   */
+
+  function baseFindIndex$1(array, predicate, fromIndex, fromRight) {
+    var length = array.length,
+        index = fromIndex + (fromRight ? 1 : -1);
+
+    while ((fromRight ? index-- : ++index < length)) {
+      if (predicate(array[index], index, array)) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  var _baseFindIndex = baseFindIndex$1;
+
+  /**
+   * The base implementation of `_.isNaN` without support for number objects.
+   *
+   * @private
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
+   */
+
+  function baseIsNaN$1(value) {
+    return value !== value;
+  }
+
+  var _baseIsNaN = baseIsNaN$1;
+
+  /**
+   * A specialized version of `_.indexOf` which performs strict equality
+   * comparisons of values, i.e. `===`.
+   *
+   * @private
+   * @param {Array} array The array to inspect.
+   * @param {*} value The value to search for.
+   * @param {number} fromIndex The index to search from.
+   * @returns {number} Returns the index of the matched value, else `-1`.
+   */
+
+  function strictIndexOf$1(array, value, fromIndex) {
+    var index = fromIndex - 1,
+        length = array.length;
+
+    while (++index < length) {
+      if (array[index] === value) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  var _strictIndexOf = strictIndexOf$1;
+
+  var baseFindIndex = _baseFindIndex,
+      baseIsNaN = _baseIsNaN,
+      strictIndexOf = _strictIndexOf;
+
+  /**
+   * The base implementation of `_.indexOf` without `fromIndex` bounds checks.
+   *
+   * @private
+   * @param {Array} array The array to inspect.
+   * @param {*} value The value to search for.
+   * @param {number} fromIndex The index to search from.
+   * @returns {number} Returns the index of the matched value, else `-1`.
+   */
+  function baseIndexOf$1(array, value, fromIndex) {
+    return value === value
+      ? strictIndexOf(array, value, fromIndex)
+      : baseFindIndex(array, baseIsNaN, fromIndex);
+  }
+
+  var _baseIndexOf = baseIndexOf$1;
+
+  var baseGetTag$1 = _baseGetTag,
+      isArray$1 = isArray_1,
+      isObjectLike$1 = isObjectLike_1;
+
+  /** `Object#toString` result references. */
+  var stringTag = '[object String]';
+
+  /**
+   * Checks if `value` is classified as a `String` primitive or object.
+   *
+   * @static
+   * @since 0.1.0
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is a string, else `false`.
+   * @example
+   *
+   * _.isString('abc');
+   * // => true
+   *
+   * _.isString(1);
+   * // => false
+   */
+  function isString$2(value) {
+    return typeof value == 'string' ||
+      (!isArray$1(value) && isObjectLike$1(value) && baseGetTag$1(value) == stringTag);
+  }
+
+  var isString_1 = isString$2;
+
+  /** Used to match a single whitespace character. */
+
+  var reWhitespace = /\s/;
+
+  /**
+   * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+   * character of `string`.
+   *
+   * @private
+   * @param {string} string The string to inspect.
+   * @returns {number} Returns the index of the last non-whitespace character.
+   */
+  function trimmedEndIndex$1(string) {
+    var index = string.length;
+
+    while (index-- && reWhitespace.test(string.charAt(index))) {}
+    return index;
+  }
+
+  var _trimmedEndIndex = trimmedEndIndex$1;
+
+  var trimmedEndIndex = _trimmedEndIndex;
+
+  /** Used to match leading whitespace. */
+  var reTrimStart = /^\s+/;
+
+  /**
+   * The base implementation of `_.trim`.
+   *
+   * @private
+   * @param {string} string The string to trim.
+   * @returns {string} Returns the trimmed string.
+   */
+  function baseTrim$1(string) {
+    return string
+      ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+      : string;
+  }
+
+  var _baseTrim = baseTrim$1;
+
+  var baseGetTag = _baseGetTag,
+      isObjectLike = isObjectLike_1;
+
+  /** `Object#toString` result references. */
+  var symbolTag = '[object Symbol]';
+
+  /**
+   * Checks if `value` is classified as a `Symbol` primitive or object.
+   *
+   * @static
+   * @memberOf _
+   * @since 4.0.0
+   * @category Lang
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+   * @example
+   *
+   * _.isSymbol(Symbol.iterator);
+   * // => true
+   *
+   * _.isSymbol('abc');
+   * // => false
+   */
+  function isSymbol$1(value) {
+    return typeof value == 'symbol' ||
+      (isObjectLike(value) && baseGetTag(value) == symbolTag);
+  }
+
+  var isSymbol_1 = isSymbol$1;
+
+  var baseTrim = _baseTrim,
+      isObject$1 = isObject_1,
+      isSymbol = isSymbol_1;
+
+  /** Used as references for various `Number` constants. */
+  var NAN = 0 / 0;
+
+  /** Used to detect bad signed hexadecimal string values. */
+  var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+  /** Used to detect binary string values. */
+  var reIsBinary = /^0b[01]+$/i;
+
+  /** Used to detect octal string values. */
+  var reIsOctal = /^0o[0-7]+$/i;
+
+  /** Built-in method references without a dependency on `root`. */
+  var freeParseInt = parseInt;
+
+  /**
+   * Converts `value` to a number.
+   *
+   * @static
+   * @memberOf _
+   * @since 4.0.0
+   * @category Lang
+   * @param {*} value The value to process.
+   * @returns {number} Returns the number.
+   * @example
+   *
+   * _.toNumber(3.2);
+   * // => 3.2
+   *
+   * _.toNumber(Number.MIN_VALUE);
+   * // => 5e-324
+   *
+   * _.toNumber(Infinity);
+   * // => Infinity
+   *
+   * _.toNumber('3.2');
+   * // => 3.2
+   */
+  function toNumber$1(value) {
+    if (typeof value == 'number') {
+      return value;
+    }
+    if (isSymbol(value)) {
+      return NAN;
+    }
+    if (isObject$1(value)) {
+      var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
+      value = isObject$1(other) ? (other + '') : other;
+    }
+    if (typeof value != 'string') {
+      return value === 0 ? value : +value;
+    }
+    value = baseTrim(value);
+    var isBinary = reIsBinary.test(value);
+    return (isBinary || reIsOctal.test(value))
+      ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+      : (reIsBadHex.test(value) ? NAN : +value);
+  }
+
+  var toNumber_1 = toNumber$1;
+
+  var toNumber = toNumber_1;
+
+  /** Used as references for various `Number` constants. */
+  var INFINITY = 1 / 0,
+      MAX_INTEGER = 1.7976931348623157e+308;
+
+  /**
+   * Converts `value` to a finite number.
+   *
+   * @static
+   * @memberOf _
+   * @since 4.12.0
+   * @category Lang
+   * @param {*} value The value to convert.
+   * @returns {number} Returns the converted number.
+   * @example
+   *
+   * _.toFinite(3.2);
+   * // => 3.2
+   *
+   * _.toFinite(Number.MIN_VALUE);
+   * // => 5e-324
+   *
+   * _.toFinite(Infinity);
+   * // => 1.7976931348623157e+308
+   *
+   * _.toFinite('3.2');
+   * // => 3.2
+   */
+  function toFinite$1(value) {
+    if (!value) {
+      return value === 0 ? value : 0;
+    }
+    value = toNumber(value);
+    if (value === INFINITY || value === -INFINITY) {
+      var sign = (value < 0 ? -1 : 1);
+      return sign * MAX_INTEGER;
+    }
+    return value === value ? value : 0;
+  }
+
+  var toFinite_1 = toFinite$1;
+
+  var toFinite = toFinite_1;
+
+  /**
+   * Converts `value` to an integer.
+   *
+   * **Note:** This method is loosely based on
+   * [`ToInteger`](http://www.ecma-international.org/ecma-262/7.0/#sec-tointeger).
+   *
+   * @static
+   * @memberOf _
+   * @since 4.0.0
+   * @category Lang
+   * @param {*} value The value to convert.
+   * @returns {number} Returns the converted integer.
+   * @example
+   *
+   * _.toInteger(3.2);
+   * // => 3
+   *
+   * _.toInteger(Number.MIN_VALUE);
+   * // => 0
+   *
+   * _.toInteger(Infinity);
+   * // => 1.7976931348623157e+308
+   *
+   * _.toInteger('3.2');
+   * // => 3
+   */
+  function toInteger$1(value) {
+    var result = toFinite(value),
+        remainder = result % 1;
+
+    return result === result ? (remainder ? result - remainder : result) : 0;
+  }
+
+  var toInteger_1 = toInteger$1;
+
+  /**
+   * A specialized version of `_.map` for arrays without support for iteratee
+   * shorthands.
+   *
+   * @private
+   * @param {Array} [array] The array to iterate over.
+   * @param {Function} iteratee The function invoked per iteration.
+   * @returns {Array} Returns the new mapped array.
+   */
+
+  function arrayMap$1(array, iteratee) {
+    var index = -1,
+        length = array == null ? 0 : array.length,
+        result = Array(length);
+
+    while (++index < length) {
+      result[index] = iteratee(array[index], index, array);
+    }
+    return result;
+  }
+
+  var _arrayMap = arrayMap$1;
+
+  var arrayMap = _arrayMap;
+
+  /**
+   * The base implementation of `_.values` and `_.valuesIn` which creates an
+   * array of `object` property values corresponding to the property names
+   * of `props`.
+   *
+   * @private
+   * @param {Object} object The object to query.
+   * @param {Array} props The property names to get values for.
+   * @returns {Object} Returns the array of property values.
+   */
+  function baseValues$1(object, props) {
+    return arrayMap(props, function(key) {
+      return object[key];
+    });
+  }
+
+  var _baseValues = baseValues$1;
+
+  var baseValues = _baseValues,
+      keys$1 = keys_1;
+
+  /**
+   * Creates an array of the own enumerable string keyed property values of `object`.
+   *
+   * **Note:** Non-object values are coerced to objects.
+   *
+   * @static
+   * @since 0.1.0
+   * @memberOf _
+   * @category Object
+   * @param {Object} object The object to query.
+   * @returns {Array} Returns the array of property values.
+   * @example
+   *
+   * function Foo() {
+   *   this.a = 1;
+   *   this.b = 2;
+   * }
+   *
+   * Foo.prototype.c = 3;
+   *
+   * _.values(new Foo);
+   * // => [1, 2] (iteration order is not guaranteed)
+   *
+   * _.values('hi');
+   * // => ['h', 'i']
+   */
+  function values$1(object) {
+    return object == null ? [] : baseValues(object, keys$1(object));
+  }
+
+  var values_1 = values$1;
+
+  var baseIndexOf = _baseIndexOf,
+      isArrayLike = isArrayLike_1,
+      isString$1 = isString_1,
+      toInteger = toInteger_1,
+      values = values_1;
+
+  /* Built-in method references for those with the same name as other `lodash` methods. */
+  var nativeMax = Math.max;
+
+  /**
+   * Checks if `value` is in `collection`. If `collection` is a string, it's
+   * checked for a substring of `value`, otherwise
+   * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+   * is used for equality comparisons. If `fromIndex` is negative, it's used as
+   * the offset from the end of `collection`.
+   *
+   * @static
+   * @memberOf _
+   * @since 0.1.0
+   * @category Collection
+   * @param {Array|Object|string} collection The collection to inspect.
+   * @param {*} value The value to search for.
+   * @param {number} [fromIndex=0] The index to search from.
+   * @param- {Object} [guard] Enables use as an iteratee for methods like `_.reduce`.
+   * @returns {boolean} Returns `true` if `value` is found, else `false`.
+   * @example
+   *
+   * _.includes([1, 2, 3], 1);
+   * // => true
+   *
+   * _.includes([1, 2, 3], 1, 2);
+   * // => false
+   *
+   * _.includes({ 'a': 1, 'b': 2 }, 1);
+   * // => true
+   *
+   * _.includes('abcd', 'bc');
+   * // => true
+   */
+  function includes$1(collection, value, fromIndex, guard) {
+    collection = isArrayLike(collection) ? collection : values(collection);
+    fromIndex = (fromIndex && !guard) ? toInteger(fromIndex) : 0;
+
+    var length = collection.length;
+    if (fromIndex < 0) {
+      fromIndex = nativeMax(length + fromIndex, 0);
+    }
+    return isString$1(collection)
+      ? (fromIndex <= length && collection.indexOf(value, fromIndex) > -1)
+      : (!!length && baseIndexOf(collection, value, fromIndex) > -1);
+  }
+
+  var includes_1 = includes$1;
 
   var js_cookie = {exports: {}};
 
@@ -4859,14 +5324,19 @@
   var assignIn = assignIn_1;
   var isPlainObject = isPlainObject_1;
   var forEach = forEach_1;
+  var includes = includes_1;
   var cookies = js_cookie.exports;
   var axios = axios$1["default"];
   var promiseFinally = promise_prototype_finally;
   promiseFinally.shim(); // 初始預設值
 
   var DEFAULTS = Object.freeze({
-    SSO_URL: "",
-    COOKIE_DEFAULT_PREFIX: ""
+    // 單一登入網址
+    SSO_URL: '',
+    // 自定義 Cookie 前綴字串
+    COOKIE_DEFAULT_PREFIX: '',
+    // 重新定向網址
+    REDIRECT_URL: ''
   });
 
   var TokenInjection = /*#__PURE__*/function () {
@@ -4892,7 +5362,16 @@
       this.axiosRefreshReadyState = null; // Schedule cache
 
       this.intervalSync = null;
-      this.intervalRefresh = null; // 初始化 TokenInjection 實例
+      this.intervalRefresh = null; // 實例化 axios
+
+      this.rest = axios.create({
+        // 服務終端
+        baseURL: this.options.SSO_URL,
+        // 跨域請求挾帶 cookies
+        withCredentials: true,
+        // 請求回應超時
+        timeout: 30000
+      }); // 初始化 TokenInjection 實例
 
       this.init();
     }
@@ -4910,26 +5389,6 @@
         this.autoRefresh();
       }
       /**
-       * 開啟登入頁面
-       */
-
-    }, {
-      key: "loginIAM",
-      value: function loginIAM() {
-        var options = this.options;
-        window.open(options.SSO_URL, "_blank");
-      }
-      /**
-       * 登出
-       */
-
-    }, {
-      key: "logoutIAM",
-      value: function logoutIAM() {
-        var options = this.options;
-        window.open(options.SSO_URL + "/logout", "_blank");
-      }
-      /**
        * 同步 Token 內容 - oAuth & 前端 - 執行一次
        *
        * - 向 oAuth Server 同步 Token 資訊
@@ -4942,42 +5401,38 @@
       key: "sync",
       value: function sync() {
         var self = this;
-        var options = this.options; // 抓取資料
+        var rest = this.rest; // 初始化 source 物件
 
-        self.axiosSync = axios.get(options.SSO_URL + "/oauth2/token/api", {
-          // 允許跨域
-          withCredentials: true
+        var cancelTokenSource = axios.CancelToken.source(); // 抓取資料
+
+        self.axiosSync = rest.get('/oauth2/token/api', {
+          // 註冊未請求成功 Promise 資源
+          cancelToken: cancelTokenSource.token
         }).then(function (response) {
           self.axiosSyncReadyState = response.request.readyState;
-          var tokenInfo = response.data || {}; // 寫至 LocalStorage
+          var tokenInfo = response.data || {}; // 確認 Token key 正確才寫入 LocalStorage
 
           forEach(tokenInfo, function (value, key) {
-            localStorage.setItem(key, value);
+            if (self.TokenKeys.some(function (tokenKey) {
+              return includes(key, tokenKey);
+            })) {
+              localStorage.setItem(key, value);
+            }
           });
           return response;
         })["catch"](function (error) {
-          // 檢查-是否為登入狀態
-          if (!self.isLogin()) {
+          // 檢查-是否為登入狀態 or 請求取消
+          if (!self.isLogin() || axios.isCancel(error)) {
             // 非登入時刪除 token 資料
             forEach(self.TokenKeys, function (key, value) {
               localStorage.removeItem(key);
             });
+            return Promise.reject(error);
           }
+        }); // 非登入時停止發送請求
 
-          return error;
-        });
+        if (!self.isLogin()) cancelTokenSource.cancel();
         return self.axiosSync;
-      }
-      /**
-       * 取得 Local Storage Token
-       *
-       * @returns {String} Access Token
-       */
-
-    }, {
-      key: "getLocalStorageToken",
-      value: function getLocalStorageToken() {
-        return localStorage.getItem(ACCESS_TOKEN_NAME);
       }
       /**
        * 刷新 Token - oAuth & 前端 - 執行一次
@@ -4995,28 +5450,26 @@
       key: "refresh",
       value: function refresh() {
         var self = this;
-        var options = this.options; // Refresh Token 值
+        var rest = this.rest; // Refresh Token 值
 
         var refreshToken = localStorage.getItem(REFRESH_TOKEN_NAME); // 金鑰不存在時丟出例外
 
         if (!refreshToken) {
-          throw self.exception("Need Refresh Token !", 401);
+          throw self.exception('Need Refresh Token !', 401);
         } // 執行刷新金鑰
 
 
-        self.axiosRefresh = axios.post(options.SSO_URL + "/oauth2/token/api?v=" + rand(11111, 99999), queryString({
+        self.axiosRefresh = rest.post('/oauth2/token/api?v=' + rand(11111, 99999), queryString({
           refresh_token: refreshToken
         }), {
-          // 允許跨域
-          withCredentials: true,
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
+            'Content-Type': 'application/x-www-form-urlencoded'
           }
         }).then(function (response) {
           self.axiosRefreshReadyState = response.request.readyState;
           return response;
         })["catch"](function (error) {
-          return error;
+          return Promise.reject(error);
         });
         return self.axiosRefresh;
       }
@@ -5045,13 +5498,15 @@
         if (!self.intervalSync) {
           self.intervalSync = setInterval(function () {
             // tkchecksum != token_checksum , axios未執行過或已執行完成
-            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + "tkchecksum") !== localStorage.getItem("token_checksum") && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
+            if (cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== localStorage.getItem('token_checksum') && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
               self.sync()["catch"](function (error) {
                 // 執行錯誤時關閉自動同步3秒後重啟
-                self.autoSyncStop();
-                setTimeout(function () {
-                  return self.autoSync();
-                }, 3000);
+                if (error) {
+                  self.autoSyncStop();
+                  setTimeout(function () {
+                    return self.autoSync();
+                  }, 3000);
+                }
               });
             }
           }, interval);
@@ -5115,12 +5570,12 @@
               if (nowTime >= createTime + expireTime - TOKEN_REFRESH_BEFORE && (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)) {
                 self.refresh()["catch"](function (error) {
                   // 執行錯誤時關閉自動同步3秒後重啟
-                  refreshStop();
+                  if (error) refreshStop();
                 });
               }
             } catch (e) {
               // 例外訊息
-              console.log("[" + e.code + "] " + e.message); // 執行錯誤時關閉自動同步3秒後重啟
+              console.log('[' + e.code + '] ' + e.message); // 執行錯誤時關閉自動同步3秒後重啟
 
               refreshStop();
             }
@@ -5154,19 +5609,17 @@
       key: "validate",
       value: function validate(token) {
         var self = this;
-        var options = this.options;
-        var validateToken = token || ""; // 驗證金鑰是否正確
+        var rest = this.rest;
+        var validateToken = token || ''; // 驗證金鑰是否正確
 
-        self.axiosValidate = axios.get(options.SSO_URL + "/api/oauth2/token", {
+        self.axiosValidate = rest.get('/api/oauth2/token', {
           headers: {
-            Authorization: "Bearer " + validateToken
-          },
-          // 允許跨域
-          withCredentials: true
+            Authorization: 'Bearer ' + validateToken
+          }
         }).then(function (response) {
           return response;
         })["catch"](function (error) {
-          return error;
+          return Promise.reject(error);
         })["finally"](function () {// Always executed
         }); // 回傳 axios
 
@@ -5182,21 +5635,52 @@
       key: "isLogin",
       value: function isLogin() {
         var options = this.options;
-        return cookies.get(options.COOKIE_DEFAULT_PREFIX + "login") == "1";
+        return cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') == '1';
       }
+      /**
+       * 開啟登入頁面
+       */
+
     }, {
-      key: "exception",
-      value:
+      key: "loginIAM",
+      value: function loginIAM() {
+        var options = this.options;
+        window.open(options.SSO_URL, '_self');
+      }
+      /**
+       * 登出
+       */
+
+    }, {
+      key: "logoutIAM",
+      value: function logoutIAM() {
+        var options = this.options;
+        window.open(options.SSO_URL + '/logout', '_self');
+      }
+      /**
+       * 取得 Local Storage Token
+       *
+       * @returns {String} Access Token
+       */
+
+    }, {
+      key: "getLocalStorageToken",
+      value: function getLocalStorageToken() {
+        return localStorage.getItem(ACCESS_TOKEN_NAME);
+      }
       /**
        * 例外物件
        *
        * @param {string} messageIpt 訊息
        * @param {number} codeIpt 例外代碼
        */
-      function exception(messageIpt, codeIpt) {
+
+    }, {
+      key: "exception",
+      value: function exception(messageIpt, codeIpt) {
         this.code = codeIpt || 200;
-        this.message = messageIpt || "OK";
-        this.name = "exception";
+        this.message = messageIpt || 'OK';
+        this.name = 'exception';
       }
     }]);
 
