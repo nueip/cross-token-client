@@ -3,7 +3,7 @@
  *
  * @see doc/07-component/01-system/02-sso-oauth/自有系統SSO簡化流程.md
  *
- * @author Mars.Hung & Chien.Lo
+ * @author Mars.Hung & Chien.Lo & Grace.Wang
  */
 
 const assignIn = require('lodash/assignIn');
@@ -17,6 +17,7 @@ const promiseFinally = require('promise.prototype.finally');
 import * as TC from './constant.js';
 import { queryString, rand } from './lib.js';
 
+// 讓 Axios 支援 finally 方法
 promiseFinally.shim();
 
 // 初始預設值
@@ -40,7 +41,7 @@ class TokenInjection {
     this.options = assignIn({}, DEFAULTS, isPlainObject(options) && options);
 
     // LocalStorage Token資料Key值
-    this.TokenKeys = [
+    this.tokenKeys = [
       TC.ACCESS_TOKEN_NAME,
       TC.TOKEN_EXPIRED_NAME,
       TC.TOKEN_TYPE,
@@ -96,7 +97,7 @@ class TokenInjection {
    */
   sync() {
     const self = this;
-    const { rest } = this;
+    const { rest, tokenKeys } = this;
     // 初始化 source 物件
     const cancelTokenSource = axios.CancelToken.source();
 
@@ -111,9 +112,9 @@ class TokenInjection {
 
         const tokenInfo = response.data || {};
 
-        // 確認 Token key 正確才寫入 LocalStorage
+        // 確認 LocalStorage Token 欄位資訊正確才寫入
         forEach(tokenInfo, function (value, key) {
-          if (self.TokenKeys.some((tokenKey) => includes(key, tokenKey))) {
+          if (tokenKeys.some((tokenKey) => includes(key, tokenKey))) {
             localStorage.setItem(key, value);
           }
         });
@@ -124,7 +125,7 @@ class TokenInjection {
         // 檢查-是否為登入狀態 or 請求取消
         if (!self.isLogin() || axios.isCancel(error)) {
           // 非登入時刪除 token 資料
-          forEach(self.TokenKeys, function (key, value) {
+          forEach(self.tokenKeys, function (key, value) {
             localStorage.removeItem(key);
           });
 
@@ -196,13 +197,14 @@ class TokenInjection {
   autoSync(interval = 0) {
     const self = this;
     const { options } = this;
+    const hasTKCheckSumCookie = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum');
 
     // 間隔毫秒數
     interval = interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL;
 
-    // 定期執行
-    if (!self.intervalSync) {
-      self.intervalSync = setInterval(function () {
+    // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+    if (!self.intervalSync && hasTKCheckSumCookie) {
+      self.intervalSync = setInterval(() => {
         // tkchecksum != token_checksum , axios未執行過或已執行完成
         if (
           cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !==
@@ -251,7 +253,7 @@ class TokenInjection {
     const self = this;
 
     // 執行錯誤時關閉自動同步3秒後重啟
-    const refreshStop = function () {
+    const refreshStop = () => {
       self.autoRefreshStop();
       setTimeout(() => self.autoRefresh(), 3000);
     };
@@ -261,7 +263,7 @@ class TokenInjection {
 
     // 定期執行
     if (!self.intervalRefresh) {
-      self.intervalRefresh = setInterval(function () {
+      self.intervalRefresh = setInterval(() => {
         try {
           // 現在時間
           const nowTime = parseInt(Date.now() / 1000),
@@ -364,7 +366,7 @@ class TokenInjection {
   }
 
   /**
-   * 取得 Local Storage Token
+   * 取得 LocalStorage Token
    *
    * @returns {String} Access Token
    */

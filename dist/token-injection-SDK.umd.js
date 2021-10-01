@@ -5328,6 +5328,7 @@
   var cookies = js_cookie.exports;
   var axios = axios$1["default"];
   var promiseFinally = promise_prototype_finally;
+
   promiseFinally.shim(); // 初始預設值
 
   var DEFAULTS = Object.freeze({
@@ -5353,7 +5354,7 @@
       // 變更選項屬性
       this.options = assignIn({}, DEFAULTS, isPlainObject(options) && options); // LocalStorage Token資料Key值
 
-      this.TokenKeys = [ACCESS_TOKEN_NAME, TOKEN_EXPIRED_NAME, TOKEN_TYPE, TOKEN_SCOPE, REFRESH_TOKEN_NAME, TOKEN_CHECK_SUM, TOKEN_CREATE_TIME_NAME]; // Axios cache
+      this.tokenKeys = [ACCESS_TOKEN_NAME, TOKEN_EXPIRED_NAME, TOKEN_TYPE, TOKEN_SCOPE, REFRESH_TOKEN_NAME, TOKEN_CHECK_SUM, TOKEN_CREATE_TIME_NAME]; // Axios cache
 
       this.axiosSync = null;
       this.axiosRefresh = null;
@@ -5401,7 +5402,8 @@
       key: "sync",
       value: function sync() {
         var self = this;
-        var rest = this.rest; // 初始化 source 物件
+        var rest = this.rest,
+            tokenKeys = this.tokenKeys; // 初始化 source 物件
 
         var cancelTokenSource = axios.CancelToken.source(); // 抓取資料
 
@@ -5410,10 +5412,10 @@
           cancelToken: cancelTokenSource.token
         }).then(function (response) {
           self.axiosSyncReadyState = response.request.readyState;
-          var tokenInfo = response.data || {}; // 確認 Token key 正確才寫入 LocalStorage
+          var tokenInfo = response.data || {}; // 確認 LocalStorage Token 欄位資訊正確才寫入
 
           forEach(tokenInfo, function (value, key) {
-            if (self.TokenKeys.some(function (tokenKey) {
+            if (tokenKeys.some(function (tokenKey) {
               return includes(key, tokenKey);
             })) {
               localStorage.setItem(key, value);
@@ -5424,7 +5426,7 @@
           // 檢查-是否為登入狀態 or 請求取消
           if (!self.isLogin() || axios.isCancel(error)) {
             // 非登入時刪除 token 資料
-            forEach(self.TokenKeys, function (key, value) {
+            forEach(self.tokenKeys, function (key, value) {
               localStorage.removeItem(key);
             });
             return Promise.reject(error);
@@ -5491,11 +5493,12 @@
       value: function autoSync() {
         var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         var self = this;
-        var options = this.options; // 間隔毫秒數
+        var options = this.options;
+        var hasTKCheckSumCookie = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum'); // 間隔毫秒數
 
-        interval = interval * 500 || TOKEN_AUTO_SYNC_INTERVAL; // 定期執行
+        interval = interval * 500 || TOKEN_AUTO_SYNC_INTERVAL; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
 
-        if (!self.intervalSync) {
+        if (!self.intervalSync && hasTKCheckSumCookie) {
           self.intervalSync = setInterval(function () {
             // tkchecksum != token_checksum , axios未執行過或已執行完成
             if (cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== localStorage.getItem('token_checksum') && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
@@ -5658,7 +5661,7 @@
         window.open(options.SSO_URL + '/logout', '_self');
       }
       /**
-       * 取得 Local Storage Token
+       * 取得 LocalStorage Token
        *
        * @returns {String} Access Token
        */
