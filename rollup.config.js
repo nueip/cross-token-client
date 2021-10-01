@@ -7,10 +7,12 @@ import { terser } from "rollup-plugin-terser";
 import path from "path";
 import obfuscator from "rollup-plugin-obfuscator";
 
+
 const fileName = "token-injection-SDK";
 const pluginName = "TokenInjection";
 const entryFile = "src/token-injection.js";
 const pathResolve = (p) => path.resolve(__dirname, p);
+const pkgVersion = require('./package.json').version;
 
 const globalPlugins = [
     json(),
@@ -43,7 +45,7 @@ const obfuscatorPlugins = [].concat(globalPlugins).concat([
 module.exports = [{
         input: entryFile,
         output: [{
-            file: `dist/${fileName}.umd.js`,
+            file: `dist/${fileName}-${pkgVersion}.umd.js`,
             format: "umd",
             name: pluginName,
         }, ],
@@ -52,7 +54,7 @@ module.exports = [{
     {
         input: entryFile,
         output: [{
-            file: `dist/${fileName}.umd.min.js`,
+            file: `dist/${fileName}-${pkgVersion}.umd.min.js`,
             format: "umd",
             name: pluginName,
             plugins: [terser()],

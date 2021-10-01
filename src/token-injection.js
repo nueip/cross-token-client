@@ -206,11 +206,7 @@ class TokenInjection {
     if (!self.intervalSync && hasTKCheckSumCookie) {
       self.intervalSync = setInterval(() => {
         // tkchecksum != token_checksum , axios未執行過或已執行完成
-        if (
-          cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !==
-            localStorage.getItem('token_checksum') &&
-          (self.axiosSync == null || self.axiosSyncReadyState == 4)
-        ) {
+        if (self.checkSumNoEqual() && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
           self.sync().catch((error) => {
             // 執行錯誤時關閉自動同步3秒後重啟
             if (error) {
@@ -347,6 +343,22 @@ class TokenInjection {
   isLogin() {
     const { options } = this;
     return cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') == '1';
+  }
+
+  /**
+   * 檢查-金鑰檢核碼
+   * 
+   * 確認 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+   *
+   * @returns {boolean}
+   */
+  checkSumNoEqual() {
+    const { options } = this;
+
+    return (
+      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !==
+      localStorage.getItem('token_checksum')
+    );
   }
 
   /**
