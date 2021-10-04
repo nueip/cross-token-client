@@ -98,43 +98,38 @@ class TokenInjection {
   sync() {
     const self = this;
     const { rest, tokenKeys } = this;
-    // 初始化 source 物件
-    const cancelTokenSource = axios.CancelToken.source();
 
-    // 抓取資料
-    self.axiosSync = rest
-      .get('/oauth2/token/api', {
-        // 註冊未請求成功 Promise 資源
-        cancelToken: cancelTokenSource.token,
-      })
-      .then((response) => {
-        self.axiosSyncReadyState = response.request.readyState;
+    if (self.isLogin()) {
+      // 抓取資料
+      self.axiosSync = rest
+        .get('/oauth2/token/api', {})
+        .then((response) => {
+          self.axiosSyncReadyState = response.request.readyState;
 
-        const tokenInfo = response.data || {};
+          const tokenInfo = response.data || {};
 
-        // 確認 LocalStorage Token 欄位資訊正確才寫入
-        forEach(tokenInfo, function (value, key) {
-          if (tokenKeys.some((tokenKey) => includes(key, tokenKey))) {
-            localStorage.setItem(key, value);
-          }
-        });
-
-        return response;
-      })
-      .catch((error) => {
-        // 檢查-是否為登入狀態 or 請求取消
-        if (!self.isLogin() || axios.isCancel(error)) {
-          // 非登入時刪除 token 資料
-          forEach(self.tokenKeys, function (key, value) {
-            localStorage.removeItem(key);
+          // 確認 LocalStorage Token 欄位資訊正確才寫入
+          forEach(tokenInfo, function (value, key) {
+            if (tokenKeys.some((tokenKey) => includes(key, tokenKey))) {
+              localStorage.setItem(key, value);
+            }
           });
 
+          return response;
+        })
+        .catch((error) => {
           return Promise.reject(error);
-        }
+        });
+    } else {
+      self.axiosSync = null;
+
+      // 非登入時刪除 token 資料
+      forEach(self.tokenKeys, function (key, value) {
+        localStorage.removeItem(key);
       });
 
-    // 非登入時停止發送請求
-    if (!self.isLogin()) cancelTokenSource.cancel();
+      return Promise.reject();
+    }
 
     return self.axiosSync;
   }
@@ -197,7 +192,8 @@ class TokenInjection {
   autoSync(interval = 0) {
     const self = this;
     const { options } = this;
-    const hasTKCheckSumCookie = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum');
+    let hasTKCheckSumCookie =
+      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') || 'tkchecksum';
 
     // 間隔毫秒數
     interval = interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL;
@@ -208,10 +204,10 @@ class TokenInjection {
         // tkchecksum != token_checksum , axios未執行過或已執行完成
         if (self.checkSumNoEqual() && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
           self.sync().catch((error) => {
-            // 執行錯誤時關閉自動同步3秒後重啟
+            // 執行錯誤時關閉自動同步30秒後重啟
             if (error) {
               self.autoSyncStop();
-              setTimeout(() => self.autoSync(), 3000);
+              setTimeout(() => self.autoSync(), 30000);
             }
           });
         }
@@ -248,10 +244,10 @@ class TokenInjection {
   autoRefresh(interval = 0) {
     const self = this;
 
-    // 執行錯誤時關閉自動同步3秒後重啟
+    // 執行錯誤時關閉自動同步30秒後重啟
     const refreshStop = () => {
       self.autoRefreshStop();
-      setTimeout(() => self.autoRefresh(), 3000);
+      setTimeout(() => self.autoRefresh(), 30000);
     };
 
     // 間隔秒數
@@ -342,12 +338,14 @@ class TokenInjection {
    */
   isLogin() {
     const { options } = this;
-    return cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') == '1';
+    let hasLoginKey = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') || 'login';
+
+    return hasLoginKey && hasLoginKey == '1';
   }
 
   /**
    * 檢查-金鑰檢核碼
-   * 
+   *
    * 確認 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
    *
    * @returns {boolean}

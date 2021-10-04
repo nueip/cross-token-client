@@ -5403,37 +5403,34 @@
       value: function sync() {
         var self = this;
         var rest = this.rest,
-            tokenKeys = this.tokenKeys; // 初始化 source 物件
+            tokenKeys = this.tokenKeys;
 
-        var cancelTokenSource = axios.CancelToken.source(); // 抓取資料
+        if (self.isLogin()) {
+          // 抓取資料
+          self.axiosSync = rest.get('/oauth2/token/api', {}).then(function (response) {
+            self.axiosSyncReadyState = response.request.readyState;
+            var tokenInfo = response.data || {}; // 確認 LocalStorage Token 欄位資訊正確才寫入
 
-        self.axiosSync = rest.get('/oauth2/token/api', {
-          // 註冊未請求成功 Promise 資源
-          cancelToken: cancelTokenSource.token
-        }).then(function (response) {
-          self.axiosSyncReadyState = response.request.readyState;
-          var tokenInfo = response.data || {}; // 確認 LocalStorage Token 欄位資訊正確才寫入
-
-          forEach(tokenInfo, function (value, key) {
-            if (tokenKeys.some(function (tokenKey) {
-              return includes(key, tokenKey);
-            })) {
-              localStorage.setItem(key, value);
-            }
-          });
-          return response;
-        })["catch"](function (error) {
-          // 檢查-是否為登入狀態 or 請求取消
-          if (!self.isLogin() || axios.isCancel(error)) {
-            // 非登入時刪除 token 資料
-            forEach(self.tokenKeys, function (key, value) {
-              localStorage.removeItem(key);
+            forEach(tokenInfo, function (value, key) {
+              if (tokenKeys.some(function (tokenKey) {
+                return includes(key, tokenKey);
+              })) {
+                localStorage.setItem(key, value);
+              }
             });
+            return response;
+          })["catch"](function (error) {
             return Promise.reject(error);
-          }
-        }); // 非登入時停止發送請求
+          });
+        } else {
+          self.axiosSync = null; // 非登入時刪除 token 資料
 
-        if (!self.isLogin()) cancelTokenSource.cancel();
+          forEach(self.tokenKeys, function (key, value) {
+            localStorage.removeItem(key);
+          });
+          return Promise.reject();
+        }
+
         return self.axiosSync;
       }
       /**
@@ -5494,7 +5491,7 @@
         var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         var self = this;
         var options = this.options;
-        var hasTKCheckSumCookie = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum'); // 間隔毫秒數
+        var hasTKCheckSumCookie = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') || 'tkchecksum'; // 間隔毫秒數
 
         interval = interval * 500 || TOKEN_AUTO_SYNC_INTERVAL; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
 
@@ -5503,12 +5500,12 @@
             // tkchecksum != token_checksum , axios未執行過或已執行完成
             if (self.checkSumNoEqual() && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
               self.sync()["catch"](function (error) {
-                // 執行錯誤時關閉自動同步3秒後重啟
+                // 執行錯誤時關閉自動同步30秒後重啟
                 if (error) {
                   self.autoSyncStop();
                   setTimeout(function () {
                     return self.autoSync();
-                  }, 3000);
+                  }, 30000);
                 }
               });
             }
@@ -5548,13 +5545,13 @@
       key: "autoRefresh",
       value: function autoRefresh() {
         var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        var self = this; // 執行錯誤時關閉自動同步3秒後重啟
+        var self = this; // 執行錯誤時關閉自動同步30秒後重啟
 
         var refreshStop = function refreshStop() {
           self.autoRefreshStop();
           setTimeout(function () {
             return self.autoRefresh();
-          }, 3000);
+          }, 30000);
         }; // 間隔秒數
 
 
@@ -5638,11 +5635,12 @@
       key: "isLogin",
       value: function isLogin() {
         var options = this.options;
-        return cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') == '1';
+        var hasLoginKey = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') || 'login';
+        return hasLoginKey && hasLoginKey == '1';
       }
       /**
        * 檢查-金鑰檢核碼
-       * 
+       *
        * 確認 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
        *
        * @returns {boolean}
