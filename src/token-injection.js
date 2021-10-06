@@ -85,6 +85,9 @@ class TokenInjection {
 
     // 載入後執行 刷新 Token - oAuth & 前端 - 定期執行
     this.autoRefresh();
+
+    // 載入後執行 自動登出倒數
+    this.autoLogout();
   }
 
   /**
@@ -300,6 +303,17 @@ class TokenInjection {
   }
 
   /**
+   * 自動登出 - 時間預設一天
+   */
+  autoLogout() {
+    const self = this;
+
+    setTimeout(() => {
+      self.logoutIAM();
+    }, TC.LOGOUT_TIME);
+  }
+
+  /**
    * 驗證Token
    *
    * @param {string} token - 本地端要被驗證的 Token
@@ -372,7 +386,7 @@ class TokenInjection {
    */
   logoutIAM() {
     const { options } = this;
-    window.open(options.SSO_URL + '/logout', '_self');
+    location.href = options.SSO_URL + '/logout';
   }
 
   /**

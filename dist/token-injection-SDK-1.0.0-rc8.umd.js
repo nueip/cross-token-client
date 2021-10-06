@@ -5296,7 +5296,9 @@
 
   var TOKEN_SCOPE = "token_scope"; // Token 檢查總時數
 
-  var TOKEN_CHECK_SUM = "token_checksum";
+  var TOKEN_CHECK_SUM = "token_checksum"; // 自動登出時間 (1天)
+
+  var LOGOUT_TIME = 1000 * 86400;
 
   /**
    * 參數序列化
@@ -5387,7 +5389,9 @@
         // 載入後執行 同步 Token 內容 - oAuth & 前端 - 定期執行
         this.autoSync(); // 載入後執行 刷新 Token - oAuth & 前端 - 定期執行
 
-        this.autoRefresh();
+        this.autoRefresh(); // 載入後執行 自動登出倒數
+
+        this.autoLogout();
       }
       /**
        * 同步 Token 內容 - oAuth & 前端 - 執行一次
@@ -5599,6 +5603,18 @@
         }
       }
       /**
+       * 自動登出 - 時間預設一天
+       */
+
+    }, {
+      key: "autoLogout",
+      value: function autoLogout() {
+        var self = this;
+        setTimeout(function () {
+          self.logoutIAM();
+        }, LOGOUT_TIME);
+      }
+      /**
        * 驗證Token
        *
        * @param {string} token - 本地端要被驗證的 Token
@@ -5670,7 +5686,7 @@
       key: "logoutIAM",
       value: function logoutIAM() {
         var options = this.options;
-        window.open(options.SSO_URL + '/logout', '_self');
+        location.href = options.SSO_URL + '/logout';
       }
       /**
        * 取得 LocalStorage Token
