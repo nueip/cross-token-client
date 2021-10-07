@@ -18,3 +18,5 @@ export const TOKEN_TYPE = "token_type";
 export const TOKEN_SCOPE = "token_scope";
 // Token 檢查總時數
 export const TOKEN_CHECK_SUM = "token_checksum";
+// 自動登出時間 (1天)
+export const LOGOUT_TIME = 1000 * 86400;
