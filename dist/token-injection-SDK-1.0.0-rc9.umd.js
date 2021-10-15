@@ -5374,7 +5374,8 @@
         withCredentials: true,
         // 請求回應超時
         timeout: 30000
-      }); // 初始化 TokenInjection 實例
+      });
+      this.rest.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'; // 初始化 TokenInjection 實例
 
       this.init();
     }
