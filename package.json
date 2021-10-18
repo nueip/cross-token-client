@@ -1,9 +1,10 @@
 {
   "name": "@nueip/cross-token-access",
-  "version": "1.0.0-RC9",
+  "version": "1.0.0-RC10",
   "description": "Cross-client access tokens",
   "main": "src/index.js",
   "files": [
+    "src",
     "dist"
   ],
   "scripts": {
