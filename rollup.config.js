@@ -8,9 +8,9 @@ import path from "path";
 import obfuscator from "rollup-plugin-obfuscator";
 
 
-const fileName = "token-injection-SDK";
+const fileName = "cross-token-access";
 const pluginName = "TokenInjection";
-const entryFile = "src/token-injection.js";
+const entryFile = "src/index.js";
 const pathResolve = (p) => path.resolve(__dirname, p);
 const pkgVersion = require('./package.json').version;
 
@@ -45,7 +45,7 @@ const obfuscatorPlugins = [].concat(globalPlugins).concat([
 module.exports = [{
         input: entryFile,
         output: [{
-            file: `dist/${fileName}-${pkgVersion}.umd.js`,
+            file: `dist/${fileName}.umd.js`,
             format: "umd",
             name: pluginName,
         }, ],
@@ -54,7 +54,7 @@ module.exports = [{
     {
         input: entryFile,
         output: [{
-            file: `dist/${fileName}-${pkgVersion}.umd.min.js`,
+            file: `dist/${fileName}.umd.min.js`,
             format: "umd",
             name: pluginName,
             plugins: [terser()],

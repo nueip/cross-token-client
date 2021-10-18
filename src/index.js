@@ -1,9 +1,9 @@
 /**
  * Token Injection Client side
  *
- * @see doc/07-component/01-system/02-sso-oauth/自有系統SSO簡化流程.md
- *
- * @author Mars.Hung & Chien.Lo & Grace.Wang
+ * @author Mars.Hung
+ * @author Grace.Wang
+ * @author Chien.Lo
  */
 
 const assignIn = require('lodash/assignIn');

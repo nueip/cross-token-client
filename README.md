@@ -4,12 +4,12 @@
 
 ```text
 dist/
-├── token-injection-SDK.umd.js (UMD)
-└── token-injection-SDK.umd.min.js (UMD, compressed)
+├── cross-token-access.umd.js (UMD)
+└── cross-token-access.umd.min.js (UMD, compressed)
 src/
 ├── constant.js
 ├── lib.js
-└── token-injection.js
+└── index.js
 ```
 
 # 依賴 & 注意事項
@@ -41,7 +41,7 @@ src/
 Script tag
 
 ```html
-<script src="your-path/token-injection-SDK.umd.min.js"></script>
+<script src="your-path/cross-token-access.umd.min.js"></script>
 ```
 
 npm
