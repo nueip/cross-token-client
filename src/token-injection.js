@@ -70,7 +70,7 @@ class TokenInjection {
       withCredentials: true,
       // 請求回應超時
       timeout: 30000,
-    });｀
+    });
 
     this.rest.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
