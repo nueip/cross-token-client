@@ -1,6 +1,6 @@
 {
   "name": "@nueip/cross-token-access",
-  "version": "1.0.0-RC10",
+  "version": "1.0.0-alpha.1",
   "description": "Cross-client access tokens",
   "main": "src/index.js",
   "files": [
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@babel/core": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
+    "@optimize-lodash/rollup-plugin": "^2.1.0",
     "@rollup/plugin-alias": "^3.1.5",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.0",

@@ -6,6 +6,7 @@ import alias from "@rollup/plugin-alias";
 import { terser } from "rollup-plugin-terser";
 import path from "path";
 import obfuscator from "rollup-plugin-obfuscator";
+import { optimizeLodashImports } from "@optimize-lodash/rollup-plugin";
 
 
 const fileName = "cross-token-access";
@@ -31,6 +32,7 @@ const globalPlugins = [
         presets: ["@babel/preset-env"],
         extensions: [".js"],
     }),
+    optimizeLodashImports()
 ];
 
 const normalPlugins = [].concat(globalPlugins);
