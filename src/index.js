@@ -6,7 +6,7 @@
  * @author Chien.Lo
  */
 import { forEach, includes, isPlainObject, assignIn } from 'lodash';
-import axios from "axios";
+import axios from 'axios';
 import cookies from 'js-cookie';
 import * as TC from './constant.js';
 import { queryString, rand } from './lib.js';
@@ -64,6 +64,8 @@ class TokenInjection {
       withCredentials: true,
       // 請求回應超時
       timeout: 30000,
+      // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
+      // headers: {'X-Requested-With': 'XMLHttpRequest'},
     });
 
     // 初始化 TokenInjection 實例
