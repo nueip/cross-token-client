@@ -47,7 +47,7 @@ Script tag
 npm
 
 ```bash
-npm i @nueip/cross-token-client
+npm i @nueip/cross-token-access
 ```
 
 ## 用法
