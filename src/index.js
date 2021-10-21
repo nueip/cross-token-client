@@ -5,20 +5,14 @@
  * @author Grace.Wang
  * @author Chien.Lo
  */
-
-const assignIn = require('lodash/assignIn');
-const isPlainObject = require('lodash/isPlainObject');
-const forEach = require('lodash/forEach');
-const includes = require('lodash/includes');
-const cookies = require('js-cookie');
-const axios = require('axios').default;
-const promiseFinally = require('promise.prototype.finally');
-
+import { forEach, includes, isPlainObject, assignIn } from 'lodash';
+import axios from 'axios';
+import cookies from 'js-cookie';
 import * as TC from './constant.js';
 import { queryString, rand } from './lib.js';
 
 // 讓 Axios 支援 finally 方法
-promiseFinally.shim();
+require('promise.prototype.finally').shim();
 
 // 初始預設值
 const DEFAULTS = Object.freeze({
@@ -70,9 +64,9 @@ class TokenInjection {
       withCredentials: true,
       // 請求回應超時
       timeout: 30000,
+      // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
+      // headers: {'X-Requested-With': 'XMLHttpRequest'},
     });
-
-    this.rest.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
     // 初始化 TokenInjection 實例
     this.init();
