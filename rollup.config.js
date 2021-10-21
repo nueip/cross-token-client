@@ -15,7 +15,7 @@ const fileName = 'cross-token-access';
 const pluginName = 'TokenInjection';
 const entryFile = 'src/index.js';
 const pathResolve = (p) => path.resolve(__dirname, p);
-const pkgVersion = require('./package.json').version;
+const pkg = require('./package.json');
 
 const globalPlugins = [
   json(),
@@ -41,6 +41,7 @@ const globalPlugins = [
 
 const normalPlugins = [].concat(globalPlugins);
 const obfuscatorPlugins = [].concat(globalPlugins).concat([
+  terser(),
   obfuscator({
     include: ['**/*.js'],
     exclude: ['node_modules/**'],
@@ -57,6 +58,12 @@ module.exports = [
         format: 'umd',
         name: pluginName,
       },
+      {
+        file: `dist/${fileName}.cjs.js`,
+        format: 'cjs',
+        name: pluginName,
+        exports: 'auto',
+      },
     ],
     plugins: normalPlugins,
   },
@@ -67,7 +74,12 @@ module.exports = [
         file: `dist/${fileName}.umd.min.js`,
         format: 'umd',
         name: pluginName,
-        plugins: [terser()],
+      },
+      {
+        file: `dist/${fileName}.cjs.min.js`,
+        format: 'cjs',
+        name: pluginName,
+        exports: 'auto',
       },
     ],
     plugins: obfuscatorPlugins,
