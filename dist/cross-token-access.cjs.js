@@ -25,7 +25,7 @@ var isCallable$z = function (argument) {
 
 var objectGetOwnPropertyDescriptor$1 = {};
 
-var fails$q = function (exec) {
+var fails$r = function (exec) {
   try {
     return !!exec();
   } catch (error) {
@@ -33,10 +33,10 @@ var fails$q = function (exec) {
   }
 };
 
-var fails$p = fails$q;
+var fails$q = fails$r;
 
 // Detect IE8's incomplete defineProperty implementation
-var descriptors$1 = !fails$p(function () {
+var descriptors$1 = !fails$q(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
 });
@@ -72,13 +72,13 @@ var classofRaw$3 = function (it) {
   return toString$b.call(it).slice(8, -1);
 };
 
-var fails$o = fails$q;
+var fails$p = fails$r;
 var classof$e = classofRaw$3;
 
 var split$1 = ''.split;
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
-var indexedObject$1 = fails$o(function () {
+var indexedObject$1 = fails$p(function () {
   // throws an error in rhino, see https://github.com/mozilla/rhino/issues/346
   // eslint-disable-next-line no-prototype-builtins -- safe
   return !Object('z').propertyIsEnumerable(0);
@@ -117,14 +117,14 @@ var aFunction$1 = function (variable) {
   return isCallable$x(variable) ? variable : undefined;
 };
 
-var getBuiltIn$i = function (namespace, method) {
+var getBuiltIn$j = function (namespace, method) {
   return arguments.length < 2 ? aFunction$1(path$a[namespace]) || aFunction$1(global$B[namespace])
     : path$a[namespace] && path$a[namespace][method] || global$B[namespace] && global$B[namespace][method];
 };
 
-var getBuiltIn$h = getBuiltIn$i;
+var getBuiltIn$i = getBuiltIn$j;
 
-var engineUserAgent$1 = getBuiltIn$h('navigator', 'userAgent') || '';
+var engineUserAgent$1 = getBuiltIn$i('navigator', 'userAgent') || '';
 
 var global$A = global$C;
 var userAgent$8 = engineUserAgent$1;
@@ -151,10 +151,10 @@ var engineV8Version$1 = version$1 && +version$1;
 /* eslint-disable es/no-symbol -- required for testing */
 
 var V8_VERSION$4 = engineV8Version$1;
-var fails$n = fails$q;
+var fails$o = fails$r;
 
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
-var nativeSymbol$1 = !!Object.getOwnPropertySymbols && !fails$n(function () {
+var nativeSymbol$1 = !!Object.getOwnPropertySymbols && !fails$o(function () {
   var symbol = Symbol();
   // Chrome 38 Symbol has incorrect toString conversion
   // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
@@ -172,13 +172,13 @@ var useSymbolAsUid$1 = NATIVE_SYMBOL$3
   && typeof Symbol.iterator == 'symbol';
 
 var isCallable$w = isCallable$z;
-var getBuiltIn$g = getBuiltIn$i;
+var getBuiltIn$h = getBuiltIn$j;
 var USE_SYMBOL_AS_UID$3 = useSymbolAsUid$1;
 
 var isSymbol$7 = USE_SYMBOL_AS_UID$3 ? function (it) {
   return typeof it == 'symbol';
 } : function (it) {
-  var $Symbol = getBuiltIn$g('Symbol');
+  var $Symbol = getBuiltIn$h('Symbol');
   return isCallable$w($Symbol) && Object(it) instanceof $Symbol;
 };
 
@@ -346,11 +346,11 @@ var documentCreateElement$2 = function (it) {
 };
 
 var DESCRIPTORS$e = descriptors$1;
-var fails$m = fails$q;
+var fails$n = fails$r;
 var createElement$3 = documentCreateElement$2;
 
 // Thank's IE8 for his funny defineProperty
-var ie8DomDefine$1 = !DESCRIPTORS$e && !fails$m(function () {
+var ie8DomDefine$1 = !DESCRIPTORS$e && !fails$n(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- requied for testing
   return Object.defineProperty(createElement$3('div'), 'a', {
     get: function () { return 7; }
@@ -379,7 +379,7 @@ objectGetOwnPropertyDescriptor$1.f = DESCRIPTORS$d ? $getOwnPropertyDescriptor$1
   if (hasOwn$h(O, P)) return createPropertyDescriptor$6(!propertyIsEnumerableModule$1.f.call(O, P), O[P]);
 };
 
-var fails$l = fails$q;
+var fails$m = fails$r;
 var isCallable$t = isCallable$z;
 
 var replacement$1 = /#|\.prototype\./;
@@ -388,7 +388,7 @@ var isForced$5 = function (feature, detection) {
   var value = data$2[normalize$1(feature)];
   return value == POLYFILL$1 ? true
     : value == NATIVE$1 ? false
-    : isCallable$t(detection) ? fails$l(detection)
+    : isCallable$t(detection) ? fails$m(detection)
     : !!detection;
 };
 
@@ -579,9 +579,9 @@ var sharedKey$5 = function (key) {
   return keys$8[key] || (keys$8[key] = uid$4(key));
 };
 
-var fails$k = fails$q;
+var fails$l = fails$r;
 
-var correctPrototypeGetter = !fails$k(function () {
+var correctPrototypeGetter = !fails$l(function () {
   function F() { /* empty */ }
   F.prototype.constructor = null;
   // eslint-disable-next-line es/no-object-getprototypeof -- required for testing
@@ -769,13 +769,13 @@ var objectGetOwnPropertySymbols$1 = {};
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
 objectGetOwnPropertySymbols$1.f = Object.getOwnPropertySymbols;
 
-var getBuiltIn$f = getBuiltIn$i;
+var getBuiltIn$g = getBuiltIn$j;
 var getOwnPropertyNamesModule$2 = objectGetOwnPropertyNames$1;
 var getOwnPropertySymbolsModule$1 = objectGetOwnPropertySymbols$1;
 var anObject$g = anObject$j;
 
 // all object keys, includes non-enumerable and symbols
-var ownKeys$3 = getBuiltIn$f('Reflect', 'ownKeys') || function ownKeys(it) {
+var ownKeys$3 = getBuiltIn$g('Reflect', 'ownKeys') || function ownKeys(it) {
   var keys = getOwnPropertyNamesModule$2.f(anObject$g(it));
   var getOwnPropertySymbols = getOwnPropertySymbolsModule$1.f;
   return getOwnPropertySymbols ? keys.concat(getOwnPropertySymbols(it)) : keys;
@@ -824,9 +824,9 @@ var objectDefineProperties = DESCRIPTORS$a ? Object.defineProperties : function 
   return O;
 };
 
-var getBuiltIn$e = getBuiltIn$i;
+var getBuiltIn$f = getBuiltIn$j;
 
-var html$4 = getBuiltIn$e('document', 'documentElement');
+var html$4 = getBuiltIn$f('document', 'documentElement');
 
 /* global ActiveXObject -- old IE, WSH */
 
@@ -1085,7 +1085,7 @@ var toString$a = function (argument) {
   return String(argument);
 };
 
-var $$i = _export$1;
+var $$j = _export$1;
 var getPrototypeOf$2 = objectGetPrototypeOf;
 var setPrototypeOf$1 = objectSetPrototypeOf$1;
 var copyConstructorProperties$2 = copyConstructorProperties$3;
@@ -1123,7 +1123,7 @@ $AggregateError.prototype = create$2(Error.prototype, {
 
 // `AggregateError` constructor
 // https://tc39.es/ecma262/#sec-aggregate-error-constructor
-$$i({ global: true }, {
+$$j({ global: true }, {
   AggregateError: $AggregateError
 });
 
@@ -1242,7 +1242,7 @@ var redefine$9 = function (target, key, value, options) {
   else createNonEnumerableProperty$6(target, key, value);
 };
 
-var fails$j = fails$q;
+var fails$k = fails$r;
 var isCallable$m = isCallable$z;
 var create$1 = objectCreate;
 var getPrototypeOf$1 = objectGetPrototypeOf;
@@ -1267,7 +1267,7 @@ if ([].keys) {
   }
 }
 
-var NEW_ITERATOR_PROTOTYPE = IteratorPrototype$1 == undefined || fails$j(function () {
+var NEW_ITERATOR_PROTOTYPE = IteratorPrototype$1 == undefined || fails$k(function () {
   var test = {};
   // FF44- legacy iterators case
   return IteratorPrototype$1[ITERATOR$6].call(test) !== test;
@@ -1335,7 +1335,7 @@ var createIteratorConstructor$1 = function (IteratorConstructor, NAME, next) {
   return IteratorConstructor;
 };
 
-var $$h = _export$1;
+var $$i = _export$1;
 var FunctionName = functionName$1;
 var createIteratorConstructor = createIteratorConstructor$1;
 var getPrototypeOf = objectGetPrototypeOf;
@@ -1406,7 +1406,7 @@ var defineIterator$2 = function (Iterable, NAME, IteratorConstructor, next, DEFA
       if (BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME || !(KEY in IterablePrototype)) {
         redefine$7(IterablePrototype, KEY, methods[KEY]);
       }
-    } else $$h({ target: NAME, proto: true, forced: BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME }, methods);
+    } else $$i({ target: NAME, proto: true, forced: BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME }, methods);
   }
 
   // define iterator
@@ -1478,7 +1478,7 @@ var redefineAll$3 = function (target, src, options) {
   } return target;
 };
 
-var getBuiltIn$d = getBuiltIn$i;
+var getBuiltIn$e = getBuiltIn$j;
 var definePropertyModule$3 = objectDefineProperty$1;
 var wellKnownSymbol$h = wellKnownSymbol$q;
 var DESCRIPTORS$8 = descriptors$1;
@@ -1486,7 +1486,7 @@ var DESCRIPTORS$8 = descriptors$1;
 var SPECIES$7 = wellKnownSymbol$h('species');
 
 var setSpecies$3 = function (CONSTRUCTOR_NAME) {
-  var Constructor = getBuiltIn$d(CONSTRUCTOR_NAME);
+  var Constructor = getBuiltIn$e(CONSTRUCTOR_NAME);
   var defineProperty = definePropertyModule$3.f;
 
   if (DESCRIPTORS$8 && Constructor && !Constructor[SPECIES$7]) {
@@ -1541,14 +1541,14 @@ var checkCorrectnessOfIteration$3 = function (exec, SKIP_CLOSING) {
   return ITERATION_SUPPORT;
 };
 
-var fails$i = fails$q;
+var fails$j = fails$r;
 var isCallable$l = isCallable$z;
 var classof$9 = classof$d;
-var getBuiltIn$c = getBuiltIn$i;
+var getBuiltIn$d = getBuiltIn$j;
 var inspectSource$6 = inspectSource$8;
 
 var empty$1 = [];
-var construct$1 = getBuiltIn$c('Reflect', 'construct');
+var construct$1 = getBuiltIn$d('Reflect', 'construct');
 var constructorRegExp$1 = /^\s*(?:class|function)\b/;
 var exec$1 = constructorRegExp$1.exec;
 var INCORRECT_TO_STRING$1 = !constructorRegExp$1.exec(function () { /* empty */ });
@@ -1575,7 +1575,7 @@ var isConstructorLegacy$1 = function (argument) {
 
 // `IsConstructor` abstract operation
 // https://tc39.es/ecma262/#sec-isconstructor
-var isConstructor$4 = !construct$1 || fails$i(function () {
+var isConstructor$4 = !construct$1 || fails$j(function () {
   var called;
   return isConstructorModern$1(isConstructorModern$1.call)
     || !isConstructorModern$1(Object)
@@ -1617,7 +1617,7 @@ var engineIsNode$1 = classof$8(global$r.process) == 'process';
 
 var global$q = global$C;
 var isCallable$k = isCallable$z;
-var fails$h = fails$q;
+var fails$i = fails$r;
 var bind$a = functionBindContext$1;
 var html$2 = html$4;
 var createElement$2 = documentCreateElement$2;
@@ -1704,7 +1704,7 @@ if (!set$2 || !clear$1) {
     isCallable$k(global$q.postMessage) &&
     !global$q.importScripts &&
     location$2 && location$2.protocol !== 'file:' &&
-    !fails$h(post$1)
+    !fails$i(post$1)
   ) {
     defer$1 = post$1;
     global$q.addEventListener('message', listener$1, false);
@@ -1875,10 +1875,10 @@ var perform$6 = function (exec) {
 
 var engineIsBrowser$1 = typeof window == 'object';
 
-var $$g = _export$1;
+var $$h = _export$1;
 var IS_PURE = isPure;
 var global$m = global$C;
-var getBuiltIn$b = getBuiltIn$i;
+var getBuiltIn$c = getBuiltIn$j;
 var NativePromise$3 = nativePromiseConstructor$1;
 var redefineAll$2 = redefineAll$3;
 var setToStringTag$2 = setToStringTag$5;
@@ -1929,7 +1929,7 @@ var UNHANDLED$1 = 2;
 var SUBCLASSING$1 = false;
 var Internal$1, OwnPromiseCapability$1, PromiseWrapper$1;
 
-var FORCED$2 = isForced$3(PROMISE$1, function () {
+var FORCED$3 = isForced$3(PROMISE$1, function () {
   var PROMISE_CONSTRUCTOR_SOURCE = inspectSource$5(PromiseConstructor$1);
   var GLOBAL_CORE_JS_PROMISE = PROMISE_CONSTRUCTOR_SOURCE !== String(PromiseConstructor$1);
   // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
@@ -1955,7 +1955,7 @@ var FORCED$2 = isForced$3(PROMISE$1, function () {
   return !GLOBAL_CORE_JS_PROMISE && IS_BROWSER$1 && !NATIVE_REJECTION_EVENT$1;
 });
 
-var INCORRECT_ITERATION$1 = FORCED$2 || !checkCorrectnessOfIteration$2(function (iterable) {
+var INCORRECT_ITERATION$1 = FORCED$3 || !checkCorrectnessOfIteration$2(function (iterable) {
   PromiseConstructor$1.all(iterable)['catch'](function () { /* empty */ });
 });
 
@@ -2103,7 +2103,7 @@ var internalResolve$1 = function (state, value, unwrap) {
 };
 
 // constructor polyfill
-if (FORCED$2) {
+if (FORCED$3) {
   // 25.4.3.1 Promise(executor)
   PromiseConstructor$1 = function Promise(executor) {
     anInstance$2(this, PromiseConstructor$1, PROMISE$1);
@@ -2164,17 +2164,17 @@ if (FORCED$2) {
   };
 }
 
-$$g({ global: true, wrap: true, forced: FORCED$2 }, {
+$$h({ global: true, wrap: true, forced: FORCED$3 }, {
   Promise: PromiseConstructor$1
 });
 
 setToStringTag$2(PromiseConstructor$1, PROMISE$1, false, true);
 setSpecies$2(PROMISE$1);
 
-PromiseWrapper$1 = getBuiltIn$b(PROMISE$1);
+PromiseWrapper$1 = getBuiltIn$c(PROMISE$1);
 
 // statics
-$$g({ target: PROMISE$1, stat: true, forced: FORCED$2 }, {
+$$h({ target: PROMISE$1, stat: true, forced: FORCED$3 }, {
   // `Promise.reject` method
   // https://tc39.es/ecma262/#sec-promise.reject
   reject: function reject(r) {
@@ -2184,7 +2184,7 @@ $$g({ target: PROMISE$1, stat: true, forced: FORCED$2 }, {
   }
 });
 
-$$g({ target: PROMISE$1, stat: true, forced: IS_PURE  }, {
+$$h({ target: PROMISE$1, stat: true, forced: IS_PURE  }, {
   // `Promise.resolve` method
   // https://tc39.es/ecma262/#sec-promise.resolve
   resolve: function resolve(x) {
@@ -2192,7 +2192,7 @@ $$g({ target: PROMISE$1, stat: true, forced: IS_PURE  }, {
   }
 });
 
-$$g({ target: PROMISE$1, stat: true, forced: INCORRECT_ITERATION$1 }, {
+$$h({ target: PROMISE$1, stat: true, forced: INCORRECT_ITERATION$1 }, {
   // `Promise.all` method
   // https://tc39.es/ecma262/#sec-promise.all
   all: function all(iterable) {
@@ -2239,7 +2239,7 @@ $$g({ target: PROMISE$1, stat: true, forced: INCORRECT_ITERATION$1 }, {
   }
 });
 
-var $$f = _export$1;
+var $$g = _export$1;
 var aCallable$7 = aCallable$d;
 var newPromiseCapabilityModule$3 = newPromiseCapability$5;
 var perform$4 = perform$6;
@@ -2247,7 +2247,7 @@ var iterate$3 = iterate$6;
 
 // `Promise.allSettled` method
 // https://tc39.es/ecma262/#sec-promise.allsettled
-$$f({ target: 'Promise', stat: true }, {
+$$g({ target: 'Promise', stat: true }, {
   allSettled: function allSettled(iterable) {
     var C = this;
     var capability = newPromiseCapabilityModule$3.f(C);
@@ -2282,9 +2282,9 @@ $$f({ target: 'Promise', stat: true }, {
   }
 });
 
-var $$e = _export$1;
+var $$f = _export$1;
 var aCallable$6 = aCallable$d;
-var getBuiltIn$a = getBuiltIn$i;
+var getBuiltIn$b = getBuiltIn$j;
 var newPromiseCapabilityModule$2 = newPromiseCapability$5;
 var perform$3 = perform$6;
 var iterate$2 = iterate$6;
@@ -2293,7 +2293,7 @@ var PROMISE_ANY_ERROR = 'No one promise resolved';
 
 // `Promise.any` method
 // https://tc39.es/ecma262/#sec-promise.any
-$$e({ target: 'Promise', stat: true }, {
+$$f({ target: 'Promise', stat: true }, {
   any: function any(iterable) {
     var C = this;
     var capability = newPromiseCapabilityModule$2.f(C);
@@ -2318,34 +2318,34 @@ $$e({ target: 'Promise', stat: true }, {
           if (alreadyRejected || alreadyResolved) return;
           alreadyRejected = true;
           errors[index] = error;
-          --remaining || reject(new (getBuiltIn$a('AggregateError'))(errors, PROMISE_ANY_ERROR));
+          --remaining || reject(new (getBuiltIn$b('AggregateError'))(errors, PROMISE_ANY_ERROR));
         });
       });
-      --remaining || reject(new (getBuiltIn$a('AggregateError'))(errors, PROMISE_ANY_ERROR));
+      --remaining || reject(new (getBuiltIn$b('AggregateError'))(errors, PROMISE_ANY_ERROR));
     });
     if (result.error) reject(result.value);
     return capability.promise;
   }
 });
 
-var $$d = _export$1;
+var $$e = _export$1;
 var NativePromise$2 = nativePromiseConstructor$1;
-var fails$g = fails$q;
-var getBuiltIn$9 = getBuiltIn$i;
+var fails$h = fails$r;
+var getBuiltIn$a = getBuiltIn$j;
 var isCallable$i = isCallable$z;
 var speciesConstructor$3 = speciesConstructor$5;
 var promiseResolve$4 = promiseResolve$6;
 
 // Safari bug https://bugs.webkit.org/show_bug.cgi?id=200829
-var NON_GENERIC$1 = !!NativePromise$2 && fails$g(function () {
+var NON_GENERIC$1 = !!NativePromise$2 && fails$h(function () {
   NativePromise$2.prototype['finally'].call({ then: function () { /* empty */ } }, function () { /* empty */ });
 });
 
 // `Promise.prototype.finally` method
 // https://tc39.es/ecma262/#sec-promise.prototype.finally
-$$d({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC$1 }, {
+$$e({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC$1 }, {
   'finally': function (onFinally) {
-    var C = speciesConstructor$3(this, getBuiltIn$9('Promise'));
+    var C = speciesConstructor$3(this, getBuiltIn$a('Promise'));
     var isFunction = isCallable$i(onFinally);
     return this.then(
       isFunction ? function (x) {
@@ -2474,18 +2474,18 @@ for (var COLLECTION_NAME in DOMIterables) {
   Iterators$2[COLLECTION_NAME] = Iterators$2.Array;
 }
 
-var parent$9 = promise$5;
+var parent$a = promise$5;
 
 
-var promise$4 = parent$9;
+var promise$4 = parent$a;
 
-var $$c = _export$1;
+var $$d = _export$1;
 var newPromiseCapabilityModule$1 = newPromiseCapability$5;
 var perform$2 = perform$6;
 
 // `Promise.try` method
 // https://github.com/tc39/proposal-promise-try
-$$c({ target: 'Promise', stat: true }, {
+$$d({ target: 'Promise', stat: true }, {
   'try': function (callbackfn) {
     var promiseCapability = newPromiseCapabilityModule$1.f(this);
     var result = perform$2(callbackfn);
@@ -2494,14 +2494,14 @@ $$c({ target: 'Promise', stat: true }, {
   }
 });
 
-var parent$8 = promise$4;
+var parent$9 = promise$4;
 
 // TODO: Remove from `core-js@4`
 
 
 
 
-var promise$3 = parent$8;
+var promise$3 = parent$9;
 
 var promise$2 = promise$3;
 
@@ -2549,13 +2549,13 @@ function _classCallCheck(instance, Constructor) {
 
 var defineProperty$b = {exports: {}};
 
-var $$b = _export$1;
+var $$c = _export$1;
 var DESCRIPTORS$7 = descriptors$1;
 var objectDefinePropertyModile = objectDefineProperty$1;
 
 // `Object.defineProperty` method
 // https://tc39.es/ecma262/#sec-object.defineproperty
-$$b({ target: 'Object', stat: true, forced: !DESCRIPTORS$7, sham: !DESCRIPTORS$7 }, {
+$$c({ target: 'Object', stat: true, forced: !DESCRIPTORS$7, sham: !DESCRIPTORS$7 }, {
   defineProperty: objectDefinePropertyModile.f
 });
 
@@ -2569,13 +2569,13 @@ var defineProperty$a = defineProperty$b.exports = function defineProperty(it, ke
 
 if (Object$1.defineProperty.sham) defineProperty$a.sham = true;
 
-var parent$7 = defineProperty$b.exports;
+var parent$8 = defineProperty$b.exports;
 
-var defineProperty$9 = parent$7;
+var defineProperty$9 = parent$8;
 
-var parent$6 = defineProperty$9;
+var parent$7 = defineProperty$9;
 
-var defineProperty$8 = parent$6;
+var defineProperty$8 = parent$7;
 
 var defineProperty$7 = defineProperty$8;
 
@@ -2687,13 +2687,13 @@ var aFunction = function (argument) {
   return isCallable$g(argument) ? argument : undefined;
 };
 
-var getBuiltIn$8 = function (namespace, method) {
+var getBuiltIn$9 = function (namespace, method) {
   return arguments.length < 2 ? aFunction(global$h[namespace]) : global$h[namespace] && global$h[namespace][method];
 };
 
-var getBuiltIn$7 = getBuiltIn$8;
+var getBuiltIn$8 = getBuiltIn$9;
 
-var engineUserAgent = getBuiltIn$7('navigator', 'userAgent') || '';
+var engineUserAgent = getBuiltIn$8('navigator', 'userAgent') || '';
 
 var global$g = global$k;
 var userAgent$4 = engineUserAgent;
@@ -2717,7 +2717,7 @@ if (v8) {
 
 var engineV8Version = version && +version;
 
-var fails$f = function (exec) {
+var fails$g = function (exec) {
   try {
     return !!exec();
   } catch (error) {
@@ -2728,10 +2728,10 @@ var fails$f = function (exec) {
 /* eslint-disable es/no-symbol -- required for testing */
 
 var V8_VERSION$2 = engineV8Version;
-var fails$e = fails$f;
+var fails$f = fails$g;
 
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
-var nativeSymbol = !!Object.getOwnPropertySymbols && !fails$e(function () {
+var nativeSymbol = !!Object.getOwnPropertySymbols && !fails$f(function () {
   var symbol = Symbol();
   // Chrome 38 Symbol has incorrect toString conversion
   // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
@@ -2780,10 +2780,10 @@ var toStringTagSupport = String(test) === '[object z]';
 
 var redefine$5 = {exports: {}};
 
-var fails$d = fails$f;
+var fails$e = fails$g;
 
 // Detect IE8's incomplete defineProperty implementation
-var descriptors = !fails$d(function () {
+var descriptors = !fails$e(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- required for testing
   return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] != 7;
 });
@@ -2808,11 +2808,11 @@ var documentCreateElement = function (it) {
 };
 
 var DESCRIPTORS$6 = descriptors;
-var fails$c = fails$f;
+var fails$d = fails$g;
 var createElement$1 = documentCreateElement;
 
 // Thank's IE8 for his funny defineProperty
-var ie8DomDefine = !DESCRIPTORS$6 && !fails$c(function () {
+var ie8DomDefine = !DESCRIPTORS$6 && !fails$d(function () {
   // eslint-disable-next-line es/no-object-defineproperty -- requied for testing
   return Object.defineProperty(createElement$1('div'), 'a', {
     get: function () { return 7; }
@@ -2828,13 +2828,13 @@ var anObject$8 = function (argument) {
 };
 
 var isCallable$e = isCallable$h;
-var getBuiltIn$6 = getBuiltIn$8;
+var getBuiltIn$7 = getBuiltIn$9;
 var USE_SYMBOL_AS_UID = useSymbolAsUid;
 
 var isSymbol$4 = USE_SYMBOL_AS_UID ? function (it) {
   return typeof it == 'symbol';
 } : function (it) {
-  var $Symbol = getBuiltIn$6('Symbol');
+  var $Symbol = getBuiltIn$7('Symbol');
   return isCallable$e($Symbol) && Object(it) instanceof $Symbol;
 };
 
@@ -3190,13 +3190,13 @@ objectPropertyIsEnumerable.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
   return !!descriptor && descriptor.enumerable;
 } : $propertyIsEnumerable;
 
-var fails$b = fails$f;
+var fails$c = fails$g;
 var classof$4 = classofRaw$1;
 
 var split = ''.split;
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
-var indexedObject = fails$b(function () {
+var indexedObject = fails$c(function () {
   // throws an error in rhino, see https://github.com/mozilla/rhino/issues/346
   // eslint-disable-next-line no-prototype-builtins -- safe
   return !Object('z').propertyIsEnumerable(0);
@@ -3357,13 +3357,13 @@ var objectGetOwnPropertySymbols = {};
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
 objectGetOwnPropertySymbols.f = Object.getOwnPropertySymbols;
 
-var getBuiltIn$5 = getBuiltIn$8;
+var getBuiltIn$6 = getBuiltIn$9;
 var getOwnPropertyNamesModule$1 = objectGetOwnPropertyNames;
 var getOwnPropertySymbolsModule = objectGetOwnPropertySymbols;
 var anObject$6 = anObject$8;
 
 // all object keys, includes non-enumerable and symbols
-var ownKeys$1 = getBuiltIn$5('Reflect', 'ownKeys') || function ownKeys(it) {
+var ownKeys$1 = getBuiltIn$6('Reflect', 'ownKeys') || function ownKeys(it) {
   var keys = getOwnPropertyNamesModule$1.f(anObject$6(it));
   var getOwnPropertySymbols = getOwnPropertySymbolsModule.f;
   return getOwnPropertySymbols ? keys.concat(getOwnPropertySymbols(it)) : keys;
@@ -3384,7 +3384,7 @@ var copyConstructorProperties$1 = function (target, source) {
   }
 };
 
-var fails$a = fails$f;
+var fails$b = fails$g;
 var isCallable$7 = isCallable$h;
 
 var replacement = /#|\.prototype\./;
@@ -3393,7 +3393,7 @@ var isForced$2 = function (feature, detection) {
   var value = data$1[normalize(feature)];
   return value == POLYFILL ? true
     : value == NATIVE ? false
-    : isCallable$7(detection) ? fails$a(detection)
+    : isCallable$7(detection) ? fails$b(detection)
     : !!detection;
 };
 
@@ -3521,7 +3521,7 @@ var setToStringTag$1 = function (it, TAG, STATIC) {
   }
 };
 
-var getBuiltIn$4 = getBuiltIn$8;
+var getBuiltIn$5 = getBuiltIn$9;
 var definePropertyModule = objectDefineProperty;
 var wellKnownSymbol$7 = wellKnownSymbol$c;
 var DESCRIPTORS$1 = descriptors;
@@ -3529,7 +3529,7 @@ var DESCRIPTORS$1 = descriptors;
 var SPECIES$4 = wellKnownSymbol$7('species');
 
 var setSpecies$1 = function (CONSTRUCTOR_NAME) {
-  var Constructor = getBuiltIn$4(CONSTRUCTOR_NAME);
+  var Constructor = getBuiltIn$5(CONSTRUCTOR_NAME);
   var defineProperty = definePropertyModule.f;
 
   if (DESCRIPTORS$1 && Constructor && !Constructor[SPECIES$4]) {
@@ -3727,14 +3727,14 @@ var checkCorrectnessOfIteration$1 = function (exec, SKIP_CLOSING) {
   return ITERATION_SUPPORT;
 };
 
-var fails$9 = fails$f;
+var fails$a = fails$g;
 var isCallable$5 = isCallable$h;
 var classof$2 = classof$6;
-var getBuiltIn$3 = getBuiltIn$8;
+var getBuiltIn$4 = getBuiltIn$9;
 var inspectSource$1 = inspectSource$4;
 
 var empty = [];
-var construct = getBuiltIn$3('Reflect', 'construct');
+var construct = getBuiltIn$4('Reflect', 'construct');
 var constructorRegExp = /^\s*(?:class|function)\b/;
 var exec = constructorRegExp.exec;
 var INCORRECT_TO_STRING = !constructorRegExp.exec(function () { /* empty */ });
@@ -3761,7 +3761,7 @@ var isConstructorLegacy = function (argument) {
 
 // `IsConstructor` abstract operation
 // https://tc39.es/ecma262/#sec-isconstructor
-var isConstructor$2 = !construct || fails$9(function () {
+var isConstructor$2 = !construct || fails$a(function () {
   var called;
   return isConstructorModern(isConstructorModern.call)
     || !isConstructorModern(Object)
@@ -3792,9 +3792,9 @@ var speciesConstructor$2 = function (O, defaultConstructor) {
   return C === undefined || (S = anObject$1(C)[SPECIES$3]) == undefined ? defaultConstructor : aConstructor(S);
 };
 
-var getBuiltIn$2 = getBuiltIn$8;
+var getBuiltIn$3 = getBuiltIn$9;
 
-var html$1 = getBuiltIn$2('document', 'documentElement');
+var html$1 = getBuiltIn$3('document', 'documentElement');
 
 var userAgent$3 = engineUserAgent;
 
@@ -3807,7 +3807,7 @@ var engineIsNode = classof$1(global$8.process) == 'process';
 
 var global$7 = global$k;
 var isCallable$4 = isCallable$h;
-var fails$8 = fails$f;
+var fails$9 = fails$g;
 var bind$7 = functionBindContext;
 var html = html$1;
 var createElement = documentCreateElement;
@@ -3894,7 +3894,7 @@ if (!set || !clear) {
     isCallable$4(global$7.postMessage) &&
     !global$7.importScripts &&
     location$1 && location$1.protocol !== 'file:' &&
-    !fails$8(post)
+    !fails$9(post)
   ) {
     defer = post;
     global$7.addEventListener('message', listener, false);
@@ -4065,9 +4065,9 @@ var perform$1 = function (exec) {
 
 var engineIsBrowser = typeof window == 'object';
 
-var $$a = _export;
+var $$b = _export;
 var global$3 = global$k;
-var getBuiltIn$1 = getBuiltIn$8;
+var getBuiltIn$2 = getBuiltIn$9;
 var NativePromise$1 = nativePromiseConstructor;
 var redefine$1 = redefine$5.exports;
 var redefineAll = redefineAll$1;
@@ -4120,7 +4120,7 @@ var UNHANDLED = 2;
 var SUBCLASSING = false;
 var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
-var FORCED$1 = isForced(PROMISE, function () {
+var FORCED$2 = isForced(PROMISE, function () {
   var PROMISE_CONSTRUCTOR_SOURCE = inspectSource(PromiseConstructor);
   var GLOBAL_CORE_JS_PROMISE = PROMISE_CONSTRUCTOR_SOURCE !== String(PromiseConstructor);
   // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
@@ -4144,7 +4144,7 @@ var FORCED$1 = isForced(PROMISE, function () {
   return !GLOBAL_CORE_JS_PROMISE && IS_BROWSER && !NATIVE_REJECTION_EVENT;
 });
 
-var INCORRECT_ITERATION = FORCED$1 || !checkCorrectnessOfIteration(function (iterable) {
+var INCORRECT_ITERATION = FORCED$2 || !checkCorrectnessOfIteration(function (iterable) {
   PromiseConstructor.all(iterable)['catch'](function () { /* empty */ });
 });
 
@@ -4292,7 +4292,7 @@ var internalResolve = function (state, value, unwrap) {
 };
 
 // constructor polyfill
-if (FORCED$1) {
+if (FORCED$2) {
   // 25.4.3.1 Promise(executor)
   PromiseConstructor = function Promise(executor) {
     anInstance(this, PromiseConstructor, PROMISE);
@@ -4381,17 +4381,17 @@ if (FORCED$1) {
   }
 }
 
-$$a({ global: true, wrap: true, forced: FORCED$1 }, {
+$$b({ global: true, wrap: true, forced: FORCED$2 }, {
   Promise: PromiseConstructor
 });
 
 setToStringTag(PromiseConstructor, PROMISE, false);
 setSpecies(PROMISE);
 
-PromiseWrapper = getBuiltIn$1(PROMISE);
+PromiseWrapper = getBuiltIn$2(PROMISE);
 
 // statics
-$$a({ target: PROMISE, stat: true, forced: FORCED$1 }, {
+$$b({ target: PROMISE, stat: true, forced: FORCED$2 }, {
   // `Promise.reject` method
   // https://tc39.es/ecma262/#sec-promise.reject
   reject: function reject(r) {
@@ -4401,7 +4401,7 @@ $$a({ target: PROMISE, stat: true, forced: FORCED$1 }, {
   }
 });
 
-$$a({ target: PROMISE, stat: true, forced: FORCED$1 }, {
+$$b({ target: PROMISE, stat: true, forced: FORCED$2 }, {
   // `Promise.resolve` method
   // https://tc39.es/ecma262/#sec-promise.resolve
   resolve: function resolve(x) {
@@ -4409,7 +4409,7 @@ $$a({ target: PROMISE, stat: true, forced: FORCED$1 }, {
   }
 });
 
-$$a({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
+$$b({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
   // `Promise.all` method
   // https://tc39.es/ecma262/#sec-promise.all
   all: function all(iterable) {
@@ -4456,25 +4456,25 @@ $$a({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION }, {
   }
 });
 
-var $$9 = _export;
+var $$a = _export;
 var NativePromise = nativePromiseConstructor;
-var fails$7 = fails$f;
-var getBuiltIn = getBuiltIn$8;
+var fails$8 = fails$g;
+var getBuiltIn$1 = getBuiltIn$9;
 var isCallable$2 = isCallable$h;
 var speciesConstructor = speciesConstructor$2;
 var promiseResolve$1 = promiseResolve$3;
 var redefine = redefine$5.exports;
 
 // Safari bug https://bugs.webkit.org/show_bug.cgi?id=200829
-var NON_GENERIC = !!NativePromise && fails$7(function () {
+var NON_GENERIC = !!NativePromise && fails$8(function () {
   NativePromise.prototype['finally'].call({ then: function () { /* empty */ } }, function () { /* empty */ });
 });
 
 // `Promise.prototype.finally` method
 // https://tc39.es/ecma262/#sec-promise.prototype.finally
-$$9({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
+$$a({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
   'finally': function (onFinally) {
-    var C = speciesConstructor(this, getBuiltIn('Promise'));
+    var C = speciesConstructor(this, getBuiltIn$1('Promise'));
     var isFunction = isCallable$2(onFinally);
     return this.then(
       isFunction ? function (x) {
@@ -4489,7 +4489,7 @@ $$9({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
 
 // makes sure that native promise-based APIs `Promise#finally` properly works with patched `Promise#then`
 if (isCallable$2(NativePromise)) {
-  var method = getBuiltIn('Promise').prototype['finally'];
+  var method = getBuiltIn$1('Promise').prototype['finally'];
   if (NativePromise.prototype['finally'] !== method) {
     redefine(NativePromise.prototype, 'finally', method, { unsafe: true });
   }
@@ -5279,9 +5279,9 @@ try {
 
 var regenerator = runtime.exports;
 
-var fails$6 = fails$q;
+var fails$7 = fails$r;
 
-var freezing = !fails$6(function () {
+var freezing = !fails$7(function () {
   // eslint-disable-next-line es/no-object-isextensible, es/no-object-preventextensions -- required for testing
   return Object.isExtensible(Object.preventExtensions({}));
 });
@@ -5315,7 +5315,7 @@ objectGetOwnPropertyNamesExternal.f = function getOwnPropertyNames(it) {
     : $getOwnPropertyNames(toIndexedObject$1(it));
 };
 
-var $$8 = _export$1;
+var $$9 = _export$1;
 var hiddenKeys = hiddenKeys$9;
 var isObject$9 = isObject$q;
 var hasOwn$1 = hasOwnProperty_1$1;
@@ -5393,7 +5393,7 @@ var enable = function () {
       } return result;
     };
 
-    $$8({ target: 'Object', stat: true, forced: true }, {
+    $$9({ target: 'Object', stat: true, forced: true }, {
       getOwnPropertyNames: getOwnPropertyNamesExternalModule.f
     });
   }
@@ -5408,19 +5408,19 @@ var meta = internalMetadata.exports = {
 
 hiddenKeys[METADATA] = true;
 
-var $$7 = _export$1;
+var $$8 = _export$1;
 var FREEZING = freezing;
-var fails$5 = fails$q;
+var fails$6 = fails$r;
 var isObject$8 = isObject$q;
 var onFreeze = internalMetadata.exports.onFreeze;
 
 // eslint-disable-next-line es/no-object-freeze -- safe
 var $freeze = Object.freeze;
-var FAILS_ON_PRIMITIVES$1 = fails$5(function () { $freeze(1); });
+var FAILS_ON_PRIMITIVES$1 = fails$6(function () { $freeze(1); });
 
 // `Object.freeze` method
 // https://tc39.es/ecma262/#sec-object.freeze
-$$7({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$1, sham: !FREEZING }, {
+$$8({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES$1, sham: !FREEZING }, {
   freeze: function freeze(it) {
     return $freeze && isObject$8(it) ? $freeze(onFreeze(it)) : it;
   }
@@ -5430,9 +5430,9 @@ var path$6 = path$b;
 
 var freeze$2 = path$6.Object.freeze;
 
-var parent$5 = freeze$2;
+var parent$6 = freeze$2;
 
-var freeze$1 = parent$5;
+var freeze$1 = parent$6;
 
 var freeze = freeze$1;
 
@@ -5548,17 +5548,17 @@ var arrayIteration = {
   filterReject: createMethod$1(7)
 };
 
-var fails$4 = fails$q;
+var fails$5 = fails$r;
 
 var arrayMethodIsStrict$3 = function (METHOD_NAME, argument) {
   var method = [][METHOD_NAME];
-  return !!method && fails$4(function () {
+  return !!method && fails$5(function () {
     // eslint-disable-next-line no-useless-call,no-throw-literal -- required for testing
     method.call(null, argument || function () { throw 1; }, 1);
   });
 };
 
-var $$6 = _export$1;
+var $$7 = _export$1;
 var $some = arrayIteration.some;
 var arrayMethodIsStrict$2 = arrayMethodIsStrict$3;
 
@@ -5566,7 +5566,7 @@ var STRICT_METHOD$1 = arrayMethodIsStrict$2('some');
 
 // `Array.prototype.some` method
 // https://tc39.es/ecma262/#sec-array.prototype.some
-$$6({ target: 'Array', proto: true, forced: !STRICT_METHOD$1 }, {
+$$7({ target: 'Array', proto: true, forced: !STRICT_METHOD$1 }, {
   some: function some(callbackfn /* , thisArg */) {
     return $some(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
@@ -5591,15 +5591,15 @@ var some_1 = function (it) {
   return it === ArrayPrototype$1 || (it instanceof Array && own === ArrayPrototype$1.some) ? some$2 : own;
 };
 
-var parent$4 = some_1;
+var parent$5 = some_1;
 
-var some$1 = parent$4;
+var some$1 = parent$5;
 
 var some = some$1;
 
 var promise = promise$4;
 
-var $$5 = _export$1;
+var $$6 = _export$1;
 var global$2 = global$C;
 var isCallable$1 = isCallable$z;
 var userAgent = engineUserAgent$1;
@@ -5620,7 +5620,7 @@ var wrap = function (scheduler) {
 
 // ie9- setTimeout & setInterval additional parameters fix
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
-$$5({ global: true, bind: true, forced: MSIE }, {
+$$6({ global: true, bind: true, forced: MSIE }, {
   // `setTimeout` method
   // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
   setTimeout: wrap(global$2.setTimeout),
@@ -5676,7 +5676,7 @@ var stringTrim = {
 };
 
 var global$1 = global$C;
-var fails$3 = fails$q;
+var fails$4 = fails$r;
 var toString$1 = toString$a;
 var trim$1 = stringTrim.trim;
 var whitespaces = whitespaces$2;
@@ -5685,23 +5685,23 @@ var $parseInt$1 = global$1.parseInt;
 var Symbol$4 = global$1.Symbol;
 var ITERATOR = Symbol$4 && Symbol$4.iterator;
 var hex = /^[+-]?0x/i;
-var FORCED = $parseInt$1(whitespaces + '08') !== 8 || $parseInt$1(whitespaces + '0x16') !== 22
+var FORCED$1 = $parseInt$1(whitespaces + '08') !== 8 || $parseInt$1(whitespaces + '0x16') !== 22
   // MS Edge 18- broken with boxed symbols
-  || (ITERATOR && !fails$3(function () { $parseInt$1(Object(ITERATOR)); }));
+  || (ITERATOR && !fails$4(function () { $parseInt$1(Object(ITERATOR)); }));
 
 // `parseInt` method
 // https://tc39.es/ecma262/#sec-parseint-string-radix
-var numberParseInt = FORCED ? function parseInt(string, radix) {
+var numberParseInt = FORCED$1 ? function parseInt(string, radix) {
   var S = trim$1(toString$1(string));
   return $parseInt$1(S, (radix >>> 0) || (hex.test(S) ? 16 : 10));
 } : $parseInt$1;
 
-var $$4 = _export$1;
+var $$5 = _export$1;
 var $parseInt = numberParseInt;
 
 // `parseInt` method
 // https://tc39.es/ecma262/#sec-parseint-string-radix
-$$4({ global: true, forced: parseInt != $parseInt }, {
+$$5({ global: true, forced: parseInt != $parseInt }, {
   parseInt: $parseInt
 });
 
@@ -5709,17 +5709,17 @@ var path$2 = path$b;
 
 var _parseInt$2 = path$2.parseInt;
 
-var parent$3 = _parseInt$2;
+var parent$4 = _parseInt$2;
 
-var _parseInt$1 = parent$3;
+var _parseInt$1 = parent$4;
 
 var _parseInt = _parseInt$1;
 
-var $$3 = _export$1;
+var $$4 = _export$1;
 
 // `Date.now` method
 // https://tc39.es/ecma262/#sec-date.now
-$$3({ target: 'Date', stat: true }, {
+$$4({ target: 'Date', stat: true }, {
   now: function now() {
     return new Date().getTime();
   }
@@ -5729,9 +5729,9 @@ var path$1 = path$b;
 
 var now$2 = path$1.Date.now;
 
-var parent$2 = now$2;
+var parent$3 = now$2;
 
-var now$1 = parent$2;
+var now$1 = parent$3;
 
 var now = now$1;
 
@@ -9339,6 +9339,161 @@ var assignIn = createAssigner(function(object, source) {
 
 var assignIn_1 = assignIn;
 
+/*! js-cookie v3.0.1 | MIT */
+/* eslint-disable no-var */
+function assign (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];
+    for (var key in source) {
+      target[key] = source[key];
+    }
+  }
+  return target
+}
+/* eslint-enable no-var */
+
+/* eslint-disable no-var */
+var defaultConverter = {
+  read: function (value) {
+    if (value[0] === '"') {
+      value = value.slice(1, -1);
+    }
+    return value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent)
+  },
+  write: function (value) {
+    return encodeURIComponent(value).replace(
+      /%(2[346BF]|3[AC-F]|40|5[BDE]|60|7[BCD])/g,
+      decodeURIComponent
+    )
+  }
+};
+/* eslint-enable no-var */
+
+/* eslint-disable no-var */
+
+function init (converter, defaultAttributes) {
+  function set (key, value, attributes) {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    attributes = assign({}, defaultAttributes, attributes);
+
+    if (typeof attributes.expires === 'number') {
+      attributes.expires = new Date(Date.now() + attributes.expires * 864e5);
+    }
+    if (attributes.expires) {
+      attributes.expires = attributes.expires.toUTCString();
+    }
+
+    key = encodeURIComponent(key)
+      .replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent)
+      .replace(/[()]/g, escape);
+
+    var stringifiedAttributes = '';
+    for (var attributeName in attributes) {
+      if (!attributes[attributeName]) {
+        continue
+      }
+
+      stringifiedAttributes += '; ' + attributeName;
+
+      if (attributes[attributeName] === true) {
+        continue
+      }
+
+      // Considers RFC 6265 section 5.2:
+      // ...
+      // 3.  If the remaining unparsed-attributes contains a %x3B (";")
+      //     character:
+      // Consume the characters of the unparsed-attributes up to,
+      // not including, the first %x3B (";") character.
+      // ...
+      stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
+    }
+
+    return (document.cookie =
+      key + '=' + converter.write(value, key) + stringifiedAttributes)
+  }
+
+  function get (key) {
+    if (typeof document === 'undefined' || (arguments.length && !key)) {
+      return
+    }
+
+    // To prevent the for loop in the first place assign an empty array
+    // in case there are no cookies at all.
+    var cookies = document.cookie ? document.cookie.split('; ') : [];
+    var jar = {};
+    for (var i = 0; i < cookies.length; i++) {
+      var parts = cookies[i].split('=');
+      var value = parts.slice(1).join('=');
+
+      try {
+        var foundKey = decodeURIComponent(parts[0]);
+        jar[foundKey] = converter.read(value, foundKey);
+
+        if (key === foundKey) {
+          break
+        }
+      } catch (e) {}
+    }
+
+    return key ? jar[key] : jar
+  }
+
+  return Object.create(
+    {
+      set: set,
+      get: get,
+      remove: function (key, attributes) {
+        set(
+          key,
+          '',
+          assign({}, attributes, {
+            expires: -1
+          })
+        );
+      },
+      withAttributes: function (attributes) {
+        return init(this.converter, assign({}, this.attributes, attributes))
+      },
+      withConverter: function (converter) {
+        return init(assign({}, this.converter, converter), this.attributes)
+      }
+    },
+    {
+      attributes: { value: Object.freeze(defaultAttributes) },
+      converter: { value: Object.freeze(converter) }
+    }
+  )
+}
+
+var api = init(defaultConverter, { path: '/' });
+
+// Token
+var ACCESS_TOKEN_NAME = "token_access_token"; // Refresh Token
+
+var REFRESH_TOKEN_NAME = "token_refresh_token"; // Token 建立時間
+
+var TOKEN_CREATE_TIME_NAME = "token_createtime"; // Token 過期時間
+
+var TOKEN_EXPIRED_NAME = "token_expires_in"; // Token 過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
+
+var TOKEN_REFRESH_BEFORE = _parseInt(2000 + Math.random() * 300); // Token 過期 前 x 秒 時， 每 y 秒 更新一次 - y = 300
+
+var TOKEN_AUTO_REFRESH_INTERVAL = 300; // 每 x 毫秒 檢查是否需與後端同步Token - x = 500
+
+var TOKEN_AUTO_SYNC_INTERVAL = 500; // Token 授權類型
+
+var TOKEN_TYPE = "token_type"; // Token 授權範圍
+
+var TOKEN_SCOPE = "token_scope"; // Token 檢查總時數
+
+var TOKEN_CHECK_SUM = "token_checksum"; // 自動登出時間 (1天)
+
+var LOGOUT_TIME = 1000 * 86400;
+
 var axios$2 = {exports: {}};
 
 var bind$2 = function bind(fn, thisArg) {
@@ -11146,162 +11301,136 @@ axios$2.exports.default = axios$1;
 
 var axios = axios$2.exports;
 
-/*! js-cookie v3.0.1 | MIT */
-/* eslint-disable no-var */
-function assign (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];
-    for (var key in source) {
-      target[key] = source[key];
-    }
-  }
-  return target
-}
-/* eslint-enable no-var */
+var config = {
+  // 服務終端
+  baseURL: '',
+  // 跨域請求挾帶 cookies
+  withCredentials: true,
+  // 請求回應超時
+  timeout: 30000,
+  // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
+  headers: {},
+  // 發出請求前的 callback
+  transformRequest: []
+};
+var httpRequset = function httpRequset() {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return axios.create(assignIn_1({}, config, isPlainObject_1(options) && options));
+};
 
-/* eslint-disable no-var */
-var defaultConverter = {
-  read: function (value) {
-    if (value[0] === '"') {
-      value = value.slice(1, -1);
+var $$3 = _export$1;
+var getBuiltIn = getBuiltIn$j;
+var fails$3 = fails$r;
+
+var $stringify = getBuiltIn('JSON', 'stringify');
+var re = /[\uD800-\uDFFF]/g;
+var low = /^[\uD800-\uDBFF]$/;
+var hi = /^[\uDC00-\uDFFF]$/;
+
+var fix = function (match, offset, string) {
+  var prev = string.charAt(offset - 1);
+  var next = string.charAt(offset + 1);
+  if ((low.test(match) && !hi.test(next)) || (hi.test(match) && !low.test(prev))) {
+    return '\\u' + match.charCodeAt(0).toString(16);
+  } return match;
+};
+
+var FORCED = fails$3(function () {
+  return $stringify('\uDF06\uD834') !== '"\\udf06\\ud834"'
+    || $stringify('\uDEAD') !== '"\\udead"';
+});
+
+if ($stringify) {
+  // `JSON.stringify` method
+  // https://tc39.es/ecma262/#sec-json.stringify
+  // https://github.com/tc39/proposal-well-formed-stringify
+  $$3({ target: 'JSON', stat: true, forced: FORCED }, {
+    // eslint-disable-next-line no-unused-vars -- required for `.length`
+    stringify: function stringify(it, replacer, space) {
+      var result = $stringify.apply(null, arguments);
+      return typeof result == 'string' ? result.replace(re, fix) : result;
     }
-    return value.replace(/(%[\dA-F]{2})+/gi, decodeURIComponent)
-  },
-  write: function (value) {
-    return encodeURIComponent(value).replace(
-      /%(2[346BF]|3[AC-F]|40|5[BDE]|60|7[BCD])/g,
-      decodeURIComponent
-    )
+  });
+}
+
+var core = path$b;
+
+// eslint-disable-next-line es/no-json -- safe
+if (!core.JSON) core.JSON = { stringify: JSON.stringify };
+
+// eslint-disable-next-line no-unused-vars -- required for `.length`
+var stringify$2 = function stringify(it, replacer, space) {
+  return core.JSON.stringify.apply(null, arguments);
+};
+
+var parent$2 = stringify$2;
+
+var stringify$1 = parent$2;
+
+var stringify = stringify$1;
+
+var errorMsg = {
+  typeVerify: function typeVerify(type) {
+    return "[Type Error]: Must be a '".concat(type, "'.");
   }
 };
-/* eslint-enable no-var */
+/**
+ * 檢查 輸入值是否為字串格式
+ *
+ * @param {*} string - 字串
+ * @returns {boolean}
+ */
 
-/* eslint-disable no-var */
+var stringTypeVerify = function stringTypeVerify(string) {
+  return !(!isString_1(string) && console.error(errorMsg.typeVerify('string')));
+};
 
-function init (converter, defaultAttributes) {
-  function set (key, value, attributes) {
-    if (typeof document === 'undefined') {
-      return
+var webStorage = {
+  /**
+   * 設置 key|value
+   *
+   * @param {string} key - storage key
+   * @param {*} value - 傳入值 (string or object)
+   */
+  set: function set(key, value) {
+    if (stringTypeVerify(key)) {
+      localStorage.setItem(key, stringify(value));
+    }
+  },
+
+  /**
+   * 取得指定 key 的值
+   *
+   * @param {string} key - storage key
+   * @returns {*}
+   */
+  get: function get(key) {
+    return stringTypeVerify(key) ? JSON.parse(localStorage.getItem(key)) : null;
+  },
+
+  /**
+   * 移除單一 key
+   *
+   * @param {string} key - storage key
+   * @returns {*}
+   */
+  remove: function remove(key) {
+    if (!stringTypeVerify(key)) {
+      return;
     }
 
-    attributes = assign({}, defaultAttributes, attributes);
+    return localStorage.removeItem(key);
+  },
 
-    if (typeof attributes.expires === 'number') {
-      attributes.expires = new Date(Date.now() + attributes.expires * 864e5);
-    }
-    if (attributes.expires) {
-      attributes.expires = attributes.expires.toUTCString();
-    }
-
-    key = encodeURIComponent(key)
-      .replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent)
-      .replace(/[()]/g, escape);
-
-    var stringifiedAttributes = '';
-    for (var attributeName in attributes) {
-      if (!attributes[attributeName]) {
-        continue
-      }
-
-      stringifiedAttributes += '; ' + attributeName;
-
-      if (attributes[attributeName] === true) {
-        continue
-      }
-
-      // Considers RFC 6265 section 5.2:
-      // ...
-      // 3.  If the remaining unparsed-attributes contains a %x3B (";")
-      //     character:
-      // Consume the characters of the unparsed-attributes up to,
-      // not including, the first %x3B (";") character.
-      // ...
-      stringifiedAttributes += '=' + attributes[attributeName].split(';')[0];
-    }
-
-    return (document.cookie =
-      key + '=' + converter.write(value, key) + stringifiedAttributes)
+  /**
+   * 清除所有 key
+   */
+  clear: function clear() {
+    localStorage.clear();
   }
+};
 
-  function get (key) {
-    if (typeof document === 'undefined' || (arguments.length && !key)) {
-      return
-    }
-
-    // To prevent the for loop in the first place assign an empty array
-    // in case there are no cookies at all.
-    var cookies = document.cookie ? document.cookie.split('; ') : [];
-    var jar = {};
-    for (var i = 0; i < cookies.length; i++) {
-      var parts = cookies[i].split('=');
-      var value = parts.slice(1).join('=');
-
-      try {
-        var foundKey = decodeURIComponent(parts[0]);
-        jar[foundKey] = converter.read(value, foundKey);
-
-        if (key === foundKey) {
-          break
-        }
-      } catch (e) {}
-    }
-
-    return key ? jar[key] : jar
-  }
-
-  return Object.create(
-    {
-      set: set,
-      get: get,
-      remove: function (key, attributes) {
-        set(
-          key,
-          '',
-          assign({}, attributes, {
-            expires: -1
-          })
-        );
-      },
-      withAttributes: function (attributes) {
-        return init(this.converter, assign({}, this.attributes, attributes))
-      },
-      withConverter: function (converter) {
-        return init(assign({}, this.converter, converter), this.attributes)
-      }
-    },
-    {
-      attributes: { value: Object.freeze(defaultAttributes) },
-      converter: { value: Object.freeze(converter) }
-    }
-  )
-}
-
-var api = init(defaultConverter, { path: '/' });
-
-// Token
-var ACCESS_TOKEN_NAME = "token_access_token"; // Refresh Token
-
-var REFRESH_TOKEN_NAME = "token_refresh_token"; // Token 建立時間
-
-var TOKEN_CREATE_TIME_NAME = "token_createtime"; // Token 過期時間
-
-var TOKEN_EXPIRED_NAME = "token_expires_in"; // Token 過期 前x秒 更新 - x = 2000+(0~300) (錯開時間以免同時更新)
-
-var TOKEN_REFRESH_BEFORE = _parseInt(2000 + Math.random() * 300); // Token 過期 前 x 秒 時， 每 y 秒 更新一次 - y = 300
-
-var TOKEN_AUTO_REFRESH_INTERVAL = 300; // 每 x 毫秒 檢查是否需與後端同步Token - x = 500
-
-var TOKEN_AUTO_SYNC_INTERVAL = 500; // Token 授權類型
-
-var TOKEN_TYPE = "token_type"; // Token 授權範圍
-
-var TOKEN_SCOPE = "token_scope"; // Token 檢查總時數
-
-var TOKEN_CHECK_SUM = "token_checksum"; // 自動登出時間 (1天)
-
-var LOGOUT_TIME = 1000 * 86400;
-
-var fails$2 = fails$q;
+var fails$2 = fails$r;
 var wellKnownSymbol = wellKnownSymbol$q;
 var V8_VERSION = engineV8Version$1;
 
@@ -11358,7 +11487,7 @@ var map = map$1;
 var $$1 = _export$1;
 var toObject = toObject$6;
 var nativeKeys = objectKeys$2;
-var fails$1 = fails$q;
+var fails$1 = fails$r;
 
 var FAILS_ON_PRIMITIVES = fails$1(function () { nativeKeys(1); });
 
@@ -11380,7 +11509,7 @@ var keys$1 = parent;
 
 var keys = keys$1;
 
-var fails = fails$f;
+var fails = fails$g;
 
 var arrayMethodIsStrict$1 = function (METHOD_NAME, argument) {
   var method = [][METHOD_NAME];
@@ -11410,7 +11539,7 @@ $({ target: 'Array', proto: true, forced: ES3_STRINGS || !STRICT_METHOD }, {
 
 /**
  * 參數序列化
- * 
+ *
  * @param {Object} params - 參數物件
  * @returns {string} 序列化字串
  */
@@ -11418,12 +11547,12 @@ function queryString(params) {
   var _context;
 
   return map(_context = keys(params)).call(_context, function (key) {
-    return key + "=" + params[key];
-  }).join("&");
+    return key + '=' + params[key];
+  }).join('&');
 }
 /**
  * 亂數產生器
- * 
+ *
  * @param {number} min - 最小值
  * @param {number} max - 最大值
  * @returns {number} 產生的亂數值
@@ -11473,14 +11602,9 @@ var TokenInjection = /*#__PURE__*/function () {
     this.intervalSync = null;
     this.intervalRefresh = null; // 實例化 axios
 
-    this.rest = axios.create({
-      // 服務終端
+    this.rest = httpRequset({
       baseURL: this.options.SSO_URL,
-      // 跨域請求挾帶 cookies
-      withCredentials: true,
-      // 請求回應超時
-      timeout: 30000,
-      // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
+      // 判斷是否為 Ajax 非同步請求
       headers: {
         'X-Requested-With': 'XMLHttpRequest'
       },
@@ -11537,7 +11661,7 @@ var TokenInjection = /*#__PURE__*/function () {
             if (some(tokenKeys).call(tokenKeys, function (tokenKey) {
               return includes_1(key, tokenKey);
             })) {
-              localStorage.setItem(key, value);
+              webStorage.set(key, value);
             }
           });
           return response;
@@ -11548,7 +11672,8 @@ var TokenInjection = /*#__PURE__*/function () {
         self.axiosSync = null; // 非登入時刪除 token 資料
 
         forEach_1(self.tokenKeys, function (key, value) {
-          localStorage.removeItem(key);
+          // eslint-disable-line
+          webStorage.remove(key);
         });
         return promise.reject();
       }
@@ -11573,7 +11698,7 @@ var TokenInjection = /*#__PURE__*/function () {
       var self = this;
       var rest = this.rest; // Refresh Token 值
 
-      var refreshToken = localStorage.getItem(REFRESH_TOKEN_NAME); // 金鑰不存在時丟出例外
+      var refreshToken = webStorage.get(REFRESH_TOKEN_NAME); // 金鑰不存在時丟出例外
 
       if (!refreshToken) {
         throw self.exception('Need Refresh Token !', 401);
@@ -11701,9 +11826,9 @@ var TokenInjection = /*#__PURE__*/function () {
             // 現在時間
             var nowTime = _parseInt(now() / 1000),
                 // Token建立時間
-            createTime = _parseInt(localStorage.getItem(TOKEN_CREATE_TIME_NAME)),
+            createTime = _parseInt(webStorage.get(TOKEN_CREATE_TIME_NAME)),
                 // Token過期時間
-            expireTime = _parseInt(localStorage.getItem(TOKEN_EXPIRED_NAME)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
+            expireTime = _parseInt(webStorage.get(TOKEN_EXPIRED_NAME)); // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
 
 
             if (nowTime >= createTime + expireTime - TOKEN_REFRESH_BEFORE && (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)) {
@@ -11802,7 +11927,7 @@ var TokenInjection = /*#__PURE__*/function () {
     key: "checkSumNoEqual",
     value: function checkSumNoEqual() {
       var options = this.options;
-      return api.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== localStorage.getItem('token_checksum');
+      return api.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== webStorage.get('token_checksum');
     }
     /**
      * 開啟登入頁面
@@ -11831,9 +11956,9 @@ var TokenInjection = /*#__PURE__*/function () {
      */
 
   }, {
-    key: "getLocalStorageToken",
-    value: function getLocalStorageToken() {
-      return localStorage.getItem(ACCESS_TOKEN_NAME);
+    key: "getToken",
+    value: function getToken() {
+      return webStorage.get(ACCESS_TOKEN_NAME);
     }
     /**
      * 例外物件

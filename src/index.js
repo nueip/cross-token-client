@@ -6,10 +6,11 @@
  * @author Chien.Lo
  */
 import { forEach, includes, isPlainObject, assignIn } from 'lodash';
-import axios from 'axios';
 import cookies from 'js-cookie';
-import * as TC from './constant.js';
-import { queryString, rand } from './lib.js';
+import * as TC from './constant';
+import { httpRequset } from './helpers/request';
+import { webStorage } from './helpers/storage';
+import { queryString, rand } from './lib';
 
 // 讓 Axios 支援 finally 方法
 require('promise.prototype.finally').shim();
@@ -59,14 +60,9 @@ class TokenInjection {
     this.intervalRefresh = null;
 
     // 實例化 axios
-    this.rest = axios.create({
-      // 服務終端
+    this.rest = httpRequset({
       baseURL: this.options.SSO_URL,
-      // 跨域請求挾帶 cookies
-      withCredentials: true,
-      // 請求回應超時
-      timeout: 30000,
-      // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
+      // 判斷是否為 Ajax 非同步請求
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       // 發出請求前的 callback
       transformRequest: [
@@ -122,7 +118,7 @@ class TokenInjection {
           // 確認 LocalStorage Token 欄位資訊正確才寫入
           forEach(tokenInfo, function (value, key) {
             if (tokenKeys.some((tokenKey) => includes(key, tokenKey))) {
-              localStorage.setItem(key, value);
+              webStorage.set(key, value);
             }
           });
 
@@ -135,8 +131,8 @@ class TokenInjection {
       self.axiosSync = null;
 
       // 非登入時刪除 token 資料
-      forEach(self.tokenKeys, function (key, value) {
-        localStorage.removeItem(key);
+      forEach(self.tokenKeys, function (key, value) { // eslint-disable-line
+        webStorage.remove(key);
       });
 
       return Promise.reject();
@@ -161,7 +157,7 @@ class TokenInjection {
     const { rest } = this;
 
     // Refresh Token 值
-    const refreshToken = localStorage.getItem(TC.REFRESH_TOKEN_NAME);
+    const refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME);
 
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
@@ -271,9 +267,9 @@ class TokenInjection {
           // 現在時間
           const nowTime = parseInt(Date.now() / 1000),
             // Token建立時間
-            createTime = parseInt(localStorage.getItem(TC.TOKEN_CREATE_TIME_NAME)),
+            createTime = parseInt(webStorage.get(TC.TOKEN_CREATE_TIME_NAME)),
             // Token過期時間
-            expireTime = parseInt(localStorage.getItem(TC.TOKEN_EXPIRED_NAME));
+            expireTime = parseInt(webStorage.get(TC.TOKEN_EXPIRED_NAME));
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
           if (
@@ -376,8 +372,7 @@ class TokenInjection {
     const { options } = this;
 
     return (
-      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !==
-      localStorage.getItem('token_checksum')
+      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== webStorage.get('token_checksum')
     );
   }
 
@@ -402,8 +397,8 @@ class TokenInjection {
    *
    * @returns {String} Access Token
    */
-  getLocalStorageToken() {
-    return localStorage.getItem(TC.ACCESS_TOKEN_NAME);
+  getToken() {
+    return webStorage.get(TC.ACCESS_TOKEN_NAME);
   }
 
   /**
