@@ -22,6 +22,8 @@ const DEFAULTS = Object.freeze({
   COOKIE_DEFAULT_PREFIX: '',
   // 重新定向網址
   REDIRECT_URL: '',
+  // 是否配置 X-Requested-With 抬頭
+  XHR_WITH: false,
 });
 
 class TokenInjection {
@@ -65,7 +67,17 @@ class TokenInjection {
       // 請求回應超時
       timeout: 30000,
       // 判斷是否為 Ajax 非同步請求，Nginx Access-Control-Allow-Headers 需增加此標記
-      // headers: {'X-Requested-With': 'XMLHttpRequest'},
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      // 發出請求前的 callback
+      transformRequest: [
+        (data, headers) => {
+          if (!this.options.XHR_WITH) {
+            delete headers['X-Requested-With'];
+          }
+
+          return data;
+        },
+      ],
     });
 
     // 初始化 TokenInjection 實例
@@ -199,10 +211,10 @@ class TokenInjection {
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     if (!self.intervalSync && hasTKCheckSumCookie) {
-      self.intervalSync = setInterval(() => {
+      self.intervalSync = setInterval(async () => {
         // tkchecksum != token_checksum , axios未執行過或已執行完成
         if (self.checkSumNoEqual() && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
-          self.sync().catch((error) => {
+          await self.sync().catch((error) => {
             // 執行錯誤時關閉自動同步30秒後重啟
             if (error) {
               self.autoSyncStop();

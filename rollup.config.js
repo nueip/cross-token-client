@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
@@ -9,7 +9,6 @@ import { terser } from 'rollup-plugin-terser';
 import path from 'path';
 import obfuscator from 'rollup-plugin-obfuscator';
 import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
-import globals from 'rollup-plugin-node-globals';
 
 const fileName = 'cross-token-access';
 const pluginName = 'TokenInjection';
@@ -27,16 +26,35 @@ const globalPlugins = [
     transformMixedEsModules: true,
     include: ['node_modules/**', 'src/**'],
     extensions: ['.js'],
-    dynamicRequireTargets:['node_modules/axios/lib/defaults.js']
   }),
   babel({
-    babelHelpers: 'bundled',
+    babelHelpers: 'runtime',
     exclude: 'node_modules/**',
-    presets: ['@babel/preset-env'],
+    presets: [
+      [
+        '@babel/preset-env',
+        {
+          modules: false,
+          // 按需轉譯
+          useBuiltIns: 'usage',
+          corejs: 3,
+          targets: {
+            ie: '11',
+          },
+        },
+      ],
+    ],
+    plugins: [
+      [
+        '@babel/plugin-transform-runtime',
+        {
+          corejs: 3,
+        },
+      ],
+    ],
     extensions: ['.js'],
   }),
   optimizeLodashImports(),
-  globals()
 ];
 
 const normalPlugins = [].concat(globalPlugins);
