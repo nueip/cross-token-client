@@ -2,6 +2,7 @@
 
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+import eslint from '@rollup/plugin-eslint';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
@@ -17,6 +18,12 @@ const pathResolve = (p) => path.resolve(__dirname, p);
 const pkg = require('./package.json');
 
 const globalPlugins = [
+  eslint({
+    parser: '@babel/eslint-parser',
+    throwOnError: true,
+    include: ['src/**/*.js'],
+    exclude: ['node_modules/**', 'dist/**'],
+  }),
   json(),
   alias({
     entries: [{ find: '@', replacement: pathResolve('src') }],
