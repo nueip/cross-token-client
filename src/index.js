@@ -1,30 +1,28 @@
 /**
  * Token Injection Client side
  *
- * @author Mars.Hung
  * @author Grace.Wang
- * @author Chien.Lo
  */
-import { forEach, includes, isPlainObject, assignIn } from 'lodash';
+import { forEach, includes } from 'lodash';
 import cookies from 'js-cookie';
 import * as TC from './constant';
-import { httpRequset } from './helpers/request';
-import { webStorage } from './helpers/storage';
-import { queryString, rand } from './lib';
+import { deepMerge, queryString } from './lib';
+import { api, httpRequset, removePending, addPending } from './helpers/request';
+import webStorage from './helpers/storage';
 
-// 讓 Axios 支援 finally 方法
+// Axios 支援 finally 方法
 require('promise.prototype.finally').shim();
 
 // 初始預設值
 const DEFAULTS = Object.freeze({
   // 單一登入網址
-  SSO_URL: '',
+  sso_url: '',
   // 自定義 Cookie 前綴字串
-  COOKIE_DEFAULT_PREFIX: '',
+  cookie_prefix: '',
   // 重新定向網址
-  REDIRECT_URL: '',
+  redirect_url: '',
   // 是否配置 X-Requested-With 抬頭
-  XHR_WITH: false,
+  xhr_with: false,
 });
 
 class TokenInjection {
@@ -34,10 +32,10 @@ class TokenInjection {
    * @param {object} options
    */
   constructor(options = {}) {
-    // 變更選項屬性
-    this.options = assignIn({}, DEFAULTS, isPlainObject(options) && options);
+    // 選項屬性
+    this.options = deepMerge(DEFAULTS, options);
 
-    // LocalStorage Token資料Key值
+    // Token Keys
     this.tokenKeys = [
       TC.ACCESS_TOKEN_NAME,
       TC.TOKEN_EXPIRED_NAME,
@@ -48,12 +46,8 @@ class TokenInjection {
       TC.TOKEN_CREATE_TIME_NAME,
     ];
 
-    // Axios cache
-    this.axiosSync = null;
-    this.axiosRefresh = null;
-    this.axiosValidate = null;
-    this.axiosSyncReadyState = null;
-    this.axiosRefreshReadyState = null;
+    // 暫存執行中的請求
+    this.axiosPending = new Map();
 
     // Schedule cache
     this.intervalSync = null;
@@ -61,41 +55,44 @@ class TokenInjection {
 
     // 實例化 axios
     this.rest = httpRequset({
-      baseURL: this.options.SSO_URL,
-      // 判斷是否為 Ajax 非同步請求
+      baseURL: this.options.sso_url,
+      // 判斷是否為 Ajax 非同步請求，跨域時須自行配置此 header access
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
-      // 發出請求前的 callback
-      transformRequest: [
-        (data, headers) => {
-          if (!this.options.XHR_WITH) {
-            delete headers['X-Requested-With'];
-          }
-
-          return data;
-        },
-      ],
     });
 
-    // 初始化 TokenInjection 實例
+    this.#interceptors();
     this.init();
   }
 
   /**
    * 初始化 TokenInjection 實例
    */
-  init() {
-    // 載入後執行 同步 Token 內容 - oAuth & 前端 - 定期執行
-    this.autoSync();
+  async init() {
+    const instance = this;
 
-    // 載入後執行 刷新 Token - oAuth & 前端 - 定期執行
-    this.autoRefresh();
+    await instance
+      .sync()
+      .then((res) => {
+        // 載入後執行 定期同步 Token 內容
+        instance.autoSync();
 
-    // 載入後執行 自動登出倒數
-    this.autoLogout();
+        // 載入後執行 定期刷新 Token
+        instance.autoRefresh();
+
+        // 載入後執行 自動登出倒數
+        instance.#autoLogout();
+
+        return res;
+      })
+      .catch((error) => {
+        if (error && !error.isLogin) console.log(error.message);
+
+        return error;
+      });
   }
 
   /**
-   * 同步 Token 內容 - oAuth & 前端 - 執行一次
+   * 同步 Token 內容 - 執行一次
    *
    * - 向 oAuth Server 同步 Token 資訊
    * - 同步錯誤時，檢查是否為登入狀態，否時刪除 Token
@@ -103,46 +100,44 @@ class TokenInjection {
    * @returns {Promise}
    */
   sync() {
-    const self = this;
-    const { rest, tokenKeys } = this;
+    const instance = this;
+    const { rest } = this;
 
-    if (self.isLogin()) {
-      // 抓取資料
-      self.axiosSync = rest
-        .get('/oauth2/token/api', {})
-        .then((response) => {
-          self.axiosSyncReadyState = response.request.readyState;
+    // 抓取資料
+    return new Promise((resolve, reject) => {
+      if (instance.#isLogin()) {
+        rest
+          .get(api.sync)
+          .then((res) => {
+            const tokenInfo = res.data || {};
 
-          const tokenInfo = response.data || {};
+            // 暫存執行中的請求
+            instance.axiosPending.set('sync', true);
 
-          // 確認 LocalStorage Token 欄位資訊正確才寫入
-          forEach(tokenInfo, function (value, key) {
-            if (tokenKeys.some((tokenKey) => includes(key, tokenKey))) {
-              webStorage.set(key, value);
-            }
+            // 設置 Token Keys (LocalStorage)
+            instance.#setTokens(tokenInfo);
+
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
           });
+      } else {
+        // 非登入時，移除 Storge Token Keys
+        instance.#removeTokens(instance.tokenKeys);
 
-          return response;
-        })
-        .catch((error) => {
-          return Promise.reject(error);
-        });
-    } else {
-      self.axiosSync = null;
+        const errorResponse = {
+          isLogin: false,
+          message: 'Logged out!!',
+        };
 
-      // 非登入時刪除 token 資料
-      forEach(self.tokenKeys, function (key, value) { // eslint-disable-line
-        webStorage.remove(key);
-      });
-
-      return Promise.reject();
-    }
-
-    return self.axiosSync;
+        reject(errorResponse);
+      }
+    });
   }
 
   /**
-   * 刷新 Token - oAuth & 前端 - 執行一次
+   * 刷新 Token - 執行一次
    *
    * - 向 oAuth Server 執行 Refresh Token
    * - 執行條件
@@ -153,39 +148,35 @@ class TokenInjection {
    * @returns {Promise}
    */
   refresh() {
-    const self = this;
+    const instance = this;
     const { rest } = this;
 
     // Refresh Token 值
-    const refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME);
+    let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
 
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
-      throw self.exception('Need Refresh Token !', 401);
+      throw instance.#exception('Need Refresh Token !', 401);
     }
 
     // 執行刷新金鑰
-    self.axiosRefresh = rest
-      .post(
-        '/oauth2/token/api?v=' + rand(11111, 99999),
-        queryString({ refresh_token: refreshToken }),
-        {
+    return new Promise((resolve, reject) => {
+      rest
+        .post(api.refresh, queryString({ refresh_token: refreshToken }), {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }
-      )
-      .then((response) => {
-        self.axiosRefreshReadyState = response.request.readyState;
-        return response;
-      })
-      .catch((error) => {
-        return Promise.reject(error);
-      });
-
-    return self.axiosRefresh;
+        })
+        .then((res) => {
+          instance.axiosPending.set('refresh', true);
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   }
 
   /**
-   * 同步 Token 內容 - oAuth & 前端 - 定期執行
+   * 定期執行同步 Token 內容
    *
    * - 向 oAuth Server 同步Token資訊
    * - 執行條件
@@ -197,47 +188,46 @@ class TokenInjection {
    * @param {number} interval - 多少個間隔，每個間為500毫秒
    */
   autoSync(interval = 0) {
-    const self = this;
+    const instance = this;
     const { options } = this;
-    let hasTKCheckSumCookie =
-      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') || 'tkchecksum';
-
-    // 間隔毫秒數
-    interval = interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL;
+    const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
-    if (!self.intervalSync && hasTKCheckSumCookie) {
-      self.intervalSync = setInterval(async () => {
-        // tkchecksum != token_checksum , axios未執行過或已執行完成
-        if (self.checkSumNoEqual() && (self.axiosSync == null || self.axiosSyncReadyState == 4)) {
-          await self.sync().catch((error) => {
+    if (cookies.get(tkCheckSum) && !instance.intervalSync) {
+      const syncPending = instance.axiosPending.get('sync');
+
+      instance.intervalSync = setInterval(async () => {
+        // tkchecksum != token_checksum , axios已執行完成
+        if (!instance.#checkSumNoEqual() && syncPending) return;
+
+        await instance
+          .sync()
+          .then()
+          .catch(() => {
             // 執行錯誤時關閉自動同步30秒後重啟
-            if (error) {
-              self.autoSyncStop();
-              setTimeout(() => self.autoSync(), 30000);
-            }
+            instance.autoSyncStop();
+            setTimeout(() => instance.autoSync(), 30000);
           });
-        }
-      }, interval);
+      }, interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL);
     }
   }
 
   /**
-   * 停止 自動同步Token內容
+   * 停止 自動同步 Token 內容
    */
   autoSyncStop() {
-    const self = this;
+    const instance = this;
 
-    if (self.intervalSync) {
+    if (instance.intervalSync) {
       // 停止定期執行
-      clearInterval(self.intervalSync);
-      self.intervalSync = null;
-      self.axiosSync = null;
+      clearInterval(instance.intervalSync);
+      instance.intervalSync = null;
+      instance.axiosPending.delete('sync');
     }
   }
 
   /**
-   * 刷新 Token - oAuth & 前端 - 定期執行
+   * 定期刷新 Token
    *
    * - 向 oAuth Server 同步Token資訊
    * - 執行條件
@@ -249,46 +239,49 @@ class TokenInjection {
    * @param {Number} interval - 多少秒
    */
   autoRefresh(interval = 0) {
-    const self = this;
+    const instance = this;
 
     // 執行錯誤時關閉自動同步30秒後重啟
     const refreshStop = () => {
-      self.autoRefreshStop();
-      setTimeout(() => self.autoRefresh(), 30000);
+      instance.autoRefreshStop();
+      setTimeout(() => instance.autoRefresh(), 30000);
     };
 
-    // 間隔秒數
-    interval = interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000;
-
     // 定期執行
-    if (!self.intervalRefresh) {
-      self.intervalRefresh = setInterval(() => {
+    if (!instance.intervalRefresh) {
+      const refreshPending = instance.axiosPending.get('refresh');
+
+      instance.intervalRefresh = setInterval(() => {
         try {
           // 現在時間
-          const nowTime = parseInt(Date.now() / 1000),
-            // Token建立時間
-            createTime = parseInt(webStorage.get(TC.TOKEN_CREATE_TIME_NAME)),
-            // Token過期時間
-            expireTime = parseInt(webStorage.get(TC.TOKEN_EXPIRED_NAME));
+          const nowTime = parseInt(Date.now() / 1000, 10);
 
-          // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新token
-          if (
-            nowTime >= createTime + expireTime - TC.TOKEN_REFRESH_BEFORE &&
-            (self.axiosRefresh == null || self.axiosRefreshReadyState == 4)
-          ) {
-            self.refresh().catch((error) => {
-              // 執行錯誤時關閉自動同步3秒後重啟
-              if (error) refreshStop();
-            });
+          // Token建立時間
+          const createKey = webStorage.get(TC.TOKEN_CREATE_TIME_NAME);
+          const createTime = parseInt(createKey, 10);
+
+          // Token過期時間
+          const expiredKey = webStorage.get(TC.TOKEN_EXPIRED_NAME);
+          const expireTime = parseInt(expiredKey, 10);
+
+          // 過期時間 - TokenRefreshBefore
+          const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
+
+          // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
+          if (nowTime >= refreshTime && refreshPending) {
+            instance
+              .refresh()
+              .then()
+              .catch(() => {
+                refreshStop();
+              });
           }
         } catch (e) {
           // 例外訊息
-          console.log('[' + e.code + '] ' + e.message);
-
-          // 執行錯誤時關閉自動同步3秒後重啟
+          console.log(`[${e.code}]${e.message}`);
           refreshStop();
         }
-      }, interval);
+      }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
     }
   }
 
@@ -296,25 +289,14 @@ class TokenInjection {
    * 停止 自動刷新 Token
    */
   autoRefreshStop() {
-    const self = this;
+    const instance = this;
 
-    if (self.intervalRefresh) {
+    if (instance.intervalRefresh) {
       // 停止定期執行
-      clearInterval(self.intervalRefresh);
-      self.intervalRefresh = null;
-      self.axiosRefresh = null;
+      clearInterval(instance.intervalRefresh);
+      instance.intervalRefresh = null;
+      instance.axiosPending.delete('refresh');
     }
-  }
-
-  /**
-   * 自動登出 - 時間預設一天
-   */
-  autoLogout() {
-    const self = this;
-
-    setTimeout(() => {
-      self.logoutIAM();
-    }, TC.LOGOUT_TIME);
   }
 
   /**
@@ -324,72 +306,26 @@ class TokenInjection {
    * @returns {Promise}
    */
   validate(token) {
-    const self = this;
     const { rest } = this;
     const validateToken = token || '';
 
-    // 驗證金鑰是否正確
-    self.axiosValidate = rest
-      .get('/api/oauth2/token', {
-        headers: {
-          Authorization: 'Bearer ' + validateToken,
-        },
-      })
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        return Promise.reject(error);
-      })
-      .finally(() => {
-        // Always executed
-      });
-
-    // 回傳 axios
-    return self.axiosValidate;
-  }
-
-  /**
-   * 檢查-是否為登入狀態
-   *
-   * @returns {boolean}
-   */
-  isLogin() {
-    const { options } = this;
-    let hasLoginKey = cookies.get(options.COOKIE_DEFAULT_PREFIX + 'login') || 'login';
-
-    return hasLoginKey && hasLoginKey == '1';
-  }
-
-  /**
-   * 檢查-金鑰檢核碼
-   *
-   * 確認 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
-   *
-   * @returns {boolean}
-   */
-  checkSumNoEqual() {
-    const { options } = this;
-
-    return (
-      cookies.get(options.COOKIE_DEFAULT_PREFIX + 'tkchecksum') !== webStorage.get('token_checksum')
-    );
-  }
-
-  /**
-   * 開啟登入頁面
-   */
-  loginIAM() {
-    const { options } = this;
-    window.open(options.SSO_URL, '_self');
-  }
-
-  /**
-   * 登出
-   */
-  logoutIAM() {
-    const { options } = this;
-    location.href = options.SSO_URL + '/logout';
+    return new Promise((resolve, reject) => {
+      rest
+        .get(api.validate, {
+          headers: {
+            Authorization: `Bearer ${validateToken}`,
+          },
+        })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        })
+        .finally(() => {
+          // Always executed
+        });
+    });
   }
 
   /**
@@ -402,12 +338,142 @@ class TokenInjection {
   }
 
   /**
+   * 開啟登入頁面
+   *
+   * @param {string} target - _self | _blank
+   */
+  loginIAM(target = '') {
+    const { options } = this;
+    window.open(options.SSO_URL, target);
+  }
+
+  /**
+   * 登出
+   */
+  logoutIAM() {
+    const instance = this;
+    const { options } = this;
+
+    // 刪除 Token Keys
+    instance.#removeTokens(instance.tokenKeys);
+
+    // 清除執行中的請求暫存
+    instance.axiosPending.clear();
+
+    // 清除定期器
+    instance.intervalSync = null;
+    instance.intervalRefresh = null;
+
+    // 轉導至 IAM 登出頁
+    window.location.href = `${options.SSO_URL}/logout`;
+  }
+
+  /**
+   * Axios 攔截器
+   */
+  #interceptors() {
+    const { options, rest } = this;
+
+    // 請求攔截器
+    rest.interceptors.request.use(
+      (config) => {
+        if (!options.xhr_with) {
+          delete config.headers['X-Requested-With'];
+        }
+
+        // 先判斷是否有重複的請求要取消
+        removePending(config);
+        // 再把此次請求加入暫存
+        addPending(config);
+
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // 回應攔截器
+    rest.interceptors.response.use(
+      (res) => {
+        // 請求已完成，從暫存中移除
+        removePending(res);
+        return res;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  /**
+   * 設置 LocalStorage Tokens 資訊
+   *
+   * @param {object} keys - Token's key | value
+   */
+  #setTokens(keys = {}) {
+    const { tokenKeys } = this;
+
+    // 確認 LocalStorage Token key 正確才寫入
+    forEach(keys, (value, key) => {
+      if (tokenKeys.some((token) => includes(key, token))) {
+        webStorage.set(key, value);
+      }
+    });
+  }
+
+  /**
+   * 移除 LocalStorage Tokens 資訊
+   *
+   * @param {array} keys - Token keys
+   */
+  #removeTokens(keys = []) {
+    forEach(keys, (value) => {
+      webStorage.remove(value);
+    });
+  }
+
+  /**
+   * 是否為登入狀態
+   *
+   * @returns {Boolean}
+   */
+  #isLogin() {
+    const { options } = this;
+    const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
+
+    return cookies.get(loginKey) && cookies.get(loginKey) == '1'; //eslint-disable-line
+  }
+
+  /**
+   * 自動登出 - 時間預設一天
+   */
+  #autoLogout() {
+    const instance = this;
+    setTimeout(() => instance.logoutIAM(), TC.LOGOUT_TIME);
+  }
+
+  /**
+   * 確認金鑰檢核碼
+   *
+   * - 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+   *
+   * @returns {Boolean}
+   */
+  #checkSumNoEqual() {
+    const { options } = this;
+    const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
+
+    return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
+  }
+
+  /**
    * 例外物件
    *
    * @param {string} messageIpt 訊息
    * @param {number} codeIpt 例外代碼
    */
-  exception(messageIpt, codeIpt) {
+  #exception(messageIpt, codeIpt) {
     this.code = codeIpt || 200;
     this.message = messageIpt || 'OK';
     this.name = 'exception';

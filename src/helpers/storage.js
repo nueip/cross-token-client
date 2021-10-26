@@ -49,7 +49,7 @@ export default {
       return;
     }
 
-    return localStorage.removeItem(key);
+    localStorage.removeItem(key);
   },
 
   /**

@@ -13,6 +13,7 @@ module.exports = {
     'no-unused-vars': 'error',
     'no-console': 'off',
     'no-param-reassign': 0,
-    'prettier/prettier': ['error', { singleQuote: true }],
+    'prettier/prettier': ['error', { singleQuote: true, endOfLine: 'auto' }],
+    'class-methods-use-this': 'off',
   },
 };
