@@ -369,6 +369,16 @@ class TokenInjection {
   }
 
   /**
+   * axios 全域設定方法
+   *
+   * @param {object} config - axios options
+   */
+  axiosCreate(config = {}) {
+    const instance = this;
+    instance.rest = httpRequset(config);
+  }
+
+  /**
    * Axios 攔截器
    */
   #interceptors() {
