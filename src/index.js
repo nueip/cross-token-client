@@ -344,7 +344,9 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-    window.open(options.SSO_URL, target);
+    const ssoUrl = `${options.sso_url}?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+
+    window.open(ssoUrl, target);
   }
 
   /**
@@ -365,7 +367,7 @@ class TokenInjection {
     instance.intervalRefresh = null;
 
     // 轉導至 IAM 登出頁
-    window.location.href = `${options.SSO_URL}/logout`;
+    window.location.href = `${options.sso_url}/logout`;
   }
 
   /**

@@ -12625,9 +12625,13 @@
 	  }, {
 	    key: "loginIAM",
 	    value: function loginIAM() {
+	      var _context4;
+
 	      var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 	      var options = this.options;
-	      window.open(options.SSO_URL, target);
+	      var ssoUrl = concat$1(_context4 = "".concat(options.sso_url, "?redirect_uri=")).call(_context4, options.redirect_url) || ''; //eslint-disable-line
+
+	      window.open(ssoUrl, target);
 	    }
 	    /**
 	     * 登出
@@ -12647,7 +12651,20 @@
 	      instance.intervalSync = null;
 	      instance.intervalRefresh = null; // 轉導至 IAM 登出頁
 
-	      window.location.href = "".concat(options.SSO_URL, "/logout");
+	      window.location.href = "".concat(options.sso_url, "/logout");
+	    }
+	    /**
+	     * axios 全域設定方法
+	     *
+	     * @param {object} config - axios options
+	     */
+
+	  }, {
+	    key: "axiosCreate",
+	    value: function axiosCreate() {
+	      var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	      var instance = this;
+	      instance.rest = httpRequset(config);
 	    }
 	    /**
 	     * Axios 攔截器
