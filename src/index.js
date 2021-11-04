@@ -6,7 +6,7 @@
 import { forEach, includes } from 'lodash';
 import cookies from 'js-cookie';
 import * as TC from './constant';
-import { deepMerge, queryString } from './lib';
+import { rand, deepMerge, queryString } from './lib';
 import { api, httpRequset, removePending, addPending } from './helpers/request';
 import webStorage from './helpers/storage';
 
@@ -162,9 +162,13 @@ class TokenInjection {
     // 執行刷新金鑰
     return new Promise((resolve, reject) => {
       rest
-        .post(api.refresh, queryString({ refresh_token: refreshToken }), {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
+        .post(
+          `${api.refresh}?v=${rand(11111, 99999)}`,
+          queryString({ refresh_token: refreshToken }),
+          {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          }
+        )
         .then((res) => {
           instance.axiosPending.set('refresh', true);
           resolve(res);
@@ -311,7 +315,7 @@ class TokenInjection {
 
     return new Promise((resolve, reject) => {
       rest
-        .get(api.validate, {
+        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
           headers: {
             Authorization: `Bearer ${validateToken}`,
           },
@@ -423,7 +427,7 @@ class TokenInjection {
    *
    * @param {object} keys - Token's key | value
    */
-  #setTokens(keys = {}) {
+  #setTokens(...keys) {
     const { tokenKeys } = this;
 
     // 確認 LocalStorage Token key 正確才寫入
@@ -439,7 +443,7 @@ class TokenInjection {
    *
    * @param {array} keys - Token keys
    */
-  #removeTokens(keys = []) {
+  #removeTokens(...keys) {
     forEach(keys, (value) => {
       webStorage.remove(value);
     });

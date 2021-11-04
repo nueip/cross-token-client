@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { rand, deepMerge } from '../lib';
+import { deepMerge } from '../lib';
 
 const baseOpt = {
   // 服務終端
@@ -14,9 +14,9 @@ const baseOpt = {
 
 // API url
 export const api = {
-  sync: `/oauth2/token/api`,
-  refresh: `/oauth2/token/api?v=${rand(11111, 99999)}`,
-  validate: `/api/oauth2/token?v=${rand(11111, 99999)}`,
+  sync: '/oauth2/token/api',
+  refresh: '/oauth2/token/api',
+  validate: '/api/oauth2/token',
 };
 
 // 暫存執行中的請求

@@ -5978,7 +5978,123 @@
 
 	var promise = promise$4;
 
+	var toPropertyKey = toPropertyKey$6;
+	var definePropertyModule = objectDefineProperty$1;
+	var createPropertyDescriptor = createPropertyDescriptor$8;
+
+	var createProperty$1 = function (object, key, value) {
+	  var propertyKey = toPropertyKey(key);
+	  if (propertyKey in object) definePropertyModule.f(object, propertyKey, createPropertyDescriptor(0, value));
+	  else object[propertyKey] = value;
+	};
+
+	var fails$6 = fails$t;
+	var wellKnownSymbol$1 = wellKnownSymbol$r;
+	var V8_VERSION$1 = engineV8Version$1;
+
+	var SPECIES = wellKnownSymbol$1('species');
+
+	var arrayMethodHasSpeciesSupport$2 = function (METHOD_NAME) {
+	  // We can't use this feature detection in V8 since it causes
+	  // deoptimization and serious performance degradation
+	  // https://github.com/zloirock/core-js/issues/677
+	  return V8_VERSION$1 >= 51 || !fails$6(function () {
+	    var array = [];
+	    var constructor = array.constructor = {};
+	    constructor[SPECIES] = function () {
+	      return { foo: 1 };
+	    };
+	    return array[METHOD_NAME](Boolean).foo !== 1;
+	  });
+	};
+
 	var $$8 = _export$1;
+	var fails$5 = fails$t;
+	var isArray$6 = isArray$8;
+	var isObject$8 = isObject$t;
+	var toObject$1 = toObject$7;
+	var lengthOfArrayLike = lengthOfArrayLike$7;
+	var createProperty = createProperty$1;
+	var arraySpeciesCreate = arraySpeciesCreate$2;
+	var arrayMethodHasSpeciesSupport$1 = arrayMethodHasSpeciesSupport$2;
+	var wellKnownSymbol = wellKnownSymbol$r;
+	var V8_VERSION = engineV8Version$1;
+
+	var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
+	var MAX_SAFE_INTEGER$2 = 0x1FFFFFFFFFFFFF;
+	var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
+
+	// We can't use this feature detection in V8 since it causes
+	// deoptimization and serious performance degradation
+	// https://github.com/zloirock/core-js/issues/679
+	var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails$5(function () {
+	  var array = [];
+	  array[IS_CONCAT_SPREADABLE] = false;
+	  return array.concat()[0] !== array;
+	});
+
+	var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport$1('concat');
+
+	var isConcatSpreadable = function (O) {
+	  if (!isObject$8(O)) return false;
+	  var spreadable = O[IS_CONCAT_SPREADABLE];
+	  return spreadable !== undefined ? !!spreadable : isArray$6(O);
+	};
+
+	var FORCED$2 = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
+
+	// `Array.prototype.concat` method
+	// https://tc39.es/ecma262/#sec-array.prototype.concat
+	// with adding support of @@isConcatSpreadable and @@species
+	$$8({ target: 'Array', proto: true, forced: FORCED$2 }, {
+	  // eslint-disable-next-line no-unused-vars -- required for `.length`
+	  concat: function concat(arg) {
+	    var O = toObject$1(this);
+	    var A = arraySpeciesCreate(O, 0);
+	    var n = 0;
+	    var i, k, length, len, E;
+	    for (i = -1, length = arguments.length; i < length; i++) {
+	      E = i === -1 ? O : arguments[i];
+	      if (isConcatSpreadable(E)) {
+	        len = lengthOfArrayLike(E);
+	        if (n + len > MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+	        for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
+	      } else {
+	        if (n >= MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
+	        createProperty(A, n++, E);
+	      }
+	    }
+	    A.length = n;
+	    return A;
+	  }
+	});
+
+	var path$6 = path$d;
+
+	var entryVirtual$3 = function (CONSTRUCTOR) {
+	  return path$6[CONSTRUCTOR + 'Prototype'];
+	};
+
+	var entryVirtual$2 = entryVirtual$3;
+
+	var concat$4 = entryVirtual$2('Array').concat;
+
+	var concat$3 = concat$4;
+
+	var ArrayPrototype$2 = Array.prototype;
+
+	var concat_1 = function (it) {
+	  var own = it.concat;
+	  return it === ArrayPrototype$2 || (it instanceof Array && own === ArrayPrototype$2.concat) ? concat$3 : own;
+	};
+
+	var parent$7 = concat_1;
+
+	var concat$2 = parent$7;
+
+	var concat$1 = concat$2;
+
+	var $$7 = _export$1;
 	var global$2 = global$T;
 	var isCallable$1 = isCallable$A;
 	var userAgent = engineUserAgent$1;
@@ -5999,7 +6115,7 @@
 
 	// ie9- setTimeout & setInterval additional parameters fix
 	// https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers
-	$$8({ global: true, bind: true, forced: MSIE }, {
+	$$7({ global: true, bind: true, forced: MSIE }, {
 	  // `setTimeout` method
 	  // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-settimeout
 	  setTimeout: wrap(global$2.setTimeout),
@@ -6008,15 +6124,15 @@
 	  setInterval: wrap(global$2.setInterval)
 	});
 
-	var path$6 = path$d;
+	var path$5 = path$d;
 
-	var setInterval$1 = path$6.setInterval;
+	var setInterval$1 = path$5.setInterval;
 
 	var setInterval = setInterval$1;
 
-	var path$5 = path$d;
+	var path$4 = path$d;
 
-	var setTimeout$2 = path$5.setTimeout;
+	var setTimeout$2 = path$4.setTimeout;
 
 	var setTimeout$1 = setTimeout$2;
 
@@ -6055,7 +6171,7 @@
 	};
 
 	var global$1 = global$T;
-	var fails$6 = fails$t;
+	var fails$4 = fails$t;
 	var toString$1 = toString$b;
 	var trim$1 = stringTrim.trim;
 	var whitespaces = whitespaces$2;
@@ -6064,171 +6180,55 @@
 	var Symbol$4 = global$1.Symbol;
 	var ITERATOR = Symbol$4 && Symbol$4.iterator;
 	var hex = /^[+-]?0x/i;
-	var FORCED$2 = $parseInt$1(whitespaces + '08') !== 8 || $parseInt$1(whitespaces + '0x16') !== 22
+	var FORCED$1 = $parseInt$1(whitespaces + '08') !== 8 || $parseInt$1(whitespaces + '0x16') !== 22
 	  // MS Edge 18- broken with boxed symbols
-	  || (ITERATOR && !fails$6(function () { $parseInt$1(Object(ITERATOR)); }));
+	  || (ITERATOR && !fails$4(function () { $parseInt$1(Object(ITERATOR)); }));
 
 	// `parseInt` method
 	// https://tc39.es/ecma262/#sec-parseint-string-radix
-	var numberParseInt = FORCED$2 ? function parseInt(string, radix) {
+	var numberParseInt = FORCED$1 ? function parseInt(string, radix) {
 	  var S = trim$1(toString$1(string));
 	  return $parseInt$1(S, (radix >>> 0) || (hex.test(S) ? 16 : 10));
 	} : $parseInt$1;
 
-	var $$7 = _export$1;
+	var $$6 = _export$1;
 	var $parseInt = numberParseInt;
 
 	// `parseInt` method
 	// https://tc39.es/ecma262/#sec-parseint-string-radix
-	$$7({ global: true, forced: parseInt != $parseInt }, {
+	$$6({ global: true, forced: parseInt != $parseInt }, {
 	  parseInt: $parseInt
 	});
 
-	var path$4 = path$d;
+	var path$3 = path$d;
 
-	var _parseInt$2 = path$4.parseInt;
+	var _parseInt$2 = path$3.parseInt;
 
-	var parent$7 = _parseInt$2;
+	var parent$6 = _parseInt$2;
 
-	var _parseInt$1 = parent$7;
+	var _parseInt$1 = parent$6;
 
 	var _parseInt = _parseInt$1;
 
-	var $$6 = _export$1;
+	var $$5 = _export$1;
 
 	// `Date.now` method
 	// https://tc39.es/ecma262/#sec-date.now
-	$$6({ target: 'Date', stat: true }, {
+	$$5({ target: 'Date', stat: true }, {
 	  now: function now() {
 	    return new Date().getTime();
 	  }
 	});
 
-	var path$3 = path$d;
-
-	var now$2 = path$3.Date.now;
-
-	var parent$6 = now$2;
-
-	var now$1 = parent$6;
-
-	var now = now$1;
-
-	var toPropertyKey = toPropertyKey$6;
-	var definePropertyModule = objectDefineProperty$1;
-	var createPropertyDescriptor = createPropertyDescriptor$8;
-
-	var createProperty$1 = function (object, key, value) {
-	  var propertyKey = toPropertyKey(key);
-	  if (propertyKey in object) definePropertyModule.f(object, propertyKey, createPropertyDescriptor(0, value));
-	  else object[propertyKey] = value;
-	};
-
-	var fails$5 = fails$t;
-	var wellKnownSymbol$1 = wellKnownSymbol$r;
-	var V8_VERSION$1 = engineV8Version$1;
-
-	var SPECIES = wellKnownSymbol$1('species');
-
-	var arrayMethodHasSpeciesSupport$2 = function (METHOD_NAME) {
-	  // We can't use this feature detection in V8 since it causes
-	  // deoptimization and serious performance degradation
-	  // https://github.com/zloirock/core-js/issues/677
-	  return V8_VERSION$1 >= 51 || !fails$5(function () {
-	    var array = [];
-	    var constructor = array.constructor = {};
-	    constructor[SPECIES] = function () {
-	      return { foo: 1 };
-	    };
-	    return array[METHOD_NAME](Boolean).foo !== 1;
-	  });
-	};
-
-	var $$5 = _export$1;
-	var fails$4 = fails$t;
-	var isArray$6 = isArray$8;
-	var isObject$8 = isObject$t;
-	var toObject$1 = toObject$7;
-	var lengthOfArrayLike = lengthOfArrayLike$7;
-	var createProperty = createProperty$1;
-	var arraySpeciesCreate = arraySpeciesCreate$2;
-	var arrayMethodHasSpeciesSupport$1 = arrayMethodHasSpeciesSupport$2;
-	var wellKnownSymbol = wellKnownSymbol$r;
-	var V8_VERSION = engineV8Version$1;
-
-	var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
-	var MAX_SAFE_INTEGER$2 = 0x1FFFFFFFFFFFFF;
-	var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
-
-	// We can't use this feature detection in V8 since it causes
-	// deoptimization and serious performance degradation
-	// https://github.com/zloirock/core-js/issues/679
-	var IS_CONCAT_SPREADABLE_SUPPORT = V8_VERSION >= 51 || !fails$4(function () {
-	  var array = [];
-	  array[IS_CONCAT_SPREADABLE] = false;
-	  return array.concat()[0] !== array;
-	});
-
-	var SPECIES_SUPPORT = arrayMethodHasSpeciesSupport$1('concat');
-
-	var isConcatSpreadable = function (O) {
-	  if (!isObject$8(O)) return false;
-	  var spreadable = O[IS_CONCAT_SPREADABLE];
-	  return spreadable !== undefined ? !!spreadable : isArray$6(O);
-	};
-
-	var FORCED$1 = !IS_CONCAT_SPREADABLE_SUPPORT || !SPECIES_SUPPORT;
-
-	// `Array.prototype.concat` method
-	// https://tc39.es/ecma262/#sec-array.prototype.concat
-	// with adding support of @@isConcatSpreadable and @@species
-	$$5({ target: 'Array', proto: true, forced: FORCED$1 }, {
-	  // eslint-disable-next-line no-unused-vars -- required for `.length`
-	  concat: function concat(arg) {
-	    var O = toObject$1(this);
-	    var A = arraySpeciesCreate(O, 0);
-	    var n = 0;
-	    var i, k, length, len, E;
-	    for (i = -1, length = arguments.length; i < length; i++) {
-	      E = i === -1 ? O : arguments[i];
-	      if (isConcatSpreadable(E)) {
-	        len = lengthOfArrayLike(E);
-	        if (n + len > MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
-	        for (k = 0; k < len; k++, n++) if (k in E) createProperty(A, n, E[k]);
-	      } else {
-	        if (n >= MAX_SAFE_INTEGER$2) throw TypeError(MAXIMUM_ALLOWED_INDEX_EXCEEDED);
-	        createProperty(A, n++, E);
-	      }
-	    }
-	    A.length = n;
-	    return A;
-	  }
-	});
-
 	var path$2 = path$d;
 
-	var entryVirtual$3 = function (CONSTRUCTOR) {
-	  return path$2[CONSTRUCTOR + 'Prototype'];
-	};
+	var now$2 = path$2.Date.now;
 
-	var entryVirtual$2 = entryVirtual$3;
+	var parent$5 = now$2;
 
-	var concat$4 = entryVirtual$2('Array').concat;
+	var now$1 = parent$5;
 
-	var concat$3 = concat$4;
-
-	var ArrayPrototype$2 = Array.prototype;
-
-	var concat_1 = function (it) {
-	  var own = it.concat;
-	  return it === ArrayPrototype$2 || (it instanceof Array && own === ArrayPrototype$2.concat) ? concat$3 : own;
-	};
-
-	var parent$5 = concat_1;
-
-	var concat$2 = parent$5;
-
-	var concat$1 = concat$2;
+	var now = now$1;
 
 	var redefineAll = redefineAll$5;
 	var getWeakData = internalMetadata.exports.getWeakData;
@@ -12059,9 +12059,9 @@
 	}; // API url
 
 	var api = {
-	  sync: "/oauth2/token/api",
-	  refresh: "/oauth2/token/api?v=".concat(rand(11111, 99999)),
-	  validate: "/api/oauth2/token?v=".concat(rand(11111, 99999))
+	  sync: '/oauth2/token/api',
+	  refresh: '/oauth2/token/api',
+	  validate: '/api/oauth2/token'
 	}; // 暫存執行中的請求
 
 	var restPending = new map$4();
@@ -12415,7 +12415,9 @@
 
 
 	      return new promise(function (resolve, reject) {
-	        rest.post(api.refresh, queryString({
+	        var _context2;
+
+	        rest.post(concat$1(_context2 = "".concat(api.refresh, "?v=")).call(_context2, rand(11111, 99999)), queryString({
 	          refresh_token: refreshToken
 	        }), {
 	          headers: {
@@ -12454,19 +12456,19 @@
 	      if (api$1.get(tkCheckSum) && !instance.intervalSync) {
 	        var syncPending = instance.axiosPending.get('sync');
 	        instance.intervalSync = setInterval( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
-	          return regenerator.wrap(function _callee2$(_context2) {
+	          return regenerator.wrap(function _callee2$(_context3) {
 	            while (1) {
-	              switch (_context2.prev = _context2.next) {
+	              switch (_context3.prev = _context3.next) {
 	                case 0:
 	                  if (!(!_classPrivateMethodGet(instance, _checkSumNoEqual, _checkSumNoEqual2).call(instance) && syncPending)) {
-	                    _context2.next = 2;
+	                    _context3.next = 2;
 	                    break;
 	                  }
 
-	                  return _context2.abrupt("return");
+	                  return _context3.abrupt("return");
 
 	                case 2:
-	                  _context2.next = 4;
+	                  _context3.next = 4;
 	                  return instance.sync().then().catch(function () {
 	                    // 執行錯誤時關閉自動同步30秒後重啟
 	                    instance.autoSyncStop();
@@ -12478,7 +12480,7 @@
 
 	                case 4:
 	                case "end":
-	                  return _context2.stop();
+	                  return _context3.stop();
 	              }
 	            }
 	          }, _callee2);
@@ -12555,10 +12557,10 @@
 	              });
 	            }
 	          } catch (e) {
-	            var _context3;
+	            var _context4;
 
 	            // 例外訊息
-	            console.log(concat$1(_context3 = "[".concat(e.code, "]")).call(_context3, e.message));
+	            console.log(concat$1(_context4 = "[".concat(e.code, "]")).call(_context4, e.message));
 	            refreshStop();
 	          }
 	        }, interval * 1000 || TOKEN_AUTO_REFRESH_INTERVAL * 1000);
@@ -12593,7 +12595,9 @@
 	      var rest = this.rest;
 	      var validateToken = token || '';
 	      return new promise(function (resolve, reject) {
-	        rest.get(api.validate, {
+	        var _context5;
+
+	        rest.get(concat$1(_context5 = "".concat(api.validate, "?v=")).call(_context5, rand(11111, 99999)), {
 	          headers: {
 	            Authorization: "Bearer ".concat(validateToken)
 	          }
@@ -12625,11 +12629,11 @@
 	  }, {
 	    key: "loginIAM",
 	    value: function loginIAM() {
-	      var _context4;
+	      var _context6;
 
 	      var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 	      var options = this.options;
-	      var ssoUrl = concat$1(_context4 = "".concat(options.sso_url, "?redirect_uri=")).call(_context4, options.redirect_url) || ''; //eslint-disable-line
+	      var ssoUrl = concat$1(_context6 = "".concat(options.sso_url, "?redirect_uri=")).call(_context6, options.redirect_url) || ''; //eslint-disable-line
 
 	      window.open(ssoUrl, target);
 	    }
@@ -12703,8 +12707,11 @@
 	}
 
 	function _setTokens2() {
-	  var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 	  var tokenKeys = this.tokenKeys; // 確認 LocalStorage Token key 正確才寫入
+
+	  for (var _len = arguments.length, keys = new Array(_len), _key = 0; _key < _len; _key++) {
+	    keys[_key] = arguments[_key];
+	  }
 
 	  forEach_1(keys, function (value, key) {
 	    if (some(tokenKeys).call(tokenKeys, function (token) {
@@ -12716,7 +12723,10 @@
 	}
 
 	function _removeTokens2() {
-	  var keys = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	  for (var _len2 = arguments.length, keys = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+	    keys[_key2] = arguments[_key2];
+	  }
+
 	  forEach_1(keys, function (value) {
 	    webStorage.remove(value);
 	  });
