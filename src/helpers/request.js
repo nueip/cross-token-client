@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { isPlainObject } from 'lodash';
 import { deepMerge } from '../lib';
 
-const baseOpt = {
+const baseConfig = {
   // 服務終端
   baseURL: '',
   // 跨域請求挾帶 cookies
@@ -62,7 +63,7 @@ export const removePending = (config) => {
  * @param {object} options - 初始化參數
  * @returns {*}
  */
-export const httpRequset = (options = {}) => {
-  const newOptions = deepMerge(baseOpt, options);
+export const httpRequset = (config) => {
+  const newOptions = deepMerge(baseConfig, isPlainObject(config) && config);
   return axios.create(newOptions);
 };

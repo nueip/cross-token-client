@@ -268,12 +268,12 @@
 
 	var toObject$6 = toObject$7;
 
-	var hasOwnProperty$8 = {}.hasOwnProperty;
+	var hasOwnProperty$9 = {}.hasOwnProperty;
 
 	// `HasOwnProperty` abstract operation
 	// https://tc39.es/ecma262/#sec-hasownproperty
 	var hasOwnProperty_1$1 = Object.hasOwn || function hasOwn(it, key) {
-	  return hasOwnProperty$8.call(toObject$6(it), key);
+	  return hasOwnProperty$9.call(toObject$6(it), key);
 	};
 
 	var id$3 = 0;
@@ -2686,12 +2686,12 @@
 	var uncurryThis$e = functionUncurryThis;
 	var toObject$3 = toObject$4;
 
-	var hasOwnProperty$7 = uncurryThis$e({}.hasOwnProperty);
+	var hasOwnProperty$8 = uncurryThis$e({}.hasOwnProperty);
 
 	// `HasOwnProperty` abstract operation
 	// https://tc39.es/ecma262/#sec-hasownproperty
 	var hasOwnProperty_1 = Object.hasOwn || function hasOwn(it, key) {
-	  return hasOwnProperty$7(toObject$3(it), key);
+	  return hasOwnProperty$8(toObject$3(it), key);
 	};
 
 	var uncurryThis$d = functionUncurryThis;
@@ -8040,17 +8040,17 @@
 	var Symbol$2 = _Symbol;
 
 	/** Used for built-in method references. */
-	var objectProto$8 = Object.prototype;
+	var objectProto$9 = Object.prototype;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$6 = objectProto$8.hasOwnProperty;
+	var hasOwnProperty$7 = objectProto$9.hasOwnProperty;
 
 	/**
 	 * Used to resolve the
 	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
 	 * of values.
 	 */
-	var nativeObjectToString$1 = objectProto$8.toString;
+	var nativeObjectToString$1 = objectProto$9.toString;
 
 	/** Built-in value references. */
 	var symToStringTag$1 = Symbol$2 ? Symbol$2.toStringTag : undefined;
@@ -8063,7 +8063,7 @@
 	 * @returns {string} Returns the raw `toStringTag`.
 	 */
 	function getRawTag$1(value) {
-	  var isOwn = hasOwnProperty$6.call(value, symToStringTag$1),
+	  var isOwn = hasOwnProperty$7.call(value, symToStringTag$1),
 	      tag = value[symToStringTag$1];
 
 	  try {
@@ -8086,14 +8086,14 @@
 
 	/** Used for built-in method references. */
 
-	var objectProto$7 = Object.prototype;
+	var objectProto$8 = Object.prototype;
 
 	/**
 	 * Used to resolve the
 	 * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
 	 * of values.
 	 */
-	var nativeObjectToString = objectProto$7.toString;
+	var nativeObjectToString = objectProto$8.toString;
 
 	/**
 	 * Converts `value` to a string using `Object.prototype.toString`.
@@ -8126,7 +8126,7 @@
 	 * @param {*} value The value to query.
 	 * @returns {string} Returns the `toStringTag`.
 	 */
-	function baseGetTag$5(value) {
+	function baseGetTag$6(value) {
 	  if (value == null) {
 	    return value === undefined ? undefinedTag : nullTag;
 	  }
@@ -8135,7 +8135,7 @@
 	    : objectToString(value);
 	}
 
-	var _baseGetTag = baseGetTag$5;
+	var _baseGetTag = baseGetTag$6;
 
 	/**
 	 * Checks if `value` is the
@@ -8170,7 +8170,7 @@
 
 	var isObject_1 = isObject$6;
 
-	var baseGetTag$4 = _baseGetTag,
+	var baseGetTag$5 = _baseGetTag,
 	    isObject$5 = isObject_1;
 
 	/** `Object#toString` result references. */
@@ -8202,7 +8202,7 @@
 	  }
 	  // The use of `Object#toString` avoids issues with the `typeof` operator
 	  // in Safari 9 which returns 'object' for typed arrays and other constructors.
-	  var tag = baseGetTag$4(value);
+	  var tag = baseGetTag$5(value);
 	  return tag == funcTag$1 || tag == genTag || tag == asyncTag || tag == proxyTag;
 	}
 
@@ -8238,10 +8238,10 @@
 
 	/** Used for built-in method references. */
 
-	var funcProto$1 = Function.prototype;
+	var funcProto$2 = Function.prototype;
 
 	/** Used to resolve the decompiled source of functions. */
-	var funcToString$1 = funcProto$1.toString;
+	var funcToString$2 = funcProto$2.toString;
 
 	/**
 	 * Converts `func` to its source code.
@@ -8253,7 +8253,7 @@
 	function toSource$1(func) {
 	  if (func != null) {
 	    try {
-	      return funcToString$1.call(func);
+	      return funcToString$2.call(func);
 	    } catch (e) {}
 	    try {
 	      return (func + '');
@@ -8279,18 +8279,18 @@
 	var reIsHostCtor = /^\[object .+?Constructor\]$/;
 
 	/** Used for built-in method references. */
-	var funcProto = Function.prototype,
-	    objectProto$6 = Object.prototype;
+	var funcProto$1 = Function.prototype,
+	    objectProto$7 = Object.prototype;
 
 	/** Used to resolve the decompiled source of functions. */
-	var funcToString = funcProto.toString;
+	var funcToString$1 = funcProto$1.toString;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$5 = objectProto$6.hasOwnProperty;
+	var hasOwnProperty$6 = objectProto$7.hasOwnProperty;
 
 	/** Used to detect if a method is native. */
 	var reIsNative = RegExp('^' +
-	  funcToString.call(hasOwnProperty$5).replace(reRegExpChar, '\\$&')
+	  funcToString$1.call(hasOwnProperty$6).replace(reRegExpChar, '\\$&')
 	  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
 	);
 
@@ -8426,10 +8426,10 @@
 	    eq$1 = eq_1;
 
 	/** Used for built-in method references. */
-	var objectProto$5 = Object.prototype;
+	var objectProto$6 = Object.prototype;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$4 = objectProto$5.hasOwnProperty;
+	var hasOwnProperty$5 = objectProto$6.hasOwnProperty;
 
 	/**
 	 * Assigns `value` to `key` of `object` if the existing value is not equivalent
@@ -8443,7 +8443,7 @@
 	 */
 	function assignValue$1(object, key, value) {
 	  var objValue = object[key];
-	  if (!(hasOwnProperty$4.call(object, key) && eq$1(objValue, value)) ||
+	  if (!(hasOwnProperty$5.call(object, key) && eq$1(objValue, value)) ||
 	      (value === undefined && !(key in object))) {
 	    baseAssignValue$1(object, key, value);
 	  }
@@ -8912,14 +8912,14 @@
 	 * // => false
 	 */
 
-	function isObjectLike$5(value) {
+	function isObjectLike$6(value) {
 	  return value != null && typeof value == 'object';
 	}
 
-	var isObjectLike_1 = isObjectLike$5;
+	var isObjectLike_1 = isObjectLike$6;
 
-	var baseGetTag$3 = _baseGetTag,
-	    isObjectLike$4 = isObjectLike_1;
+	var baseGetTag$4 = _baseGetTag,
+	    isObjectLike$5 = isObjectLike_1;
 
 	/** `Object#toString` result references. */
 	var argsTag$1 = '[object Arguments]';
@@ -8932,22 +8932,22 @@
 	 * @returns {boolean} Returns `true` if `value` is an `arguments` object,
 	 */
 	function baseIsArguments$1(value) {
-	  return isObjectLike$4(value) && baseGetTag$3(value) == argsTag$1;
+	  return isObjectLike$5(value) && baseGetTag$4(value) == argsTag$1;
 	}
 
 	var _baseIsArguments = baseIsArguments$1;
 
 	var baseIsArguments = _baseIsArguments,
-	    isObjectLike$3 = isObjectLike_1;
+	    isObjectLike$4 = isObjectLike_1;
 
 	/** Used for built-in method references. */
-	var objectProto$4 = Object.prototype;
+	var objectProto$5 = Object.prototype;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$3 = objectProto$4.hasOwnProperty;
+	var hasOwnProperty$4 = objectProto$5.hasOwnProperty;
 
 	/** Built-in value references. */
-	var propertyIsEnumerable = objectProto$4.propertyIsEnumerable;
+	var propertyIsEnumerable = objectProto$5.propertyIsEnumerable;
 
 	/**
 	 * Checks if `value` is likely an `arguments` object.
@@ -8968,7 +8968,7 @@
 	 * // => false
 	 */
 	var isArguments$1 = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
-	  return isObjectLike$3(value) && hasOwnProperty$3.call(value, 'callee') &&
+	  return isObjectLike$4(value) && hasOwnProperty$4.call(value, 'callee') &&
 	    !propertyIsEnumerable.call(value, 'callee');
 	};
 
@@ -9065,9 +9065,9 @@
 	module.exports = isBuffer;
 	}(isBuffer$2, isBuffer$2.exports));
 
-	var baseGetTag$2 = _baseGetTag,
+	var baseGetTag$3 = _baseGetTag,
 	    isLength = isLength_1,
-	    isObjectLike$2 = isObjectLike_1;
+	    isObjectLike$3 = isObjectLike_1;
 
 	/** `Object#toString` result references. */
 	var argsTag = '[object Arguments]',
@@ -9078,7 +9078,7 @@
 	    funcTag = '[object Function]',
 	    mapTag = '[object Map]',
 	    numberTag = '[object Number]',
-	    objectTag = '[object Object]',
+	    objectTag$1 = '[object Object]',
 	    regexpTag = '[object RegExp]',
 	    setTag = '[object Set]',
 	    stringTag$1 = '[object String]',
@@ -9108,7 +9108,7 @@
 	typedArrayTags[dataViewTag] = typedArrayTags[dateTag] =
 	typedArrayTags[errorTag] = typedArrayTags[funcTag] =
 	typedArrayTags[mapTag] = typedArrayTags[numberTag] =
-	typedArrayTags[objectTag] = typedArrayTags[regexpTag] =
+	typedArrayTags[objectTag$1] = typedArrayTags[regexpTag] =
 	typedArrayTags[setTag] = typedArrayTags[stringTag$1] =
 	typedArrayTags[weakMapTag] = false;
 
@@ -9120,8 +9120,8 @@
 	 * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
 	 */
 	function baseIsTypedArray$1(value) {
-	  return isObjectLike$2(value) &&
-	    isLength(value.length) && !!typedArrayTags[baseGetTag$2(value)];
+	  return isObjectLike$3(value) &&
+	    isLength(value.length) && !!typedArrayTags[baseGetTag$3(value)];
 	}
 
 	var _baseIsTypedArray = baseIsTypedArray$1;
@@ -9213,10 +9213,10 @@
 	    isTypedArray = isTypedArray_1;
 
 	/** Used for built-in method references. */
-	var objectProto$3 = Object.prototype;
+	var objectProto$4 = Object.prototype;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$2 = objectProto$3.hasOwnProperty;
+	var hasOwnProperty$3 = objectProto$4.hasOwnProperty;
 
 	/**
 	 * Creates an array of the enumerable property names of the array-like `value`.
@@ -9236,7 +9236,7 @@
 	      length = result.length;
 
 	  for (var key in value) {
-	    if ((inherited || hasOwnProperty$2.call(value, key)) &&
+	    if ((inherited || hasOwnProperty$3.call(value, key)) &&
 	        !(skipIndexes && (
 	           // Safari 9 has enumerable `arguments.length` in strict mode.
 	           key == 'length' ||
@@ -9257,7 +9257,7 @@
 
 	/** Used for built-in method references. */
 
-	var objectProto$2 = Object.prototype;
+	var objectProto$3 = Object.prototype;
 
 	/**
 	 * Checks if `value` is likely a prototype object.
@@ -9268,7 +9268,7 @@
 	 */
 	function isPrototype$2(value) {
 	  var Ctor = value && value.constructor,
-	      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto$2;
+	      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto$3;
 
 	  return value === proto;
 	}
@@ -9302,10 +9302,10 @@
 	    nativeKeysIn = _nativeKeysIn;
 
 	/** Used for built-in method references. */
-	var objectProto$1 = Object.prototype;
+	var objectProto$2 = Object.prototype;
 
 	/** Used to check objects for own properties. */
-	var hasOwnProperty$1 = objectProto$1.hasOwnProperty;
+	var hasOwnProperty$2 = objectProto$2.hasOwnProperty;
 
 	/**
 	 * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
@@ -9322,7 +9322,7 @@
 	      result = [];
 
 	  for (var key in object) {
-	    if (!(key == 'constructor' && (isProto || !hasOwnProperty$1.call(object, key)))) {
+	    if (!(key == 'constructor' && (isProto || !hasOwnProperty$2.call(object, key)))) {
 	      result.push(key);
 	    }
 	  }
@@ -9570,7 +9570,7 @@
 	 * @param {Object} val The value to test
 	 * @return {boolean} True if value is a plain Object, otherwise false
 	 */
-	function isPlainObject(val) {
+	function isPlainObject$1(val) {
 	  if (toString.call(val) !== '[object Object]') {
 	    return false;
 	  }
@@ -9735,9 +9735,9 @@
 	function merge(/* obj1, obj2, obj3, ... */) {
 	  var result = {};
 	  function assignValue(val, key) {
-	    if (isPlainObject(result[key]) && isPlainObject(val)) {
+	    if (isPlainObject$1(result[key]) && isPlainObject$1(val)) {
 	      result[key] = merge(result[key], val);
-	    } else if (isPlainObject(val)) {
+	    } else if (isPlainObject$1(val)) {
 	      result[key] = merge({}, val);
 	    } else if (isArray$2(val)) {
 	      result[key] = val.slice();
@@ -9793,7 +9793,7 @@
 	  isString: isString$2,
 	  isNumber: isNumber,
 	  isObject: isObject$1,
-	  isPlainObject: isPlainObject,
+	  isPlainObject: isPlainObject$1,
 	  isUndefined: isUndefined,
 	  isDate: isDate,
 	  isFile: isFile,
@@ -11256,7 +11256,94 @@
 
 	var axios = axios$2.exports;
 
-	var baseOpt = {
+	/**
+	 * Creates a unary function that invokes `func` with its argument transformed.
+	 *
+	 * @private
+	 * @param {Function} func The function to wrap.
+	 * @param {Function} transform The argument transform.
+	 * @returns {Function} Returns the new function.
+	 */
+
+	function overArg$2(func, transform) {
+	  return function(arg) {
+	    return func(transform(arg));
+	  };
+	}
+
+	var _overArg = overArg$2;
+
+	var overArg$1 = _overArg;
+
+	/** Built-in value references. */
+	var getPrototype$1 = overArg$1(Object.getPrototypeOf, Object);
+
+	var _getPrototype = getPrototype$1;
+
+	var baseGetTag$2 = _baseGetTag,
+	    getPrototype = _getPrototype,
+	    isObjectLike$2 = isObjectLike_1;
+
+	/** `Object#toString` result references. */
+	var objectTag = '[object Object]';
+
+	/** Used for built-in method references. */
+	var funcProto = Function.prototype,
+	    objectProto$1 = Object.prototype;
+
+	/** Used to resolve the decompiled source of functions. */
+	var funcToString = funcProto.toString;
+
+	/** Used to check objects for own properties. */
+	var hasOwnProperty$1 = objectProto$1.hasOwnProperty;
+
+	/** Used to infer the `Object` constructor. */
+	var objectCtorString = funcToString.call(Object);
+
+	/**
+	 * Checks if `value` is a plain object, that is, an object created by the
+	 * `Object` constructor or one with a `[[Prototype]]` of `null`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.8.0
+	 * @category Lang
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+	 * @example
+	 *
+	 * function Foo() {
+	 *   this.a = 1;
+	 * }
+	 *
+	 * _.isPlainObject(new Foo);
+	 * // => false
+	 *
+	 * _.isPlainObject([1, 2, 3]);
+	 * // => false
+	 *
+	 * _.isPlainObject({ 'x': 0, 'y': 0 });
+	 * // => true
+	 *
+	 * _.isPlainObject(Object.create(null));
+	 * // => true
+	 */
+	function isPlainObject(value) {
+	  if (!isObjectLike$2(value) || baseGetTag$2(value) != objectTag) {
+	    return false;
+	  }
+	  var proto = getPrototype(value);
+	  if (proto === null) {
+	    return true;
+	  }
+	  var Ctor = hasOwnProperty$1.call(proto, 'constructor') && proto.constructor;
+	  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
+	    funcToString.call(Ctor) == objectCtorString;
+	}
+
+	var isPlainObject_1 = isPlainObject;
+
+	var baseConfig = {
 	  // 服務終端
 	  baseURL: '',
 	  // 跨域請求挾帶 cookies
@@ -11313,9 +11400,8 @@
 	 * @returns {*}
 	 */
 
-	var httpRequset = function httpRequset() {
-	  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-	  var newOptions = deepMerge(baseOpt, options);
+	var httpRequset = function httpRequset(config) {
+	  var newOptions = deepMerge(baseConfig, isPlainObject_1(config) && config);
 	  return axios.create(newOptions);
 	};
 
@@ -11429,23 +11515,6 @@
 	var baseFor$1 = createBaseFor();
 
 	var _baseFor = baseFor$1;
-
-	/**
-	 * Creates a unary function that invokes `func` with its argument transformed.
-	 *
-	 * @private
-	 * @param {Function} func The function to wrap.
-	 * @param {Function} transform The argument transform.
-	 * @returns {Function} Returns the new function.
-	 */
-
-	function overArg$1(func, transform) {
-	  return function(arg) {
-	    return func(transform(arg));
-	  };
-	}
-
-	var _overArg = overArg$1;
 
 	var overArg = _overArg;
 
