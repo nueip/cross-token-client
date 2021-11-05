@@ -85,8 +85,6 @@ class TokenInjection {
         return res;
       })
       .catch((error) => {
-        if (error && !error.isLogin) console.log(error.message);
-
         return error;
       });
   }
@@ -122,15 +120,11 @@ class TokenInjection {
             reject(error);
           });
       } else {
-        // 非登入時，移除 Storge Token Keys
-        removeTokens(instance.tokenKeys);
-
-        const errorResponse = {
-          isLogin: false,
-          message: 'Logged out!!',
-        };
-
-        reject(errorResponse);
+        // 重置初始建構屬性 & 清除 Token's Info.
+        instance.#reset().then(() => {
+          // 轉導回 SSO 登入頁
+          instance.loginIAM();
+        });
       }
     });
   }
@@ -347,9 +341,9 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-    const ssoUrl = `${options.sso_url}?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+    const ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
 
-    window.open(ssoUrl, target);
+    window.open(ssoUrl, target || '_self');
   }
 
   /**
@@ -359,18 +353,11 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
 
-    // 刪除 Token Keys
-    removeTokens(instance.tokenKeys);
-
-    // 清除執行中的請求暫存
-    instance.axiosPending.clear();
-
-    // 清除定期器
-    instance.intervalSync = null;
-    instance.intervalRefresh = null;
-
-    // 轉導至 IAM 登出頁
-    window.location.href = `${options.sso_url}/logout`;
+    // 重置初始建構屬性 & 清除 Token's Info.
+    instance.#reset().then(() => {
+      // 轉導回 SSO 登出頁
+      window.location.href = `${options.sso_url}/logout`;
+    });
   }
 
   /**
@@ -422,6 +409,34 @@ class TokenInjection {
   }
 
   /**
+   * 重置
+   *
+   * - 初始化建構屬性
+   * - 清除 Token's Info.
+   */
+  async #reset() {
+    const instance = this;
+
+    // 刪除 Token Keys
+    removeTokens(instance.tokenKeys);
+
+    // 清除執行中的請求暫存
+    instance.axiosPending.clear();
+
+    // 清除定期器
+    instance.intervalSync = null;
+    instance.intervalRefresh = null;
+  }
+
+  /**
+   * 自動登出 - 時間預設一天
+   */
+  #autoLogout() {
+    const instance = this;
+    setTimeout(() => instance.logoutIAM(), TC.LOGOUT_TIME);
+  }
+
+  /**
    * 是否為登入狀態
    *
    * @returns {Boolean}
@@ -431,14 +446,6 @@ class TokenInjection {
     const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
 
     return cookies.get(loginKey) && cookies.get(loginKey) == '1'; //eslint-disable-line
-  }
-
-  /**
-   * 自動登出 - 時間預設一天
-   */
-  #autoLogout() {
-    const instance = this;
-    setTimeout(() => instance.logoutIAM(), TC.LOGOUT_TIME);
   }
 
   /**

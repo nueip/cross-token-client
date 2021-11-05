@@ -12343,9 +12343,11 @@
 
 	var _interceptors = /*#__PURE__*/new weakSet();
 
-	var _isLogin = /*#__PURE__*/new weakSet();
+	var _reset = /*#__PURE__*/new weakSet();
 
 	var _autoLogout = /*#__PURE__*/new weakSet();
+
+	var _isLogin = /*#__PURE__*/new weakSet();
 
 	var _checkSumNoEqual = /*#__PURE__*/new weakSet();
 
@@ -12366,9 +12368,11 @@
 
 	    _classPrivateMethodInitSpec(this, _checkSumNoEqual);
 
+	    _classPrivateMethodInitSpec(this, _isLogin);
+
 	    _classPrivateMethodInitSpec(this, _autoLogout);
 
-	    _classPrivateMethodInitSpec(this, _isLogin);
+	    _classPrivateMethodInitSpec(this, _reset);
 
 	    _classPrivateMethodInitSpec(this, _interceptors);
 
@@ -12422,7 +12426,6 @@
 
 	                  return res;
 	                }).catch(function (error) {
-	                  if (error && !error.isLogin) console.log(error.message);
 	                  return error;
 	                });
 
@@ -12469,13 +12472,11 @@
 	            reject(error);
 	          });
 	        } else {
-	          // 非登入時，移除 Storge Token Keys
-	          removeTokens(instance.tokenKeys);
-	          var errorResponse = {
-	            isLogin: false,
-	            message: 'Logged out!!'
-	          };
-	          reject(errorResponse);
+	          // 重置初始建構屬性 & 清除 Token's Info.
+	          _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
+	            // 轉導回 SSO 登入頁
+	            instance.loginIAM();
+	          });
 	        }
 	      });
 	    }
@@ -12724,9 +12725,9 @@
 
 	      var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 	      var options = this.options;
-	      var ssoUrl = concat$1(_context6 = "".concat(options.sso_url, "?redirect_uri=")).call(_context6, options.redirect_url) || ''; //eslint-disable-line
+	      var ssoUrl = concat$1(_context6 = "".concat(options.sso_url, "/login?redirect_uri=")).call(_context6, options.redirect_url) || ''; //eslint-disable-line
 
-	      window.open(ssoUrl, target);
+	      window.open(ssoUrl, target || '_self');
 	    }
 	    /**
 	     * 登出
@@ -12736,16 +12737,12 @@
 	    key: "logoutIAM",
 	    value: function logoutIAM() {
 	      var instance = this;
-	      var options = this.options; // 刪除 Token Keys
+	      var options = this.options; // 重置初始建構屬性 & 清除 Token's Info.
 
-	      removeTokens(instance.tokenKeys); // 清除執行中的請求暫存
-
-	      instance.axiosPending.clear(); // 清除定期器
-
-	      instance.intervalSync = null;
-	      instance.intervalRefresh = null; // 轉導至 IAM 登出頁
-
-	      window.location.href = "".concat(options.sso_url, "/logout");
+	      _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
+	        // 轉導回 SSO 登出頁
+	        window.location.href = "".concat(options.sso_url, "/logout");
+	      });
 	    }
 	    /**
 	     * axios 全域設定方法
@@ -12796,11 +12793,34 @@
 	  });
 	}
 
-	function _isLogin2() {
-	  var options = this.options;
-	  var loginKey = "".concat(options.cookie_prefix, "login") || 'login'; //eslint-disable-line
+	function _reset2() {
+	  return _reset3.apply(this, arguments);
+	}
 
-	  return api$1.get(loginKey) && api$1.get(loginKey) == '1'; //eslint-disable-line
+	function _reset3() {
+	  _reset3 = _asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee3() {
+	    var instance;
+	    return regenerator.wrap(function _callee3$(_context7) {
+	      while (1) {
+	        switch (_context7.prev = _context7.next) {
+	          case 0:
+	            instance = this; // 刪除 Token Keys
+
+	            removeTokens(instance.tokenKeys); // 清除執行中的請求暫存
+
+	            instance.axiosPending.clear(); // 清除定期器
+
+	            instance.intervalSync = null;
+	            instance.intervalRefresh = null;
+
+	          case 5:
+	          case "end":
+	            return _context7.stop();
+	        }
+	      }
+	    }, _callee3, this);
+	  }));
+	  return _reset3.apply(this, arguments);
 	}
 
 	function _autoLogout2() {
@@ -12809,6 +12829,13 @@
 	  setTimeout$1(function () {
 	    return instance.logoutIAM();
 	  }, LOGOUT_TIME);
+	}
+
+	function _isLogin2() {
+	  var options = this.options;
+	  var loginKey = "".concat(options.cookie_prefix, "login") || 'login'; //eslint-disable-line
+
+	  return api$1.get(loginKey) && api$1.get(loginKey) == '1'; //eslint-disable-line
 	}
 
 	function _checkSumNoEqual2() {
