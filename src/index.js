@@ -3,11 +3,11 @@
  *
  * @author Grace.Wang
  */
-import { forEach, includes } from 'lodash';
 import cookies from 'js-cookie';
 import * as TC from './constant';
 import { rand, deepMerge, queryString } from './lib';
 import { api, httpRequset, removePending, addPending } from './helpers/request';
+import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
 
 // Axios 支援 finally 方法
@@ -101,7 +101,7 @@ class TokenInjection {
    */
   sync() {
     const instance = this;
-    const { rest } = this;
+    const { rest, tokenKeys } = this;
 
     // 抓取資料
     return new Promise((resolve, reject) => {
@@ -115,8 +115,7 @@ class TokenInjection {
             instance.axiosPending.set('sync', true);
 
             // 設置 Token Keys (LocalStorage)
-            instance.#setTokens(tokenInfo);
-
+            setTokens(tokenKeys, tokenInfo);
             resolve(res);
           })
           .catch((error) => {
@@ -124,7 +123,7 @@ class TokenInjection {
           });
       } else {
         // 非登入時，移除 Storge Token Keys
-        instance.#removeTokens(instance.tokenKeys);
+        removeTokens(instance.tokenKeys);
 
         const errorResponse = {
           isLogin: false,
@@ -361,7 +360,7 @@ class TokenInjection {
     const { options } = this;
 
     // 刪除 Token Keys
-    instance.#removeTokens(instance.tokenKeys);
+    removeTokens(instance.tokenKeys);
 
     // 清除執行中的請求暫存
     instance.axiosPending.clear();
@@ -420,33 +419,6 @@ class TokenInjection {
         return Promise.reject(error);
       }
     );
-  }
-
-  /**
-   * 設置 LocalStorage Tokens 資訊
-   *
-   * @param {object} keys - Token's key | value
-   */
-  #setTokens(...keys) {
-    const { tokenKeys } = this;
-
-    // 確認 LocalStorage Token key 正確才寫入
-    forEach(keys, (value, key) => {
-      if (tokenKeys.some((token) => includes(key, token))) {
-        webStorage.set(key, value);
-      }
-    });
-  }
-
-  /**
-   * 移除 LocalStorage Tokens 資訊
-   *
-   * @param {array} keys - Token keys
-   */
-  #removeTokens(...keys) {
-    forEach(keys, (value) => {
-      webStorage.remove(value);
-    });
   }
 
   /**
