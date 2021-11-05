@@ -12345,8 +12345,6 @@ var _autoLogout = /*#__PURE__*/new weakSet();
 
 var _isLogin = /*#__PURE__*/new weakSet();
 
-var _checkSumNoEqual = /*#__PURE__*/new weakSet();
-
 var _exception = /*#__PURE__*/new weakSet();
 
 var TokenInjection = /*#__PURE__*/function () {
@@ -12361,8 +12359,6 @@ var TokenInjection = /*#__PURE__*/function () {
     _classCallCheck(this, TokenInjection);
 
     _classPrivateMethodInitSpec(this, _exception);
-
-    _classPrivateMethodInitSpec(this, _checkSumNoEqual);
 
     _classPrivateMethodInitSpec(this, _isLogin);
 
@@ -12539,7 +12535,12 @@ var TokenInjection = /*#__PURE__*/function () {
       var instance = this;
       var options = this.options;
       var tkCheckSum = "".concat(options.cookie_prefix, "tkchecksum") || 'tkchecksum'; //eslint-disable-line
-      // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+      // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+
+      var checkSumNoEqual = function checkSumNoEqual() {
+        return api$1.get(tkCheckSum) !== webStorage.get('token_checksum');
+      }; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+
 
       if (api$1.get(tkCheckSum) && !instance.intervalSync) {
         var syncPending = instance.axiosPending.get('sync');
@@ -12548,7 +12549,7 @@ var TokenInjection = /*#__PURE__*/function () {
             while (1) {
               switch (_context3.prev = _context3.next) {
                 case 0:
-                  if (!(!_classPrivateMethodGet(instance, _checkSumNoEqual, _checkSumNoEqual2).call(instance) && syncPending)) {
+                  if (!(!checkSumNoEqual() && syncPending)) {
                     _context3.next = 2;
                     break;
                   }
@@ -12832,12 +12833,6 @@ function _isLogin2() {
   var loginKey = "".concat(options.cookie_prefix, "login") || 'login'; //eslint-disable-line
 
   return api$1.get(loginKey) && api$1.get(loginKey) == '1'; //eslint-disable-line
-}
-
-function _checkSumNoEqual2() {
-  var options = this.options;
-  var tkCheckSum = "".concat(options.cookie_prefix, "tkchecksum");
-  return api$1.get(tkCheckSum) !== webStorage.get('token_checksum');
 }
 
 function _exception2(messageIpt, codeIpt) {

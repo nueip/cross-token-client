@@ -188,6 +188,10 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+    // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+    const checkSumNoEqual = () => {
+      return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
+    };
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     if (cookies.get(tkCheckSum) && !instance.intervalSync) {
@@ -195,7 +199,7 @@ class TokenInjection {
 
       instance.intervalSync = setInterval(async () => {
         // tkchecksum != token_checksum , axios已執行完成
-        if (!instance.#checkSumNoEqual() && syncPending) return;
+        if (!checkSumNoEqual() && syncPending) return;
 
         await instance
           .sync()
@@ -446,20 +450,6 @@ class TokenInjection {
     const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
 
     return cookies.get(loginKey) && cookies.get(loginKey) == '1'; //eslint-disable-line
-  }
-
-  /**
-   * 確認金鑰檢核碼
-   *
-   * - 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
-   *
-   * @returns {Boolean}
-   */
-  #checkSumNoEqual() {
-    const { options } = this;
-    const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
-
-    return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
   }
 
   /**
