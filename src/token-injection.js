@@ -6,7 +6,14 @@
 import cookies from 'js-cookie';
 import * as TC from './constant';
 import { rand, deepMerge, queryString } from './lib';
-import { api, httpRequset, removePending, addPending } from './helpers/request';
+import {
+  api,
+  httpRequset,
+  removePending,
+  addPending,
+  cancelRequest,
+  isCancel,
+} from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
 
@@ -103,29 +110,21 @@ class TokenInjection {
 
     // 抓取資料
     return new Promise((resolve, reject) => {
-      if (instance.#isLogin()) {
-        rest
-          .get(api.sync)
-          .then((res) => {
-            const tokenInfo = res.data || {};
+      rest
+        .get(api.sync)
+        .then((res) => {
+          const tokenInfo = res.data || {};
 
-            // 暫存執行中的請求
-            instance.axiosPending.set('sync', true);
+          // 暫存執行中的請求
+          instance.axiosPending.set('sync', true);
 
-            // 設置 Token Keys (LocalStorage)
-            setTokens(tokenKeys, tokenInfo);
-            resolve(res);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      } else {
-        // 重置初始建構屬性 & 清除 Token's Info.
-        instance.#reset().then(() => {
-          // 轉導回 SSO 登入頁
-          instance.loginIAM();
+          // 設置 Token Keys (LocalStorage)
+          setTokens(tokenKeys, tokenInfo);
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
         });
-      }
     });
   }
 
@@ -378,19 +377,23 @@ class TokenInjection {
    * Axios 攔截器
    */
   #interceptors() {
+    const instance = this;
     const { options, rest } = this;
 
     // 請求攔截器
     rest.interceptors.request.use(
       (config) => {
-        if (!options.xhr_with) {
-          delete config.headers['X-Requested-With'];
-        }
+        if (!options.xhr_with) delete config.headers['X-Requested-With'];
 
         // 先判斷是否有重複的請求要取消
         removePending(config);
-        // 再把此次請求加入暫存
-        addPending(config);
+
+        // 登入時，把此次請求加入暫存 反之取消請求
+        if (instance.#isLogin()) {
+          addPending(config);
+        } else {
+          cancelRequest(config);
+        }
 
         return config;
       },
@@ -407,6 +410,13 @@ class TokenInjection {
         return res;
       },
       (error) => {
+        // 取消請求，重置初始建構並轉導 SSO 回登入頁
+        if (isCancel(error)) {
+          instance.#reset().then(() => {
+            instance.loginIAM();
+          });
+        }
+
         return Promise.reject(error);
       }
     );

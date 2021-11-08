@@ -58,6 +58,30 @@ export const removePending = (config) => {
 };
 
 /**
+ * 取消請求
+ *
+ * @param {object} config - API 請求內容
+ */
+export const cancelRequest = (config) => {
+  const key = [config.method, config.url].join('&');
+
+  // config 添加 cancelToken 屬性
+  config.cancelToken = new axios.CancelToken((cancel) => {
+    cancel(key);
+  });
+};
+
+/**
+ * 取消請求驗證
+ *
+ * @param {object} error - API 錯誤回應內容
+ * @returns {boolean}
+ */
+export const isCancel = (error) => {
+  return axios.isCancel(error);
+};
+
+/**
  * 建立 axios 實體
  *
  * @param {object} options - 初始化參數

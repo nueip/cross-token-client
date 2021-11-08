@@ -10624,13 +10624,13 @@
 	  return data;
 	};
 
-	var isCancel$1 = function isCancel(value) {
+	var isCancel$2 = function isCancel(value) {
 	  return !!(value && value.__CANCEL__);
 	};
 
 	var utils$3 = utils$d;
 	var transformData = transformData$1;
-	var isCancel = isCancel$1;
+	var isCancel$1 = isCancel$2;
 	var defaults$1 = defaults_1;
 	var Cancel$1 = Cancel_1;
 
@@ -10696,7 +10696,7 @@
 
 	    return response;
 	  }, function onAdapterRejection(reason) {
-	    if (!isCancel(reason)) {
+	    if (!isCancel$1(reason)) {
 	      throwIfCancellationRequested(config);
 
 	      // Transform response data
@@ -11237,7 +11237,7 @@
 	// Expose Cancel & CancelToken
 	axios$1.Cancel = Cancel_1;
 	axios$1.CancelToken = CancelToken_1;
-	axios$1.isCancel = isCancel$1;
+	axios$1.isCancel = isCancel$2;
 	axios$1.VERSION = data.version;
 
 	// Expose all/spread
@@ -11392,6 +11392,29 @@
 	    cancel(key);
 	    restPending.delete(key);
 	  }
+	};
+	/**
+	 * 取消請求
+	 *
+	 * @param {object} config - API 請求內容
+	 */
+
+	var cancelRequest = function cancelRequest(config) {
+	  var key = [config.method, config.url].join('&'); // config 添加 cancelToken 屬性
+
+	  config.cancelToken = new axios.CancelToken(function (cancel) {
+	    cancel(key);
+	  });
+	};
+	/**
+	 * 取消請求驗證
+	 *
+	 * @param {object} error - API 錯誤回應內容
+	 * @returns {boolean}
+	 */
+
+	var isCancel = function isCancel(error) {
+	  return axios.isCancel(error);
 	};
 	/**
 	 * 建立 axios 實體
@@ -12456,24 +12479,16 @@
 	          tokenKeys = this.tokenKeys; // 抓取資料
 
 	      return new promise(function (resolve, reject) {
-	        if (_classPrivateMethodGet(instance, _isLogin, _isLogin2).call(instance)) {
-	          rest.get(api.sync).then(function (res) {
-	            var tokenInfo = res.data || {}; // 暫存執行中的請求
+	        rest.get(api.sync).then(function (res) {
+	          var tokenInfo = res.data || {}; // 暫存執行中的請求
 
-	            instance.axiosPending.set('sync', true); // 設置 Token Keys (LocalStorage)
+	          instance.axiosPending.set('sync', true); // 設置 Token Keys (LocalStorage)
 
-	            setTokens(tokenKeys, tokenInfo);
-	            resolve(res);
-	          }).catch(function (error) {
-	            reject(error);
-	          });
-	        } else {
-	          // 重置初始建構屬性 & 清除 Token's Info.
-	          _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
-	            // 轉導回 SSO 登入頁
-	            instance.loginIAM();
-	          });
-	        }
+	          setTokens(tokenKeys, tokenInfo);
+	          resolve(res);
+	        }).catch(function (error) {
+	          reject(error);
+	        });
 	      });
 	    }
 	    /**
@@ -12768,18 +12783,21 @@
 	}();
 
 	function _interceptors2() {
+	  var instance = this;
 	  var options = this.options,
 	      rest = this.rest; // 請求攔截器
 
 	  rest.interceptors.request.use(function (config) {
-	    if (!options.xhr_with) {
-	      delete config.headers['X-Requested-With'];
-	    } // 先判斷是否有重複的請求要取消
+	    if (!options.xhr_with) delete config.headers['X-Requested-With']; // 先判斷是否有重複的請求要取消
 
+	    removePending(config); // 登入時，把此次請求加入暫存 反之取消請求
 
-	    removePending(config); // 再把此次請求加入暫存
+	    if (_classPrivateMethodGet(instance, _isLogin, _isLogin2).call(instance)) {
+	      addPending(config);
+	    } else {
+	      cancelRequest(config);
+	    }
 
-	    addPending(config);
 	    return config;
 	  }, function (error) {
 	    return promise.reject(error);
@@ -12790,6 +12808,13 @@
 	    removePending(res);
 	    return res;
 	  }, function (error) {
+	    // 取消請求，重置初始建構並轉導 SSO 回登入頁
+	    if (isCancel(error)) {
+	      _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
+	        instance.loginIAM();
+	      });
+	    }
+
 	    return promise.reject(error);
 	  });
 	}
