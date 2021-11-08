@@ -331,7 +331,7 @@ class TokenInjection {
   /**
    * 取得 LocalStorage Token
    *
-   * @returns {String} Access Token
+   * @returns {string} Access Token
    */
   getToken() {
     return webStorage.get(TC.ACCESS_TOKEN_NAME);
