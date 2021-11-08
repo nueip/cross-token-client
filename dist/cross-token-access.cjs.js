@@ -12366,8 +12366,6 @@ var _reset = /*#__PURE__*/new weakSet();
 
 var _autoLogout = /*#__PURE__*/new weakSet();
 
-var _isLogin = /*#__PURE__*/new weakSet();
-
 var _exception = /*#__PURE__*/new weakSet();
 
 var TokenInjection = /*#__PURE__*/function () {
@@ -12382,8 +12380,6 @@ var TokenInjection = /*#__PURE__*/function () {
     _classCallCheck(this, TokenInjection);
 
     _classPrivateMethodInitSpec(this, _exception);
-
-    _classPrivateMethodInitSpec(this, _isLogin);
 
     _classPrivateMethodInitSpec(this, _autoLogout);
 
@@ -12757,6 +12753,21 @@ var TokenInjection = /*#__PURE__*/function () {
       });
     }
     /**
+     * 是否為登入狀態
+     *
+     * @returns {Boolean}
+     */
+
+  }, {
+    key: "isLogin",
+    value: function isLogin() {
+      var options = this.options;
+      var loginKey = "".concat(options.cookie_prefix, "login") || 'login'; //eslint-disable-line
+
+      var loginCookie = api$1.get(loginKey);
+      return loginCookie && loginCookie === '1';
+    }
+    /**
      * axios 全域設定方法
      *
      * @param {object} config - axios options
@@ -12788,7 +12799,7 @@ function _interceptors2() {
 
     removePending(config); // 登入時，把此次請求加入暫存 反之取消請求
 
-    if (_classPrivateMethodGet(instance, _isLogin, _isLogin2).call(instance)) {
+    if (instance.isLogin()) {
       addPending(config);
     } else {
       cancelRequest(config);
@@ -12851,13 +12862,6 @@ function _autoLogout2() {
   setTimeout$1(function () {
     return instance.logoutIAM();
   }, LOGOUT_TIME);
-}
-
-function _isLogin2() {
-  var options = this.options;
-  var loginKey = "".concat(options.cookie_prefix, "login") || 'login'; //eslint-disable-line
-
-  return api$1.get(loginKey) && api$1.get(loginKey) == '1'; //eslint-disable-line
 }
 
 function _exception2(messageIpt, codeIpt) {

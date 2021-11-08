@@ -364,6 +364,19 @@ class TokenInjection {
   }
 
   /**
+   * 是否為登入狀態
+   *
+   * @returns {Boolean}
+   */
+  isLogin() {
+    const { options } = this;
+    const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
+    const loginCookie = cookies.get(loginKey);
+
+    return loginCookie && loginCookie === '1';
+  }
+
+  /**
    * axios 全域設定方法
    *
    * @param {object} config - axios options
@@ -389,7 +402,7 @@ class TokenInjection {
         removePending(config);
 
         // 登入時，把此次請求加入暫存 反之取消請求
-        if (instance.#isLogin()) {
+        if (instance.isLogin()) {
           addPending(config);
         } else {
           cancelRequest(config);
@@ -448,18 +461,6 @@ class TokenInjection {
   #autoLogout() {
     const instance = this;
     setTimeout(() => instance.logoutIAM(), TC.LOGOUT_TIME);
-  }
-
-  /**
-   * 是否為登入狀態
-   *
-   * @returns {Boolean}
-   */
-  #isLogin() {
-    const { options } = this;
-    const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
-
-    return cookies.get(loginKey) && cookies.get(loginKey) == '1'; //eslint-disable-line
   }
 
   /**
