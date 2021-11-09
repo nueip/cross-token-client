@@ -60,6 +60,9 @@ class TokenInjection {
     this.intervalSync = null;
     this.intervalRefresh = null;
 
+    // 同步 Token 請求次數計數
+    this.syncTimes = 0;
+
     // 實例化 axios
     this.rest = httpRequset({
       baseURL: this.options.sso_url,
@@ -116,7 +119,16 @@ class TokenInjection {
           const tokenInfo = res.data || {};
 
           // 暫存執行中的請求
-          instance.axiosPending.set('sync', true);
+          instance.axiosPending.set('sync', {
+            readyState: res.request.readyState,
+          });
+
+          if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
+            reject(res);
+          }
+
+          instance.syncTimes += 1;
+          res.requestTimes = instance.syncTimes;
 
           // 設置 Token Keys (LocalStorage)
           setTokens(tokenKeys, tokenInfo);
@@ -162,7 +174,11 @@ class TokenInjection {
           }
         )
         .then((res) => {
-          instance.axiosPending.set('refresh', true);
+          // 暫存執行中的請求
+          instance.axiosPending.set('refresh', {
+            readyState: res.request.readyState,
+          });
+
           resolve(res);
         })
         .catch((error) => {
@@ -187,24 +203,40 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+    const syncPending = instance.axiosPending.get('sync');
 
     // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
     const checkSumNoEqual = () => {
       return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
     };
 
-    // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
-    if (cookies.get(tkCheckSum) && !instance.intervalSync) {
-      const syncPending = instance.axiosPending.get('sync');
+    // 定期執行同步次數計數
+    let requestTimes = 0;
 
+    // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+    if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
-        // tkchecksum != token_checksum , axios已執行完成
-        if (!checkSumNoEqual() && syncPending) return;
+        // tkchecksum != token_checksum , axios已執行完成 or 請求次數超過最大限制
+        if (
+          (!checkSumNoEqual() && syncPending.readyState === 4) ||
+          requestTimes >= TC.MAX_REQUEST_TIMES
+        )
+          return;
 
         await instance
           .sync()
-          .then()
-          .catch(() => {
+          .then(() => {
+            requestTimes += 1;
+          })
+          .catch((error) => {
+            // 請求次數超過最大限制，自動登出
+            if (error.requestTimes >= TC.MAX_REQUEST_TIMES) {
+              instance.#reset().then(() => {
+                alert('Number of requests exceeded limit.');
+                instance.logoutIAM();
+              });
+            }
+
             // 執行錯誤時關閉自動同步30秒後重啟
             instance.autoSyncStop();
             setTimeout(() => instance.autoSync(), 30000);
@@ -269,7 +301,7 @@ class TokenInjection {
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-          if (nowTime >= refreshTime && refreshPending) {
+          if (nowTime >= refreshTime && refreshPending.readyState === 4) {
             instance
               .refresh()
               .then()
@@ -454,6 +486,9 @@ class TokenInjection {
     // 清除定期器
     instance.intervalSync = null;
     instance.intervalRefresh = null;
+
+    // 同步 Token 請求次數歸零
+    instance.syncTimes = 0;
   }
 
   /**

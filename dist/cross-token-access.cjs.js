@@ -8164,7 +8164,9 @@ var TOKEN_SCOPE = 'token_scope'; // Token 檢查總時數
 
 var TOKEN_CHECK_SUM = 'token_checksum'; // 自動登出時間 (1天)
 
-var LOGOUT_TIME = 1000 * 86400;
+var LOGOUT_TIME = 1000 * 86400; // 請求次數最大限制
+
+var MAX_REQUEST_TIMES = 20;
 
 var $$4 = _export$1;
 var $map = arrayIteration.map;
@@ -12677,7 +12679,9 @@ var TokenInjection = /*#__PURE__*/function () {
     this.axiosPending = new map$4(); // Schedule cache
 
     this.intervalSync = null;
-    this.intervalRefresh = null; // 實例化 axios
+    this.intervalRefresh = null; // 同步 Token 請求次數計數
+
+    this.syncTimes = 0; // 實例化 axios
 
     this.rest = httpRequset({
       baseURL: this.options.sso_url,
@@ -12756,7 +12760,16 @@ var TokenInjection = /*#__PURE__*/function () {
         rest.get(api.sync).then(function (res) {
           var tokenInfo = res.data || {}; // 暫存執行中的請求
 
-          instance.axiosPending.set('sync', true); // 設置 Token Keys (LocalStorage)
+          instance.axiosPending.set('sync', {
+            readyState: res.request.readyState
+          });
+
+          if (instance.syncTimes >= MAX_REQUEST_TIMES) {
+            reject(res);
+          }
+
+          instance.syncTimes += 1;
+          res.requestTimes = instance.syncTimes; // 設置 Token Keys (LocalStorage)
 
           setTokens(tokenKeys, tokenInfo);
           resolve(res);
@@ -12801,7 +12814,10 @@ var TokenInjection = /*#__PURE__*/function () {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }).then(function (res) {
-          instance.axiosPending.set('refresh', true);
+          // 暫存執行中的請求
+          instance.axiosPending.set('refresh', {
+            readyState: res.request.readyState
+          });
           resolve(res);
         }).catch(function (error) {
           reject(error);
@@ -12828,21 +12844,23 @@ var TokenInjection = /*#__PURE__*/function () {
       var instance = this;
       var options = this.options;
       var tkCheckSum = "".concat(options.cookie_prefix, "tkchecksum") || 'tkchecksum'; //eslint-disable-line
-      // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+
+      var syncPending = instance.axiosPending.get('sync'); // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
 
       var checkSumNoEqual = function checkSumNoEqual() {
         return api$1.get(tkCheckSum) !== webStorage.get('token_checksum');
-      }; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+      }; // 定期執行同步次數計數
 
 
-      if (api$1.get(tkCheckSum) && !instance.intervalSync) {
-        var syncPending = instance.axiosPending.get('sync');
+      var requestTimes = 0; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+
+      if (!instance.intervalSync) {
         instance.intervalSync = setInterval( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
           return regenerator.wrap(function _callee2$(_context3) {
             while (1) {
               switch (_context3.prev = _context3.next) {
                 case 0:
-                  if (!(!checkSumNoEqual() && syncPending)) {
+                  if (!(!checkSumNoEqual() && syncPending.readyState === 4 || requestTimes >= MAX_REQUEST_TIMES)) {
                     _context3.next = 2;
                     break;
                   }
@@ -12851,7 +12869,18 @@ var TokenInjection = /*#__PURE__*/function () {
 
                 case 2:
                   _context3.next = 4;
-                  return instance.sync().then().catch(function () {
+                  return instance.sync().then(function () {
+                    requestTimes += 1;
+                  }).catch(function (error) {
+                    // 請求次數超過最大限制，自動登出
+                    if (error.requestTimes >= MAX_REQUEST_TIMES) {
+                      _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
+                        alert('Number of requests exceeded limit.');
+                        instance.logoutIAM();
+                      });
+                    } // 執行錯誤時關閉自動同步30秒後重啟
+
+
                     // 執行錯誤時關閉自動同步30秒後重啟
                     instance.autoSyncStop();
 
@@ -12933,7 +12962,7 @@ var TokenInjection = /*#__PURE__*/function () {
 
             var refreshTime = createTime + expireTime - TOKEN_REFRESH_BEFORE; // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
 
-            if (nowTime >= refreshTime && refreshPending) {
+            if (nowTime >= refreshTime && refreshPending.readyState === 4) {
               instance.refresh().then().catch(function () {
                 refreshStop();
               });
@@ -13126,9 +13155,11 @@ function _reset3() {
             instance.axiosPending.clear(); // 清除定期器
 
             instance.intervalSync = null;
-            instance.intervalRefresh = null;
+            instance.intervalRefresh = null; // 同步 Token 請求次數歸零
 
-          case 5:
+            instance.syncTimes = 0;
+
+          case 6:
           case "end":
             return _context7.stop();
         }
