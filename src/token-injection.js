@@ -187,6 +187,7 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+
     // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
     const checkSumNoEqual = () => {
       return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');

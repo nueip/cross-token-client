@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { isPlainObject } from 'lodash';
+import { isPlainObject, forEach } from 'lodash';
 import { deepMerge } from '../lib';
 
 const baseConfig = {
@@ -82,12 +82,38 @@ export const isCancel = (error) => {
 };
 
 /**
+ * Axios 請求參數檢查
+ *
+ * - 只支援 baseURL, withCredentials, timeout, headers
+ *
+ * @param {object} config - axios 請求參數
+ * @returns {boolean}
+ */
+function checkConfig(config = {}) {
+  const keysArr = [];
+
+  forEach(config, (value, key) => {
+    if (!Object.prototype.hasOwnProperty.call(baseConfig, key)) {
+      keysArr.push(key);
+    }
+  });
+
+  const diff = keysArr.length && keysArr.length > 0;
+
+  if (diff) console.error(`Request config error: [${keysArr}] not exists!`);
+
+  return diff;
+}
+
+/**
  * 建立 axios 實體
  *
- * @param {object} options - 初始化參數
+ * @param {object} config - axios 請求參數
  * @returns {*}
  */
 export const httpRequset = (config) => {
-  const newOptions = deepMerge(baseConfig, isPlainObject(config) && config);
+  const keyExists = checkConfig(config);
+  const newOptions = keyExists ? {} : deepMerge(baseConfig, isPlainObject(config) && config); //eslint-disable-line
+
   return axios.create(newOptions);
 };
