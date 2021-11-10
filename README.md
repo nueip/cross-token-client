@@ -4,12 +4,10 @@
 
 ```text
 dist/
+├── cross-token-access.cjs.js (CommonJS)
+├── cross-token-access.cjs.min.js (CommonJS, compressed)
 ├── cross-token-access.umd.js (UMD)
 └── cross-token-access.umd.min.js (UMD, compressed)
-src/
-├── constant.js
-├── lib.js
-└── index.js
 ```
 
 # 依賴 & 注意事項
@@ -17,9 +15,7 @@ src/
 依賴：
 
 - **axios**
-- **lodash/isPlainObject**
-- **lodash/assignIn**
-- **lodash/forEach**
+- **lodash**
 - **js-cookie**
 - **promise.prototype.finally**
 
@@ -28,6 +24,7 @@ src/
 - 依賴套件已打包封裝，無需再外部引用
 - API 採用 Axios 技術
 - Axios 支援 finally，引用 promise.prototype.finally 方法
+- 初始化採同步技術，等待 Token 資訊載入完成繼續後續執行功能
 
 # 跨域信任域名
 
@@ -47,7 +44,7 @@ Script tag
 npm
 
 ```bash
-npm i @nueip/cross-token-access
+npm install @nueip/cross-token-access
 ```
 
 ## 用法
@@ -68,8 +65,9 @@ var tokenInjection = new TokenInjection(options);
 ```js
 // 實體化 TokenInjection
 var tokenInjection = new TokenInjection({
-  SSO_URL: "Your sso server url",
-  COOKIE_DEFAULT_PREFIX: "Your cookie prefix",
+  sso_url: "Your sso server url",
+  cookie_prefix: "Your cookie prefix",
+  redirect_url: "Your redirect url"
 });
 
 /**
@@ -91,7 +89,7 @@ function logoutIAM() {
  */
 function validate() {
   // 取得本地 local storage 的 token
-  var localToken = tokenInjection.getLocalStorageToken();
+  var localToken = tokenInjection.getToken();
 
   // 持此 token 進行驗證
   tokenInjection
@@ -145,17 +143,29 @@ function refresh() {
 
 # Options
 
-### SSO_URL
+### sso_url
 
 - Type: `String`
-- Default: `null`
+- Default: `empty string`
 - note: SSO 伺服器 URL
 
-### COOKIE_DEFAULT_PREFIX
+### cookie_prefix
 
 - Type: `String`
-- Default: `null`
+- Default: `empty string`
 - note: Cookie 自定義前綴字串
+
+### redirect_url
+
+- Type: `String`
+- Default: `empty string`
+- note: 重新定向網址
+
+### xhr_with
+
+- Type: `Boolean`
+- Default: `false`
+- note: 是否配置 X-Requested-With 抬頭
 
 # Methods
 
@@ -175,8 +185,9 @@ function refresh() {
 - 定期執行，向 oAuth Server 同步 Token 資訊
 - 執行條件
   - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
-  - API 未執行過或已執行完成
+  - API 已執行完成
 - 多視窗時有可能同時執行，待觀察
+- 請求次數超過，自動登出
 - 執行錯誤時關閉自動同步 3 秒後重啟
 
 ## autoSyncStop()
@@ -204,13 +215,14 @@ function refresh() {
   - 即將過期
   - axios 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
+- 請求次數超過，自動登出
 - 執行錯誤時關閉自動同步 3 秒後重啟
 
 ## autoRefreshStop
 
 - 停止自動刷新 Token
 
-## getLocalStorageToken()
+## getToken()
 
 - return
   - Type: `String`
@@ -230,10 +242,27 @@ function refresh() {
 ## loginIAM()
 
 - 開啟 IAM 登入頁面，另開新視窗
+- 轉導自動帶入GET參數 redirect_uri={指定重新定向網址}
 
 ## logoutIAM()
 
 - 開啟 IAM 登出頁面
+
+## isLogin()
+
+- return
+  - Boolean
+- 判斷是否為登入狀態
+
+## axiosCreate()
+
+- config
+  - Type: `Object`
+  - axios 請求參數
+  - 只支援 baseURL, withCredentials, timeout, headers
+- return
+  - Boolean
+- axios 全域設定輸入接口
 
 # 瀏覽器支援
 
