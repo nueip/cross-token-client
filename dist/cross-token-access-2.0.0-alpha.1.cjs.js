@@ -9075,6 +9075,7 @@ var TokenInjection = function () {
       var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var instance = this;
       instance.rest = httpRequset(config);
+      return instance;
     }
   }]);
   return TokenInjection;

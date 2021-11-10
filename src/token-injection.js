@@ -426,6 +426,8 @@ class TokenInjection {
   axiosCreate(config = {}) {
     const instance = this;
     instance.rest = httpRequset(config);
+
+    return instance;
   }
 
   /**
