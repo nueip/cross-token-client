@@ -231,10 +231,8 @@ class TokenInjection {
           .catch((error) => {
             // 請求次數超過最大限制，自動登出
             if (error.requestTimes >= TC.MAX_REQUEST_TIMES) {
-              instance.#reset().then(() => {
-                alert('Number of requests exceeded limit.');
-                instance.logoutIAM();
-              });
+              alert('Number of requests exceeded limit.');
+              instance.logoutIAM();
             }
 
             // 執行錯誤時關閉自動同步30秒後重啟

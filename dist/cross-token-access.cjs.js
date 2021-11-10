@@ -2834,7 +2834,7 @@ var store$2 = sharedStore;
 (shared$3.exports = function (key, value) {
   return store$2[key] || (store$2[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.19.0',
+  version: '3.19.1',
   mode: 'global',
   copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 });
@@ -12874,10 +12874,8 @@ var TokenInjection = /*#__PURE__*/function () {
                   }).catch(function (error) {
                     // 請求次數超過最大限制，自動登出
                     if (error.requestTimes >= MAX_REQUEST_TIMES) {
-                      _classPrivateMethodGet(instance, _reset, _reset2).call(instance).then(function () {
-                        alert('Number of requests exceeded limit.');
-                        instance.logoutIAM();
-                      });
+                      alert('Number of requests exceeded limit.');
+                      instance.logoutIAM();
                     } // 執行錯誤時關閉自動同步30秒後重啟
 
 

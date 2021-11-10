@@ -18,5 +18,6 @@ module.exports = {
     'prettier/prettier': ['error', { singleQuote: true, endOfLine: 'auto' }],
     'class-methods-use-this': 'off',
     'global-require': 0,
+    'no-alert': 'off',
   },
 };
