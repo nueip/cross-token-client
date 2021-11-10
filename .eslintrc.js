@@ -4,9 +4,11 @@ module.exports = {
     es2021: true,
   },
   extends: ['airbnb-base', 'plugin:prettier/recommended'],
+  parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 13,
     sourceType: 'module',
+    allowImportExportEverywhere: false,
   },
   rules: {
     indent: ['off', 2],
@@ -15,5 +17,6 @@ module.exports = {
     'no-param-reassign': 0,
     'prettier/prettier': ['error', { singleQuote: true, endOfLine: 'auto' }],
     'class-methods-use-this': 'off',
+    'global-require': 0,
   },
 };
