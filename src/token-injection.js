@@ -60,8 +60,9 @@ class TokenInjection {
     this.intervalSync = null;
     this.intervalRefresh = null;
 
-    // 同步 Token 請求次數計數
+    // 自動同步/刷新 Token 請求次數計數
     this.syncTimes = 0;
+    this.refreshTimes = 0;
 
     // 實例化 axios
     this.rest = httpRequset({
@@ -70,6 +71,7 @@ class TokenInjection {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     });
 
+    // Axios 攔截器
     this.#interceptors();
     this.init();
   }
@@ -123,12 +125,14 @@ class TokenInjection {
             readyState: res.request.readyState,
           });
 
+          // 請求次數超過最大限制，回應錯誤
           if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
             reject(res);
           }
 
+          // 請求次數計數
           instance.syncTimes += 1;
-          res.requestTimes = instance.syncTimes;
+          res.syncTimes = instance.syncTimes;
 
           // 設置 Token Keys (LocalStorage)
           setTokens(tokenKeys, tokenInfo);
@@ -179,6 +183,15 @@ class TokenInjection {
             readyState: res.request.readyState,
           });
 
+          // 請求次數超過最大限制，回應錯誤
+          if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
+            reject(res);
+          }
+
+          // 請求次數計數
+          instance.refreshTimes += 1;
+          res.refreshTimes = instance.refreshTimes;
+
           resolve(res);
         })
         .catch((error) => {
@@ -210,28 +223,19 @@ class TokenInjection {
       return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
     };
 
-    // 定期執行同步次數計數
-    let requestTimes = 0;
-
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
-        // tkchecksum != token_checksum , axios已執行完成 or 請求次數超過最大限制
-        if (
-          (!checkSumNoEqual() && syncPending.readyState === 4) ||
-          requestTimes >= TC.MAX_REQUEST_TIMES
-        )
-          return;
+        // tkchecksum != token_checksum , axios已執行完成
+        if (!checkSumNoEqual() && syncPending.readyState === 4) return;
 
         await instance
           .sync()
-          .then(() => {
-            requestTimes += 1;
-          })
+          .then()
           .catch((error) => {
             // 請求次數超過最大限制，自動登出
-            if (error.requestTimes >= TC.MAX_REQUEST_TIMES) {
-              alert('Number of requests exceeded limit.');
+            if (error.syncTimes && error.syncTimes >= TC.MAX_REQUEST_TIMES) {
+              alert(TC.MAX_REQUEST_MESSAGE);
               instance.logoutIAM();
             }
 
@@ -303,7 +307,14 @@ class TokenInjection {
             instance
               .refresh()
               .then()
-              .catch(() => {
+              .catch((error) => {
+                // 請求次數超過最大限制，自動登出
+                // eslint-disable-next-line prettier/prettier
+                if (error.refreshTimes && error.refreshTimes >= TC.MAX_REQUEST_TIMES) {
+                  alert(TC.MAX_REQUEST_MESSAGE);
+                  instance.logoutIAM();
+                }
+
                 refreshStop();
               });
           }
@@ -485,8 +496,9 @@ class TokenInjection {
     instance.intervalSync = null;
     instance.intervalRefresh = null;
 
-    // 同步 Token 請求次數歸零
+    // 自動同步/刷新 Token 請求次數歸零
     instance.syncTimes = 0;
+    instance.refreshTimes = 0;
   }
 
   /**

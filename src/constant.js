@@ -22,3 +22,5 @@ export const TOKEN_CHECK_SUM = 'token_checksum';
 export const LOGOUT_TIME = 1000 * 86400;
 // 請求次數最大限制
 export const MAX_REQUEST_TIMES = 20;
+// 請求次數超過最大限制回應訊息
+export const MAX_REQUEST_MESSAGE = 'Number of requests exceeded limit.';

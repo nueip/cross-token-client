@@ -8170,7 +8170,9 @@
 
 	var LOGOUT_TIME = 1000 * 86400; // 請求次數最大限制
 
-	var MAX_REQUEST_TIMES = 20;
+	var MAX_REQUEST_TIMES = 20; // 請求次數超過最大限制回應訊息
+
+	var MAX_REQUEST_MESSAGE = 'Number of requests exceeded limit.';
 
 	var $$4 = _export$1;
 	var $map = arrayIteration.map;
@@ -12683,9 +12685,10 @@
 	    this.axiosPending = new map$4(); // Schedule cache
 
 	    this.intervalSync = null;
-	    this.intervalRefresh = null; // 同步 Token 請求次數計數
+	    this.intervalRefresh = null; // 自動同步/刷新 Token 請求次數計數
 
-	    this.syncTimes = 0; // 實例化 axios
+	    this.syncTimes = 0;
+	    this.refreshTimes = 0; // 實例化 axios
 
 	    this.rest = httpRequset({
 	      baseURL: this.options.sso_url,
@@ -12693,7 +12696,7 @@
 	      headers: {
 	        'X-Requested-With': 'XMLHttpRequest'
 	      }
-	    });
+	    }); // Axios 攔截器
 
 	    _classPrivateMethodGet(this, _interceptors, _interceptors2).call(this);
 
@@ -12766,14 +12769,15 @@
 
 	          instance.axiosPending.set('sync', {
 	            readyState: res.request.readyState
-	          });
+	          }); // 請求次數超過最大限制，回應錯誤
 
 	          if (instance.syncTimes >= MAX_REQUEST_TIMES) {
 	            reject(res);
-	          }
+	          } // 請求次數計數
+
 
 	          instance.syncTimes += 1;
-	          res.requestTimes = instance.syncTimes; // 設置 Token Keys (LocalStorage)
+	          res.syncTimes = instance.syncTimes; // 設置 Token Keys (LocalStorage)
 
 	          setTokens(tokenKeys, tokenInfo);
 	          resolve(res);
@@ -12821,7 +12825,15 @@
 	          // 暫存執行中的請求
 	          instance.axiosPending.set('refresh', {
 	            readyState: res.request.readyState
-	          });
+	          }); // 請求次數超過最大限制，回應錯誤
+
+	          if (instance.refreshTimes >= MAX_REQUEST_TIMES) {
+	            reject(res);
+	          } // 請求次數計數
+
+
+	          instance.refreshTimes += 1;
+	          res.refreshTimes = instance.refreshTimes;
 	          resolve(res);
 	        }).catch(function (error) {
 	          reject(error);
@@ -12853,10 +12865,8 @@
 
 	      var checkSumNoEqual = function checkSumNoEqual() {
 	        return api$1.get(tkCheckSum) !== webStorage.get('token_checksum');
-	      }; // 定期執行同步次數計數
+	      }; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
 
-
-	      var requestTimes = 0; // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
 
 	      if (!instance.intervalSync) {
 	        instance.intervalSync = setInterval( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regenerator.mark(function _callee2() {
@@ -12864,7 +12874,7 @@
 	            while (1) {
 	              switch (_context3.prev = _context3.next) {
 	                case 0:
-	                  if (!(!checkSumNoEqual() && syncPending.readyState === 4 || requestTimes >= MAX_REQUEST_TIMES)) {
+	                  if (!(!checkSumNoEqual() && syncPending.readyState === 4)) {
 	                    _context3.next = 2;
 	                    break;
 	                  }
@@ -12873,12 +12883,10 @@
 
 	                case 2:
 	                  _context3.next = 4;
-	                  return instance.sync().then(function () {
-	                    requestTimes += 1;
-	                  }).catch(function (error) {
+	                  return instance.sync().then().catch(function (error) {
 	                    // 請求次數超過最大限制，自動登出
-	                    if (error.requestTimes >= MAX_REQUEST_TIMES) {
-	                      alert('Number of requests exceeded limit.');
+	                    if (error.syncTimes && error.syncTimes >= MAX_REQUEST_TIMES) {
+	                      alert(MAX_REQUEST_MESSAGE);
 	                      instance.logoutIAM();
 	                    } // 執行錯誤時關閉自動同步30秒後重啟
 
@@ -12965,7 +12973,14 @@
 	            var refreshTime = createTime + expireTime - TOKEN_REFRESH_BEFORE; // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
 
 	            if (nowTime >= refreshTime && refreshPending.readyState === 4) {
-	              instance.refresh().then().catch(function () {
+	              instance.refresh().then().catch(function (error) {
+	                // 請求次數超過最大限制，自動登出
+	                // eslint-disable-next-line prettier/prettier
+	                if (error.refreshTimes && error.refreshTimes >= MAX_REQUEST_TIMES) {
+	                  alert(MAX_REQUEST_MESSAGE);
+	                  instance.logoutIAM();
+	                }
+
 	                refreshStop();
 	              });
 	            }
@@ -13157,11 +13172,12 @@
 	            instance.axiosPending.clear(); // 清除定期器
 
 	            instance.intervalSync = null;
-	            instance.intervalRefresh = null; // 同步 Token 請求次數歸零
+	            instance.intervalRefresh = null; // 自動同步/刷新 Token 請求次數歸零
 
 	            instance.syncTimes = 0;
+	            instance.refreshTimes = 0;
 
-	          case 6:
+	          case 7:
 	          case "end":
 	            return _context7.stop();
 	        }
