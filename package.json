@@ -1,11 +1,12 @@
 {
   "name": "@nueip/cross-token-access",
-  "version": "1.0.0-alpha.1",
+  "version": "2.0.0-alpha.1",
   "description": "Cross-client access tokens",
-  "main": "src/index.js",
+  "main": "dist/cross-token-access-2.0.0-alpha.1.cjs.js",
+  "browser": "dist/cross-token-access-2.0.0-alpha.1.umd.js",
   "files": [
-    "src",
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.js",
@@ -15,10 +16,11 @@
     "cross",
     "token"
   ],
-  "author": "NUEiP",
+  "author": "Grace Wang",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.15.8",
+    "@babel/eslint-parser": "^7.16.3",
     "@babel/plugin-transform-runtime": "^7.16.0",
     "@babel/preset-env": "^7.16.0",
     "@babel/runtime-corejs3": "^7.16.0",
@@ -29,14 +31,21 @@
     "@rollup/plugin-eslint": "^8.0.1",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-prettier": "^4.0.0",
     "javascript-obfuscator": "^3.0.0",
     "rollup": "^2.59.0",
+    "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-obfuscator": "^0.2.1",
     "rollup-plugin-terser": "^7.0.2"
   },
   "dependencies": {
     "axios": "^0.24.0",
+    "core-js": "^3.19.1",
     "js-cookie": "^3.0.1",
     "lodash": "^4.17.21",
     "promise.prototype.finally": "^3.1.3"

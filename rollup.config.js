@@ -1,22 +1,28 @@
-'use strict';
-
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+import eslint from '@rollup/plugin-eslint';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import { terser } from 'rollup-plugin-terser';
-import path from 'path';
 import obfuscator from 'rollup-plugin-obfuscator';
+import cleanup from 'rollup-plugin-cleanup';
 import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
+import path from 'path';
 
 const fileName = 'cross-token-access';
 const pluginName = 'TokenInjection';
 const entryFile = 'src/index.js';
 const pathResolve = (p) => path.resolve(__dirname, p);
-const pkg = require('./package.json');
+const pkgVer = require('./package.json').version;
 
 const globalPlugins = [
+  eslint({
+    parser: '@babel/eslint-parser',
+    throwOnError: true,
+    include: ['src/**/*.js'],
+    exclude: ['node_modules/**', 'dist/**'],
+  }),
   json(),
   alias({
     entries: [{ find: '@', replacement: pathResolve('src') }],
@@ -54,6 +60,7 @@ const globalPlugins = [
     ],
     extensions: ['.js'],
   }),
+  cleanup({ comments: 'istanbul', extensions: ['js'] }),
   optimizeLodashImports(),
 ];
 
@@ -72,12 +79,12 @@ module.exports = [
     input: entryFile,
     output: [
       {
-        file: `dist/${fileName}.umd.js`,
+        file: `dist/${fileName}-${pkgVer}.umd.js`,
         format: 'umd',
         name: pluginName,
       },
       {
-        file: `dist/${fileName}.cjs.js`,
+        file: `dist/${fileName}-${pkgVer}.cjs.js`,
         format: 'cjs',
         name: pluginName,
         exports: 'auto',
@@ -89,12 +96,12 @@ module.exports = [
     input: entryFile,
     output: [
       {
-        file: `dist/${fileName}.umd.min.js`,
+        file: `dist/${fileName}-${pkgVer}.umd.min.js`,
         format: 'umd',
         name: pluginName,
       },
       {
-        file: `dist/${fileName}.cjs.min.js`,
+        file: `dist/${fileName}-${pkgVer}.cjs.min.js`,
         format: 'cjs',
         name: pluginName,
         exports: 'auto',
