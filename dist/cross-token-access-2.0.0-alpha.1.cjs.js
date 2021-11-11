@@ -9074,6 +9074,7 @@ var TokenInjection = function () {
     value: function axiosCreate() {
       var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var instance = this;
+      instance.options.sso_url = config.baseURL || '';
       instance.rest = httpRequset(config);
       return instance;
     }

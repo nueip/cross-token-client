@@ -422,9 +422,12 @@ class TokenInjection {
    * axios 全域設定方法
    *
    * @param {object} config - axios options
+   * @returns {TokenInjection}
    */
   axiosCreate(config = {}) {
     const instance = this;
+
+    instance.options.sso_url = config.baseURL || '';
     instance.rest = httpRequset(config);
 
     return instance;
