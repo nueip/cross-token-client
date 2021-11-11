@@ -120,10 +120,10 @@ class TokenInjection {
         .then((res) => {
           const tokenInfo = res.data || {};
 
-          // 暫存執行中的請求
-          instance.axiosPending.set('sync', {
-            readyState: res.request.readyState,
-          });
+          // 執行完成，暫存成功狀態
+          if (res.request.readyState === 4) {
+            instance.axiosPending.set('sync', true);
+          }
 
           // 請求次數超過最大限制，回應錯誤
           if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
@@ -178,10 +178,10 @@ class TokenInjection {
           }
         )
         .then((res) => {
-          // 暫存執行中的請求
-          instance.axiosPending.set('refresh', {
-            readyState: res.request.readyState,
-          });
+          // 執行完成，暫存成功狀態
+          if (res.request.readyState === 4) {
+            instance.axiosPending.set('refresh', true);
+          }
 
           // 請求次數超過最大限制，回應錯誤
           if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
@@ -226,23 +226,23 @@ class TokenInjection {
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
-        // tkchecksum != token_checksum , axios已執行完成
-        if (!checkSumNoEqual() && syncPending.readyState === 4) return;
+        // tkchecksum == token_checksum , axios未執行
+        if (checkSumNoEqual() && !syncPending) {
+          await instance
+            .sync()
+            .then()
+            .catch((error) => {
+              // 請求次數超過最大限制，自動登出
+              if (error.syncTimes && error.syncTimes >= TC.MAX_REQUEST_TIMES) {
+                alert(TC.MAX_REQUEST_MESSAGE);
+                instance.logoutIAM();
+              }
 
-        await instance
-          .sync()
-          .then()
-          .catch((error) => {
-            // 請求次數超過最大限制，自動登出
-            if (error.syncTimes && error.syncTimes >= TC.MAX_REQUEST_TIMES) {
-              alert(TC.MAX_REQUEST_MESSAGE);
-              instance.logoutIAM();
-            }
-
-            // 執行錯誤時關閉自動同步30秒後重啟
-            instance.autoSyncStop();
-            setTimeout(() => instance.autoSync(), 30000);
-          });
+              // 執行錯誤時關閉自動同步30秒後重啟
+              instance.autoSyncStop();
+              setTimeout(() => instance.autoSync(), 30000);
+            });
+        }
       }, interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL);
     }
   }
@@ -257,7 +257,7 @@ class TokenInjection {
       // 停止定期執行
       clearInterval(instance.intervalSync);
       instance.intervalSync = null;
-      instance.axiosPending.delete('sync');
+      instance.axiosPending.set('sync', false);
     }
   }
 
@@ -303,7 +303,7 @@ class TokenInjection {
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-          if (nowTime >= refreshTime && refreshPending.readyState === 4) {
+          if (nowTime >= refreshTime && !refreshPending) {
             instance
               .refresh()
               .then()
@@ -337,7 +337,7 @@ class TokenInjection {
       // 停止定期執行
       clearInterval(instance.intervalRefresh);
       instance.intervalRefresh = null;
-      instance.axiosPending.delete('refresh');
+      instance.axiosPending.set('refresh', false);
     }
   }
 
