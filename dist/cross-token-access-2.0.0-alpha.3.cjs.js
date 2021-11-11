@@ -8871,9 +8871,9 @@ var TokenInjection = function () {
       return new promise(function (resolve, reject) {
         rest.get(api.sync).then(function (res) {
           var tokenInfo = res.data || {};
-          instance.axiosPending.set('sync', {
-            readyState: res.request.readyState
-          });
+          if (res.request.readyState === 4) {
+            instance.axiosPending.set('sync', true);
+          }
           if (instance.syncTimes >= MAX_REQUEST_TIMES) {
             reject(res);
           }
@@ -8904,9 +8904,9 @@ var TokenInjection = function () {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }).then(function (res) {
-          instance.axiosPending.set('refresh', {
-            readyState: res.request.readyState
-          });
+          if (res.request.readyState === 4) {
+            instance.axiosPending.set('refresh', true);
+          }
           if (instance.refreshTimes >= MAX_REQUEST_TIMES) {
             reject(res);
           }
@@ -8935,13 +8935,11 @@ var TokenInjection = function () {
             while (1) {
               switch (_context3.prev = _context3.next) {
                 case 0:
-                  if (!(!checkSumNoEqual() && syncPending.readyState === 4)) {
-                    _context3.next = 2;
+                  if (!(checkSumNoEqual() && !syncPending)) {
+                    _context3.next = 3;
                     break;
                   }
-                  return _context3.abrupt("return");
-                case 2:
-                  _context3.next = 4;
+                  _context3.next = 3;
                   return instance.sync().then().catch(function (error) {
                     if (error.syncTimes && error.syncTimes >= MAX_REQUEST_TIMES) {
                       alert(MAX_REQUEST_MESSAGE);
@@ -8952,7 +8950,7 @@ var TokenInjection = function () {
                       return instance.autoSync();
                     }, 30000);
                   });
-                case 4:
+                case 3:
                 case "end":
                   return _context3.stop();
               }
@@ -8968,7 +8966,7 @@ var TokenInjection = function () {
       if (instance.intervalSync) {
         clearInterval(instance.intervalSync);
         instance.intervalSync = null;
-        instance.axiosPending.delete('sync');
+        instance.axiosPending.set('sync', false);
       }
     }
   }, {
@@ -8992,7 +8990,7 @@ var TokenInjection = function () {
             var expiredKey = webStorage.get(TOKEN_EXPIRED_NAME);
             var expireTime = _parseInt(expiredKey, 10);
             var refreshTime = createTime + expireTime - TOKEN_REFRESH_BEFORE;
-            if (nowTime >= refreshTime && refreshPending.readyState === 4) {
+            if (nowTime >= refreshTime && !refreshPending) {
               instance.refresh().then().catch(function (error) {
                 if (error.refreshTimes && error.refreshTimes >= MAX_REQUEST_TIMES) {
                   alert(MAX_REQUEST_MESSAGE);
@@ -9016,7 +9014,7 @@ var TokenInjection = function () {
       if (instance.intervalRefresh) {
         clearInterval(instance.intervalRefresh);
         instance.intervalRefresh = null;
-        instance.axiosPending.delete('refresh');
+        instance.axiosPending.set('refresh', false);
       }
     }
   }, {
