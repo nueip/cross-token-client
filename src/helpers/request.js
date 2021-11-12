@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { isPlainObject, forEach } from 'lodash';
+import { isPlainObject } from 'lodash';
 import { deepMerge } from '../lib';
 
 const baseConfig = {
@@ -92,7 +92,7 @@ export const isCancel = (error) => {
 function checkConfig(config = {}) {
   const keysArr = [];
 
-  forEach(config, (value, key) => {
+  Object.keys(config).forEach((key) => {
     if (!Object.prototype.hasOwnProperty.call(baseConfig, key)) {
       keysArr.push(key);
     }
