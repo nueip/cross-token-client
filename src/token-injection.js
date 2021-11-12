@@ -22,6 +22,8 @@ require('promise.prototype.finally').shim();
 
 // 初始預設值
 const DEFAULTS = Object.freeze({
+  // 是否自動初始化 & 刷新同步
+  autopilot: true,
   // 單一登入網址
   sso_url: '',
   // 自定義 Cookie 前綴字串
@@ -36,7 +38,7 @@ class TokenInjection {
   /**
    * 建構子
    *
-   * @param {object} options
+   * @param {object} options - 參數設定
    */
   constructor(options = {}) {
     // 選項屬性
@@ -73,32 +75,31 @@ class TokenInjection {
 
     // Axios 攔截器
     this.#interceptors();
-    this.init();
+
+    // 自動初始化
+    if (this.options.autopilot) {
+      this.init();
+    }
   }
 
   /**
    * 初始化 TokenInjection 實例
+   *
+   * @returns {Promise}
    */
-  async init() {
+  init() {
     const instance = this;
 
-    await instance
-      .sync()
-      .then((res) => {
-        // 載入後執行 定期同步 Token 內容
-        instance.autoSync();
+    return instance.sync().then(() => {
+      // 載入後執行 定期同步 Token 內容
+      instance.autoSync();
 
-        // 載入後執行 定期刷新 Token
-        instance.autoRefresh();
+      // 載入後執行 定期刷新 Token
+      instance.autoRefresh();
 
-        // 載入後執行 自動登出倒數
-        instance.#autoLogout();
-
-        return res;
-      })
-      .catch((error) => {
-        return error;
-      });
+      // 載入後執行 自動登出倒數
+      instance.#autoLogout();
+    });
   }
 
   /**
@@ -114,34 +115,30 @@ class TokenInjection {
     const { rest, tokenKeys } = this;
 
     // 抓取資料
-    return new Promise((resolve, reject) => {
-      rest
-        .get(api.sync)
-        .then((res) => {
-          const tokenInfo = res.data || {};
+    return rest
+      .get(api.sync)
+      .then((res) => {
+        const tokenInfo = res.data || {};
 
-          // 執行完成，暫存成功狀態
-          if (res.request.readyState === 4) {
-            instance.axiosPending.set('sync', true);
-          }
+        // 執行完成，暫存成功狀態
+        if (res.request.readyState === 4) {
+          instance.axiosPending.set('sync', true);
+        }
 
-          // 請求次數超過最大限制，回應錯誤
-          if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
-            reject(res);
-          }
+        // 設置 Token Keys (LocalStorage)
+        setTokens(tokenKeys, tokenInfo);
 
-          // 請求次數計數
-          instance.syncTimes += 1;
-          res.syncTimes = instance.syncTimes;
+        return res;
+      })
+      .finally(() => {
+        // 請求次數計數
+        instance.syncTimes += 1;
 
-          // 設置 Token Keys (LocalStorage)
-          setTokens(tokenKeys, tokenInfo);
-          resolve(res);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+        // 請求次數超過最大限制，回應錯誤
+        if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
+          throw new Error(TC.MAX_REQUEST_MESSAGE, instance.syncTimes);
+        }
+      });
   }
 
   /**
@@ -168,36 +165,29 @@ class TokenInjection {
     }
 
     // 執行刷新金鑰
-    return new Promise((resolve, reject) => {
-      rest
-        .post(
-          `${api.refresh}?v=${rand(11111, 99999)}`,
-          queryString({ refresh_token: refreshToken }),
-          {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          }
-        )
-        .then((res) => {
-          // 執行完成，暫存成功狀態
-          if (res.request.readyState === 4) {
-            instance.axiosPending.set('refresh', true);
-          }
+    return rest
+      .post(
+        `${api.refresh}?v=${rand(11111, 99999)}`,
+        queryString({ refresh_token: refreshToken }),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      )
+      .then((res) => {
+        // 執行完成，暫存成功狀態
+        if (res.request.readyState === 4) {
+          instance.axiosPending.set('refresh', true);
+        }
+      })
+      .finally(() => {
+        // 請求次數計數
+        instance.refreshTimes += 1;
 
-          // 請求次數超過最大限制，回應錯誤
-          if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-            reject(res);
-          }
-
-          // 請求次數計數
-          instance.refreshTimes += 1;
-          res.refreshTimes = instance.refreshTimes;
-
-          resolve(res);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+        // 請求次數超過最大限制，回應錯誤
+        if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
+          throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
+        }
+      });
   }
 
   /**
@@ -228,20 +218,11 @@ class TokenInjection {
       instance.intervalSync = setInterval(async () => {
         // tkchecksum == token_checksum , axios未執行
         if (checkSumNoEqual() && !syncPending) {
-          await instance
-            .sync()
-            .then()
-            .catch((error) => {
-              // 請求次數超過最大限制，自動登出
-              if (error.syncTimes && error.syncTimes >= TC.MAX_REQUEST_TIMES) {
-                alert(TC.MAX_REQUEST_MESSAGE);
-                instance.logoutIAM();
-              }
-
-              // 執行錯誤時關閉自動同步30秒後重啟
-              instance.autoSyncStop();
-              setTimeout(() => instance.autoSync(), 30000);
-            });
+          await instance.sync().catch(() => {
+            // 執行錯誤時關閉自動同步30秒後重啟
+            instance.autoSyncStop();
+            setTimeout(() => instance.autoSync(), 30000);
+          });
         }
       }, interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL);
     }
@@ -304,19 +285,10 @@ class TokenInjection {
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
           if (nowTime >= refreshTime && !refreshPending) {
-            instance
-              .refresh()
-              .then()
-              .catch((error) => {
-                // 請求次數超過最大限制，自動登出
-                // eslint-disable-next-line prettier/prettier
-                if (error.refreshTimes && error.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-                  alert(TC.MAX_REQUEST_MESSAGE);
-                  instance.logoutIAM();
-                }
-
-                refreshStop();
-              });
+            instance.refresh().catch(() => {
+              // 執行錯誤時關閉自動同步30秒後重啟
+              refreshStop();
+            });
           }
         } catch (e) {
           // 例外訊息
@@ -351,22 +323,10 @@ class TokenInjection {
     const { rest } = this;
     const validateToken = token || '';
 
-    return new Promise((resolve, reject) => {
-      rest
-        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
-          headers: {
-            Authorization: `Bearer ${validateToken}`,
-          },
-        })
-        .then((res) => {
-          resolve(res);
-        })
-        .catch((error) => {
-          reject(error);
-        })
-        .finally(() => {
-          // Always executed
-        });
+    return rest.get(`${api.validate}?v=${rand(11111, 99999)}`, {
+      headers: {
+        Authorization: `Bearer ${validateToken}`,
+      },
     });
   }
 
