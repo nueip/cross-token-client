@@ -1,16 +1,16 @@
-import { forEach, includes } from 'lodash';
+import { forEach } from 'lodash';
 import webStorage from './storage';
 
 /**
  * 設置 LocalStorage Tokens 資訊
  *
- * @param {array} accessKeys
- * @param {object} keys
+ * @param {array} keyList - 設置金鑰清單
+ * @param {object} keyObj - 金鑰內容
  */
-export const setTokens = function seTokens(accessKeys = [], keys = {}) {
-  forEach(keys, (value, key) => {
-    if (accessKeys.some((token) => includes(key, token))) {
-      webStorage.set(key, value);
+export const setTokens = function seTokens(keyList = [], keyObj = {}) {
+  keyList.forEach((key) => {
+    if (key in keyObj) {
+      webStorage.set(key, keyObj[key]);
     }
   });
 };
