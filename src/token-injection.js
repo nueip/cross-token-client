@@ -6,16 +6,10 @@
 import cookies from 'js-cookie';
 import * as TC from './constant';
 import { rand, deepMerge, queryString } from './lib';
-import {
-  api,
-  httpRequset,
-  removePending,
-  addPending,
-  cancelRequest,
-  isCancel,
-} from './helpers/request';
+import { api, httpRequset } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
+import privateMethods from './privateMethods';
 
 // Axios 支援 finally 方法
 require('promise.prototype.finally').shim();
@@ -55,16 +49,16 @@ class TokenInjection {
       TC.TOKEN_CREATE_TIME_NAME,
     ];
 
-    // 暫存執行中的請求
-    this.axiosPending = new Map();
-
     // Schedule cache
     this.intervalSync = null;
     this.intervalRefresh = null;
 
-    // 自動同步/刷新 Token 請求次數計數
+    // 自動同步/刷新 Token 請求錯誤次數計數
     this.syncTimes = 0;
     this.refreshTimes = 0;
+
+    // 暫存執行中的請求資訊
+    this.axiosPending = new Map();
 
     // 實例化 axios
     this.rest = httpRequset({
@@ -74,7 +68,7 @@ class TokenInjection {
     });
 
     // Axios 攔截器
-    this.#interceptors();
+    privateMethods.interceptors(this);
 
     // 自動初始化
     if (this.options.autopilot) {
@@ -98,7 +92,7 @@ class TokenInjection {
       instance.autoRefresh();
 
       // 載入後執行 自動登出倒數
-      instance.#autoLogout();
+      privateMethods.autoLogout();
     });
   }
 
@@ -108,7 +102,7 @@ class TokenInjection {
    * - 向 oAuth Server 同步 Token 資訊
    * - 同步錯誤時，檢查是否為登入狀態，否時刪除 Token
    *
-   * @returns {Promise}
+   * @returns {object}
    */
   sync() {
     const instance = this;
@@ -120,24 +114,35 @@ class TokenInjection {
       .then((res) => {
         const tokenInfo = res.data || {};
 
-        // 執行完成，暫存成功狀態
-        if (res.request.readyState === 4) {
-          instance.axiosPending.set('sync', true);
-        }
+        // 執行完成，暫存請求響應狀態
+        instance.axiosPending.set('sync', res.request.readyState);
 
-        // 設置 Token Keys (LocalStorage)
-        setTokens(tokenKeys, tokenInfo);
+        // 請求次數計數歸零
+        instance.syncTimes = 0;
+
+        // 預設清除 Token Keys
+        removeTokens(tokenKeys);
+
+        // 寫入 Token Keys 異常，清空 localStorage 後，執行登出
+        try {
+          setTokens(tokenKeys, tokenInfo);
+        } catch (error) {
+          webStorage.clear();
+          instance.logoutIAM();
+        }
 
         return res;
       })
-      .finally(() => {
+      .catch((error) => {
         // 請求次數計數
         instance.syncTimes += 1;
 
-        // 請求次數超過最大限制，回應錯誤
+        // 請求次數超過最大限制，丟出例外錯誤
         if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
           throw new Error(TC.MAX_REQUEST_MESSAGE, instance.syncTimes);
         }
+
+        return error;
       });
   }
 
@@ -161,7 +166,7 @@ class TokenInjection {
 
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
-      throw instance.#exception('Need Refresh Token !', 401);
+      throw privateMethods.exception(instance, 'Need Refresh Token !', 401);
     }
 
     // 執行刷新金鑰
@@ -174,19 +179,26 @@ class TokenInjection {
         }
       )
       .then((res) => {
-        // 執行完成，暫存成功狀態
-        if (res.request.readyState === 4) {
-          instance.axiosPending.set('refresh', true);
-        }
+        // 請求次數計數歸零
+        instance.refreshTimes = 0;
+
+        // 執行完成，暫存請求響應狀態
+        instance.axiosPending.set('refresh', {
+          readyState: res.request.readyState,
+        });
+
+        return res;
       })
-      .finally(() => {
+      .catch((error) => {
         // 請求次數計數
         instance.refreshTimes += 1;
 
-        // 請求次數超過最大限制，回應錯誤
+        // 請求次數超過最大限制，丟出例外錯誤｀｀
         if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
           throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
         }
+
+        return error;
       });
   }
 
@@ -206,7 +218,10 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
-    const syncPending = instance.axiosPending.get('sync');
+    const syncReadyState = instance.axiosPending.get('sync');
+    const getSyncState = () => {
+      return typeof syncReadyState === 'undefined' || syncReadyState === null;
+    };
 
     // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
     const checkSumNoEqual = () => {
@@ -216,15 +231,16 @@ class TokenInjection {
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
-        // tkchecksum == token_checksum , axios未執行
-        if (checkSumNoEqual() && !syncPending) {
+        // tkchecksum !== token_checksum，axios未執行或以執行完成
+        // eslint-disable-next-line prettier/prettier
+        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
           await instance.sync().catch(() => {
             // 執行錯誤時關閉自動同步30秒後重啟
             instance.autoSyncStop();
             setTimeout(() => instance.autoSync(), 30000);
           });
         }
-      }, interval * 500 || TC.TOKEN_AUTO_SYNC_INTERVAL);
+      }, interval * 1000 || TC.TOKEN_AUTO_SYNC_INTERVAL);
     }
   }
 
@@ -238,7 +254,7 @@ class TokenInjection {
       // 停止定期執行
       clearInterval(instance.intervalSync);
       instance.intervalSync = null;
-      instance.axiosPending.set('sync', false);
+      instance.axiosPending.delete('sync');
     }
   }
 
@@ -265,7 +281,11 @@ class TokenInjection {
 
     // 定期執行
     if (!instance.intervalRefresh) {
-      const refreshPending = instance.axiosPending.get('refresh');
+      const refreshReadyState = instance.axiosPending.get('refresh');
+      const getRefreshState = () => {
+        // eslint-disable-next-line prettier/prettier
+        return typeof refreshReadyState === 'undefined' || refreshReadyState === null;
+      };
 
       instance.intervalRefresh = setInterval(() => {
         try {
@@ -284,7 +304,8 @@ class TokenInjection {
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-          if (nowTime >= refreshTime && !refreshPending) {
+          // eslint-disable-next-line prettier/prettier
+          if (nowTime >= refreshTime && (getRefreshState() || refreshReadyState === 4)) {
             instance.refresh().catch(() => {
               // 執行錯誤時關閉自動同步30秒後重啟
               refreshStop();
@@ -309,7 +330,7 @@ class TokenInjection {
       // 停止定期執行
       clearInterval(instance.intervalRefresh);
       instance.intervalRefresh = null;
-      instance.axiosPending.set('refresh', false);
+      instance.axiosPending.delete('refresh');
     }
   }
 
@@ -357,11 +378,12 @@ class TokenInjection {
   logoutIAM() {
     const instance = this;
     const { options } = this;
+    const ssoUrl = `${options.sso_url}/logout` || '';
 
     // 重置初始建構屬性 & 清除 Token's Info.
-    instance.#reset().then(() => {
+    privateMethods.reset(instance).then(() => {
       // 轉導回 SSO 登出頁
-      window.location.href = `${options.sso_url}/logout`;
+      window.location.href = ssoUrl;
     });
   }
 
@@ -391,99 +413,6 @@ class TokenInjection {
     instance.rest = httpRequset(config);
 
     return instance;
-  }
-
-  /**
-   * Axios 攔截器
-   */
-  #interceptors() {
-    const instance = this;
-    const { options, rest } = this;
-
-    // 請求攔截器
-    rest.interceptors.request.use(
-      (config) => {
-        if (!options.xhr_with) delete config.headers['X-Requested-With'];
-
-        // 先判斷是否有重複的請求要取消
-        removePending(config);
-
-        // 登入時，把此次請求加入暫存 反之取消請求
-        if (instance.isLogin()) {
-          addPending(config);
-        } else {
-          cancelRequest(config);
-        }
-
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    // 回應攔截器
-    rest.interceptors.response.use(
-      (res) => {
-        // 請求已完成，從暫存中移除
-        removePending(res);
-        return res;
-      },
-      (error) => {
-        // 取消請求，重置初始建構並轉導 SSO 回登入頁
-        if (isCancel(error)) {
-          instance.#reset().then(() => {
-            instance.loginIAM();
-          });
-        }
-
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  /**
-   * 重置
-   *
-   * - 初始化建構屬性
-   * - 清除 Token's Info.
-   */
-  async #reset() {
-    const instance = this;
-
-    // 刪除 Token Keys
-    removeTokens(instance.tokenKeys);
-
-    // 清除執行中的請求暫存
-    instance.axiosPending.clear();
-
-    // 清除定期器
-    instance.intervalSync = null;
-    instance.intervalRefresh = null;
-
-    // 自動同步/刷新 Token 請求次數歸零
-    instance.syncTimes = 0;
-    instance.refreshTimes = 0;
-  }
-
-  /**
-   * 自動登出 - 時間預設一天
-   */
-  #autoLogout() {
-    const instance = this;
-    setTimeout(() => instance.logoutIAM(), TC.LOGOUT_TIME);
-  }
-
-  /**
-   * 例外物件
-   *
-   * @param {string} messageIpt 訊息
-   * @param {number} codeIpt 例外代碼
-   */
-  #exception(messageIpt, codeIpt) {
-    this.code = codeIpt || 200;
-    this.message = messageIpt || 'OK';
-    this.name = 'exception';
   }
 }
 
