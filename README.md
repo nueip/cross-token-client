@@ -24,7 +24,7 @@ dist/
 - 依賴套件已打包封裝，無需再外部引用
 - API 採用 Axios 技術
 - Axios 支援 finally，引用 promise.prototype.finally 方法
-- 初始化採同步技術，等待 Token 資訊載入完成繼續後續執行功能
+- Axios 攔截器 (interceptor) 有加入請求重複發送機制
 
 # 跨域信任域名
 
@@ -143,6 +143,12 @@ function refresh() {
 
 # Options
 
+### autopilot
+
+- Type: `Boolean`
+- Default: `true`
+- note: 是否自動初始化 & 刷新同步
+
 ### sso_url
 
 - Type: `String`
@@ -169,6 +175,12 @@ function refresh() {
 
 # Methods
 
+## init()
+
+- 初始化執行
+  - 自動同步/刷新 Token
+  - 自動登出倒數
+
 ## sync()
 
 - return
@@ -181,11 +193,11 @@ function refresh() {
 
 - interval
   - Type: `Number`
-  - Note: 多少個間隔，每個間為 500 毫秒
+  - Note: 多少個間隔，每個間為 1000 毫秒
 - 定期執行，向 oAuth Server 同步 Token 資訊
 - 執行條件
   - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
-  - API 已執行完成
+  - Axios 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 請求次數超過，自動登出
 - 執行錯誤時關閉自動同步 3 秒後重啟
@@ -209,11 +221,11 @@ function refresh() {
 
 - interval
   - Type: `Number`
-  - Note: 多少個間隔，每個間為 500 毫秒
+  - Note: 多少個間隔，每個間為 1000 毫秒
 - 定期執行，向 oAuth Server 同步 Token 資訊
 - 執行條件
   - 即將過期
-  - axios 未執行過或已執行完成
+  - Axios 未執行過或已執行完成
 - 多視窗時有可能同時執行，待觀察
 - 請求次數超過，自動登出
 - 執行錯誤時關閉自動同步 3 秒後重啟
