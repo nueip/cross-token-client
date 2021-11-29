@@ -193,7 +193,7 @@ class TokenInjection {
         // 請求次數計數
         instance.refreshTimes += 1;
 
-        // 請求次數超過最大限制，丟出例外錯誤｀｀
+        // 請求次數超過最大限制，丟出例外錯誤
         if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
           throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
         }
