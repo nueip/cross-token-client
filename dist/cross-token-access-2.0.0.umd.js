@@ -2241,6 +2241,9 @@
 	function _createClass(Constructor, protoProps, staticProps) {
 	  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
 	  if (staticProps) _defineProperties(Constructor, staticProps);
+	  defineProperty$9(Constructor, "prototype", {
+	    writable: false
+	  });
 	  return Constructor;
 	}
 
@@ -4977,7 +4980,7 @@
 	(shared$3.exports = function (key, value) {
 	  return store$2[key] || (store$2[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.19.1',
+	  version: '3.19.3',
 	  mode: 'global',
 	  copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 	});
@@ -7572,7 +7575,7 @@
 	var defineProperty = objectDefineProperty.f;
 	var FunctionPrototype = Function.prototype;
 	var functionToString = uncurryThis(FunctionPrototype.toString);
-	var nameRE = /^\s*function ([^ (]*)/;
+	var nameRE = /function\b(?:\s|\/\*[\S\s]*?\*\/|\/\/[^\n\r]*[\n\r]+)*([^\s(/]*)/;
 	var regExpExec = uncurryThis(nameRE.exec);
 	var NAME = 'name';
 	if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
