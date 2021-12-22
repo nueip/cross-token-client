@@ -7633,13 +7633,17 @@ function interceptors(instance) {
   }, function (error) {
     return promise.reject(error);
   });
+  instance.cancelTimes = 0;
   instance.rest.interceptors.response.use(function (res) {
     removePending(res);
     return res;
   }, function (error) {
     if (isCancel(error)) {
+      instance.cancelTimes += 1;
       reset(instance).then(function () {
-        instance.loginIAM();
+        if (isFunction_1(instance.options.onLogout) && instance.cancelTimes === 1) {
+          instance.options.onLogout();
+        }
       });
     }
     return promise.reject(error);
@@ -7663,7 +7667,8 @@ var DEFAULTS = freeze({
   sso_url: '',
   cookie_prefix: '',
   redirect_url: '',
-  xhr_with: false
+  xhr_with: false,
+  onLogout: null
 });
 var TokenInjection = function () {
   function TokenInjection() {

@@ -26,6 +26,8 @@ const DEFAULTS = Object.freeze({
   redirect_url: '',
   // 是否配置 X-Requested-With 抬頭
   xhr_with: false,
+  // 非登入狀態的 Callback
+  onLogout: null,
 });
 
 class TokenInjection {
