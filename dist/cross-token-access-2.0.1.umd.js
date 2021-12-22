@@ -3207,6 +3207,8 @@
 
 	var map$4 = map$5;
 
+	var promise = promise$3;
+
 	var toPropertyKey$3 = toPropertyKey$6;
 	var definePropertyModule$2 = objectDefineProperty$1;
 	var createPropertyDescriptor$3 = createPropertyDescriptor$9;
@@ -7591,8 +7593,6 @@
 	  });
 	}
 
-	var promise = promise$3;
-
 	function reset(_x) {
 	  return _reset.apply(this, arguments);
 	}
@@ -7707,24 +7707,26 @@
 	      var instance = this;
 	      var rest = this.rest,
 	          tokenKeys = this.tokenKeys;
-	      return rest.get(api.sync).then(function (res) {
-	        var tokenInfo = res.data || {};
-	        instance.axiosPending.set('sync', res.request.readyState);
-	        instance.syncTimes = 0;
-	        removeTokens(tokenKeys);
-	        try {
-	          setTokens(tokenKeys, tokenInfo);
-	        } catch (error) {
-	          webStorage.clear();
-	          instance.logoutIAM();
-	        }
-	        return res;
-	      }).catch(function (error) {
-	        instance.syncTimes += 1;
-	        if (instance.syncTimes >= MAX_REQUEST_TIMES) {
-	          throw new Error(MAX_REQUEST_MESSAGE, instance.syncTimes);
-	        }
-	        return error;
+	      return new promise(function (resolve, reject) {
+	        rest.get(api.sync).then(function (res) {
+	          var tokenInfo = res.data || {};
+	          instance.axiosPending.set('sync', res.request.readyState);
+	          instance.syncTimes = 0;
+	          removeTokens(tokenKeys);
+	          try {
+	            setTokens(tokenKeys, tokenInfo);
+	          } catch (error) {
+	            webStorage.clear();
+	            instance.logoutIAM();
+	          }
+	          resolve(res);
+	        }).catch(function (error) {
+	          instance.syncTimes += 1;
+	          if (instance.syncTimes >= MAX_REQUEST_TIMES) {
+	            throw new Error(MAX_REQUEST_MESSAGE, instance.syncTimes);
+	          }
+	          reject(error);
+	        });
 	      });
 	    }
 	  }, {
