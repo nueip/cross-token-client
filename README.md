@@ -67,7 +67,10 @@ var tokenInjection = new TokenInjection(options);
 var tokenInjection = new TokenInjection({
   sso_url: "Your sso server url",
   cookie_prefix: "Your cookie prefix",
-  redirect_url: "Your redirect url"
+  redirect_url: "Your redirect url",
+  onLogout: function() {
+    tokenInjection.loginIAM();
+  }
 });
 
 /**
@@ -172,6 +175,12 @@ function refresh() {
 - Type: `Boolean`
 - Default: `false`
 - note: 是否配置 X-Requested-With 抬頭
+
+### onLogout
+
+- Type: `Function`
+- Default: `null`
+- note: 非登入狀態的回調函示
 
 # Methods
 

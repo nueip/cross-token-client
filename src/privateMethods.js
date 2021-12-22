@@ -1,3 +1,4 @@
+import { isFunction } from 'lodash';
 import { LOGOUT_TIME } from './constant';
 // eslint-disable-next-line prettier/prettier
 import { removePending, addPending, cancelRequest, isCancel } from './helpers/request';
@@ -66,6 +67,9 @@ function interceptors(instance) {
     }
   );
 
+  // 回應取消計數
+  instance.cancelTimes = 0;
+
   // 回應攔截器
   instance.rest.interceptors.response.use(
     (res) => {
@@ -76,8 +80,16 @@ function interceptors(instance) {
     (error) => {
       // 取消請求，重置初始建構並轉導 SSO 回登入頁
       if (isCancel(error)) {
+        instance.cancelTimes += 1;
+
         reset(instance).then(() => {
-          instance.loginIAM();
+          // 非登入狀態的 Callback，避免自動排程持續執行，設置計數器強制執行一次
+          if (
+            isFunction(instance.options.onLogout) &&
+            instance.cancelTimes === 1
+          ) {
+            instance.options.onLogout();
+          }
         });
       }
 

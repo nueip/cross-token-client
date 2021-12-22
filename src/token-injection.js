@@ -26,6 +26,8 @@ const DEFAULTS = Object.freeze({
   redirect_url: '',
   // 是否配置 X-Requested-With 抬頭
   xhr_with: false,
+  // 非登入狀態的 Callback
+  onLogout: null,
 });
 
 class TokenInjection {
@@ -108,42 +110,44 @@ class TokenInjection {
     const instance = this;
     const { rest, tokenKeys } = this;
 
-    // 抓取資料
-    return rest
-      .get(api.sync)
-      .then((res) => {
-        const tokenInfo = res.data || {};
+    return new Promise((resolve, reject) => {
+      // 抓取資料
+      rest
+        .get(api.sync)
+        .then((res) => {
+          const tokenInfo = res.data || {};
 
-        // 執行完成，暫存請求響應狀態
-        instance.axiosPending.set('sync', res.request.readyState);
+          // 執行完成，暫存請求響應狀態
+          instance.axiosPending.set('sync', res.request.readyState);
 
-        // 請求次數計數歸零
-        instance.syncTimes = 0;
+          // 請求次數計數歸零
+          instance.syncTimes = 0;
 
-        // 預設清除 Token Keys
-        removeTokens(tokenKeys);
+          // 預設清除 Token Keys
+          removeTokens(tokenKeys);
 
-        // 寫入 Token Keys 異常，清空 localStorage 後，執行登出
-        try {
-          setTokens(tokenKeys, tokenInfo);
-        } catch (error) {
-          webStorage.clear();
-          instance.logoutIAM();
-        }
+          // 寫入 Token Keys 異常，清空 localStorage 後，執行登出
+          try {
+            setTokens(tokenKeys, tokenInfo);
+          } catch (error) {
+            webStorage.clear();
+            instance.logoutIAM();
+          }
 
-        return res;
-      })
-      .catch((error) => {
-        // 請求次數計數
-        instance.syncTimes += 1;
+          resolve(res);
+        })
+        .catch((error) => {
+          // 請求次數計數
+          instance.syncTimes += 1;
 
-        // 請求次數超過最大限制，丟出例外錯誤
-        if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
-          throw new Error(TC.MAX_REQUEST_MESSAGE, instance.syncTimes);
-        }
+          // 請求次數超過最大限制，丟出例外錯誤
+          if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
+            throw new Error(TC.MAX_REQUEST_MESSAGE, instance.syncTimes);
+          }
 
-        return error;
-      });
+          reject(error);
+        });
+    });
   }
 
   /**
