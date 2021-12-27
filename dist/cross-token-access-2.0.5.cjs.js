@@ -4978,7 +4978,7 @@ var store$2 = sharedStore;
 (shared$3.exports = function (key, value) {
   return store$2[key] || (store$2[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.20.0',
+  version: '3.20.1',
   mode: 'global',
   copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 });
@@ -7642,6 +7642,7 @@ function interceptors(instance) {
   }, function (error) {
     if (isCancel(error)) {
       instance.cancelTimes += 1;
+      error.isLogout = true;
       reset(instance).then(function () {
         if (isFunction_1(instance.options.onLogout) && instance.cancelTimes === 1) {
           instance.options.onLogout();
@@ -7702,6 +7703,12 @@ var TokenInjection = function () {
         instance.autoSync();
         instance.autoRefresh();
         privateMethods.autoLogout();
+      }).catch(function (error) {
+        if (error.isLogout) {
+          instance.loginIAM();
+        } else {
+          throw new Error(error);
+        }
       });
     }
   }, {

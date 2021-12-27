@@ -86,16 +86,27 @@ class TokenInjection {
   init() {
     const instance = this;
 
-    return instance.sync().then(() => {
-      // 載入後執行 定期同步 Token 內容
-      instance.autoSync();
+    return instance
+      .sync()
+      .then(() => {
+        // 載入後執行 定期同步 Token 內容
+        instance.autoSync();
 
-      // 載入後執行 定期刷新 Token
-      instance.autoRefresh();
+        // 載入後執行 定期刷新 Token
+        instance.autoRefresh();
 
-      // 載入後執行 自動登出倒數
-      privateMethods.autoLogout();
-    });
+        // 載入後執行 自動登出倒數
+        privateMethods.autoLogout();
+      })
+      .catch((error) => {
+        // 捕獲錯誤為登出狀態，轉導回 IAM 中心
+        // 反之直接丟出例外錯誤
+        if (error.isLogout) {
+          instance.loginIAM();
+        } else {
+          throw new Error(error);
+        }
+      });
   }
 
   /**

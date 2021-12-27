@@ -81,6 +81,8 @@ function interceptors(instance) {
       // 取消請求，重置初始建構並轉導 SSO 回登入頁
       if (isCancel(error)) {
         instance.cancelTimes += 1;
+        // 捕獲錯誤 增加登出狀態
+        error.isLogout = true;
 
         reset(instance).then(() => {
           // 非登入狀態的 Callback，避免自動排程持續執行，設置計數器強制執行一次
