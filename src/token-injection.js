@@ -103,9 +103,9 @@ class TokenInjection {
         // 反之直接丟出例外錯誤
         if (error.isLogout) {
           instance.loginIAM();
-        } else {
-          throw new Error(error);
         }
+
+        throw new Error(error);
       });
   }
 
