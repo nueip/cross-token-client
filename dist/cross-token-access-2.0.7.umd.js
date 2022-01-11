@@ -7735,7 +7735,7 @@
 	      return instance.sync().then(function () {
 	        instance.autoSync();
 	        instance.autoRefresh();
-	        privateMethods.autoLogout();
+	        privateMethods.autoLogout(instance);
 	      }).catch(function (error) {
 	        if (error.isLogout) {
 	          instance.loginIAM();
