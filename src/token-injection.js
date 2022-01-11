@@ -96,7 +96,7 @@ class TokenInjection {
         instance.autoRefresh();
 
         // 載入後執行 自動登出倒數
-        privateMethods.autoLogout();
+        privateMethods.autoLogout(instance);
       })
       .catch((error) => {
         // 捕獲錯誤為登出狀態，轉導回 IAM 中心
