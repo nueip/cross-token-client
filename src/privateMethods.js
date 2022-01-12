@@ -111,6 +111,8 @@ function exception(instance, messageIpt, codeIpt) {
   instance.code = codeIpt || 200;
   instance.message = messageIpt || 'OK';
   instance.name = 'exception';
+
+  return instance;
 }
 
 export default { interceptors, reset, autoLogout, exception };
