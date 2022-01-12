@@ -7770,6 +7770,7 @@
 	  instance.code = codeIpt || 200;
 	  instance.message = messageIpt || 'OK';
 	  instance.name = 'exception';
+	  return instance;
 	}
 	var privateMethods = {
 	  interceptors: interceptors,

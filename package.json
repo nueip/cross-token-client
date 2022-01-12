@@ -1,9 +1,9 @@
 {
   "name": "@nueip/cross-token-access",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Cross-client access tokens",
-  "main": "dist/cross-token-access-2.0.7.cjs.js",
-  "browser": "dist/cross-token-access-2.0.7.umd.js",
+  "main": "dist/cross-token-access-2.0.8.cjs.js",
+  "browser": "dist/cross-token-access-2.0.8.umd.js",
   "files": [
     "dist",
     "src"
