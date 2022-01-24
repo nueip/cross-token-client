@@ -1,9 +1,5 @@
 import { isString } from '../lib';
-
-// 錯誤訊息
-const errorMsg = {
-  typeVerify: (type) => `[Type Error]: Must be a '${type}'.`,
-};
+import errorMsg from './error-message';
 
 /**
  * 檢查 輸入值是否為字串格式
