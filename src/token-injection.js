@@ -250,7 +250,9 @@ class TokenInjection {
         // tkchecksum !== token_checksum，axios未執行或以執行完成
         if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
           await instance.sync().catch((error) => {
+            // 取得 回覆資源
             const { response } = error;
+            // 取得 錯誤狀態碼
             let errorCode = response ? response.status : 0; //eslint-disable-line
 
             // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
@@ -325,7 +327,6 @@ class TokenInjection {
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-
           if (
             nowTime >= refreshTime &&
             (getRefreshState() || refreshReadyState === 4)
