@@ -26,7 +26,7 @@ const DEFAULTS = {
   // 重新定向網址
   redirect_url: '',
   // 是否配置 X-Requested-With 抬頭
-  xhr_with: false,
+  xhr_with: true,
   // 非登入狀態的 Callback
   onLogout: null,
 };
