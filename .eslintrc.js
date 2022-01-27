@@ -19,5 +19,6 @@ module.exports = {
     'class-methods-use-this': 'off',
     'global-require': 0,
     'no-alert': 'off',
+    'import/no-extraneous-dependencies': 'off',
   },
 };
