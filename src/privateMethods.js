@@ -82,6 +82,11 @@ function interceptors(instance) {
       return res;
     },
     (error) => {
+      // 取得 回覆資源
+      const { response } = error;
+      // 取得 錯誤狀態碼
+      let errorCode = response ? response.status : 0; //eslint-disable-line
+
       // 取消請求，重置初始建構並轉導 SSO 回登入頁
       if (isCancel(error)) {
         instance.cancelTimes += 1;
@@ -97,6 +102,11 @@ function interceptors(instance) {
             instance.options.onLogout();
           }
         });
+      } else if (errorCode === 401) {
+        // 401 未授權的 Callback
+        if (isFunction(instance.options.unauthorized)) {
+          instance.options.unauthorized();
+        }
       }
 
       return Promise.reject(error);

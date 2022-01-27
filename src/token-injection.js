@@ -29,6 +29,8 @@ const DEFAULTS = {
   xhr_with: true,
   // 非登入狀態的 Callback
   onLogout: null,
+  // 401 未授權的 Callback
+  unauthorized: null,
 };
 
 class TokenInjection {
@@ -149,9 +151,9 @@ class TokenInjection {
           // 請求次數計數
           instance.syncTimes += 1;
 
-          // 請求次數超過最大限制，丟出例外錯誤
+          // 請求次數超過最大限制錯誤訊息
           if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
-            throw new Error(errorMsg.maxRequest, instance.syncTimes);
+            console.error(`[Sync]: ${errorMsg.maxRequest}`);
           }
 
           reject(error);
@@ -207,9 +209,9 @@ class TokenInjection {
           // 請求次數計數
           instance.refreshTimes += 1;
 
-          // 請求次數超過最大限制，丟出例外錯誤
+          // 請求次數超過最大限制錯誤訊息
           if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-            throw new Error(errorMsg.maxRequest, instance.refreshTimes);
+            console.error(`[Refresh]: ${errorMsg.maxRequest}`);
           }
 
           reject(error);
@@ -234,14 +236,14 @@ class TokenInjection {
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
     const syncReadyState = instance.axiosPending.get('sync');
-    const getSyncState = () => {
-      return typeof syncReadyState === 'undefined' || syncReadyState === null;
-    };
+
+    // 取得同步接口回應狀態
+    const getSyncState = () =>
+      typeof syncReadyState === 'undefined' || syncReadyState === null;
 
     // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
-    const checkSumNoEqual = () => {
-      return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
-    };
+    const checkSumNoEqual = () =>
+      cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     instance.intervalSync =
@@ -263,7 +265,6 @@ class TokenInjection {
           });
         }
       }, 1000 * 60 * Math.abs(interval) || TC.TOKEN_AUTO_SYNC_INTERVAL);
-    }
   }
 
   /**
