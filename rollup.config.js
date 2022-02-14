@@ -5,7 +5,6 @@ import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import { terser } from 'rollup-plugin-terser';
-import obfuscator from 'rollup-plugin-obfuscator';
 import cleanup from 'rollup-plugin-cleanup';
 import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
 import path from 'path';
@@ -65,14 +64,7 @@ const globalPlugins = [
 ];
 
 const normalPlugins = [].concat(globalPlugins);
-const obfuscatorPlugins = [].concat(globalPlugins).concat([
-  terser(),
-  obfuscator({
-    include: ['**/*.js'],
-    exclude: ['node_modules/**'],
-    obfuscator: require('javascript-obfuscator'),
-  }),
-]);
+const minifyPlugins = [].concat(globalPlugins).concat([terser()]);
 
 module.exports = [
   {
@@ -107,6 +99,6 @@ module.exports = [
         exports: 'auto',
       },
     ],
-    plugins: obfuscatorPlugins,
+    plugins: minifyPlugins,
   },
 ];
