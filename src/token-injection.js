@@ -376,6 +376,15 @@ class TokenInjection {
   }
 
   /**
+   * 取得當前語系
+   *
+   * @returns {string} 回傳語系代碼
+   */
+  getLang() {
+    return cookies.get('lang') || 'en';
+  }
+
+  /**
    * 開啟登入頁面
    *
    * @param {string} target - _self | _blank
