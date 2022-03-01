@@ -5071,10 +5071,10 @@
 	(shared$3.exports = function (key, value) {
 	  return store$2[key] || (store$2[key] = value !== undefined ? value : {});
 	})('versions', []).push({
-	  version: '3.20.3',
+	  version: '3.21.1',
 	  mode: 'global',
 	  copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
-	  license: 'https://github.com/zloirock/core-js/blob/v3.20.3/LICENSE',
+	  license: 'https://github.com/zloirock/core-js/blob/v3.21.1/LICENSE',
 	  source: 'https://github.com/zloirock/core-js'
 	});
 
@@ -5583,7 +5583,7 @@
 	var arrayMethodIsStrict$3 = function (METHOD_NAME, argument) {
 	  var method = [][METHOD_NAME];
 	  return !!method && fails$2(function () {
-	    method.call(null, argument || function () { throw 1; }, 1);
+	    method.call(null, argument || function () { return 1; }, 1);
 	  });
 	};
 
@@ -7109,7 +7109,7 @@
 	};
 
 	var data = {
-	  "version": "0.25.0"
+	  "version": "0.26.0"
 	};
 
 	var VERSION = data.version;
@@ -7188,9 +7188,6 @@
 	  } else {
 	    config = configOrUrl || {};
 	  }
-	  if (!config.url) {
-	    throw new Error('Provided config url is not valid');
-	  }
 	  config = mergeConfig$1(this.defaults, config);
 	  if (config.method) {
 	    config.method = config.method.toLowerCase();
@@ -7253,9 +7250,6 @@
 	  return promise;
 	};
 	Axios$1.prototype.getUri = function getUri(config) {
-	  if (!config.url) {
-	    throw new Error('Provided config url is not valid');
-	  }
 	  config = mergeConfig$1(this.defaults, config);
 	  return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
 	};
@@ -8013,6 +8007,11 @@
 	    key: "getToken",
 	    value: function getToken() {
 	      return webStorage.get(ACCESS_TOKEN_NAME);
+	    }
+	  }, {
+	    key: "getLang",
+	    value: function getLang() {
+	      return api$1.get('lang') || 'en';
 	    }
 	  }, {
 	    key: "loginIAM",
