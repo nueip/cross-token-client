@@ -180,7 +180,7 @@ function refresh() {
 
 - Type: `Function`
 - Default: `null`
-- note: 非登入狀態的回調函示
+- note: 非登入狀態的回調函式
 
 # Methods
 
@@ -249,6 +249,13 @@ function refresh() {
   - Type: `String`
   - Local Storage 中的 Token
 - 取得 Local Storage Token
+
+## getLang()
+
+- return
+  - Type: `String`
+  - Cookie 中的語系代號
+- 取得當前語系
 
 ## validate(token)
 
