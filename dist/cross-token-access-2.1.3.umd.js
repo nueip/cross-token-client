@@ -7870,31 +7870,33 @@
 	  }, {
 	    key: "refresh",
 	    value: function refresh() {
-	      var _context;
 	      var instance = this;
 	      var rest = this.rest;
 	      var refreshToken = webStorage.get(REFRESH_TOKEN_NAME);
 	      if (!refreshToken) {
 	        throw privateMethods.exception(instance, 'Need Refresh Token !', 401);
 	      }
-	      return rest.post(concat$2(_context = "".concat(api.refresh, "?v=")).call(_context, rand(11111, 99999)), queryString({
-	        refresh_token: refreshToken
-	      }), {
-	        headers: {
-	          'Content-Type': 'application/x-www-form-urlencoded'
-	        }
-	      }).then(function (res) {
-	        instance.refreshTimes = 0;
-	        instance.axiosPending.set('refresh', {
-	          readyState: res.request.readyState
+	      return new promise(function (resolve, reject) {
+	        var _context;
+	        rest.post(concat$2(_context = "".concat(api.refresh, "?v=")).call(_context, rand(11111, 99999)), queryString({
+	          refresh_token: refreshToken
+	        }), {
+	          headers: {
+	            'Content-Type': 'application/x-www-form-urlencoded'
+	          }
+	        }).then(function (res) {
+	          instance.refreshTimes = 0;
+	          instance.axiosPending.set('refresh', {
+	            readyState: res.request.readyState
+	          });
+	          resolve(res);
+	        }).catch(function (error) {
+	          instance.refreshTimes += 1;
+	          if (instance.refreshTimes >= MAX_REQUEST_TIMES) {
+	            throw new Error(MAX_REQUEST_MESSAGE, instance.refreshTimes);
+	          }
+	          reject(error);
 	        });
-	        return res;
-	      }).catch(function (error) {
-	        instance.refreshTimes += 1;
-	        if (instance.refreshTimes >= MAX_REQUEST_TIMES) {
-	          throw new Error(MAX_REQUEST_MESSAGE, instance.refreshTimes);
-	        }
-	        return error;
 	      });
 	    }
 	  }, {
@@ -7903,7 +7905,7 @@
 	      var interval = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 	      var instance = this;
 	      var options = this.options;
-	      var tkCheckSum = "".concat(options.cookie_prefix, "tkchecksum") || 'tkchecksum';
+	      var tkCheckSum = "".concat(options.cookie_prefix, "_tkchecksum") || 'tkchecksum';
 	      var syncReadyState = instance.axiosPending.get('sync');
 	      var getSyncState = function getSyncState() {
 	        return typeof syncReadyState === 'undefined' || syncReadyState === null;
@@ -7997,13 +7999,19 @@
 	  }, {
 	    key: "validate",
 	    value: function validate(token) {
-	      var _context4;
 	      var rest = this.rest;
 	      var validateToken = token || '';
-	      return rest.get(concat$2(_context4 = "".concat(api.validate, "?v=")).call(_context4, rand(11111, 99999)), {
-	        headers: {
-	          Authorization: "Bearer ".concat(validateToken)
-	        }
+	      return new promise(function (resolve, reject) {
+	        var _context4;
+	        rest.get(concat$2(_context4 = "".concat(api.validate, "?v=")).call(_context4, rand(11111, 99999)), {
+	          headers: {
+	            Authorization: "Bearer ".concat(validateToken)
+	          }
+	        }).then(function (res) {
+	          resolve(res);
+	        }).catch(function (error) {
+	          reject(error);
+	        });
 	      });
 	    }
 	  }, {
@@ -8039,7 +8047,7 @@
 	    key: "isLogin",
 	    value: function isLogin() {
 	      var options = this.options;
-	      var loginKey = "".concat(options.cookie_prefix, "login") || 'login';
+	      var loginKey = "".concat(options.cookie_prefix, "_login") || 'login';
 	      var loginCookie = api$1.get(loginKey);
 	      return loginCookie && loginCookie === '1';
 	    }
