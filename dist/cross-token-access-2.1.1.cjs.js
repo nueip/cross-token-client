@@ -6540,6 +6540,12 @@ var enhanceError$2 = function enhanceError(error, config, code, request, respons
   return error;
 };
 
+var transitional = {
+  silentJSONParsing: true,
+  forcedJSONParsing: true,
+  clarifyTimeoutError: false
+};
+
 var enhanceError$1 = enhanceError$2;
 var createError$2 = function createError(message, config, code, request, response) {
   var error = new Error(message);
@@ -6710,7 +6716,7 @@ var buildFullPath = buildFullPath$1;
 var parseHeaders = parseHeaders$1;
 var isURLSameOrigin = isURLSameOrigin$1;
 var createError = createError$2;
-var defaults$4 = defaults_1;
+var transitionalDefaults$1 = transitional;
 var Cancel$2 = Cancel_1;
 var xhr = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -6788,7 +6794,7 @@ var xhr = function xhrAdapter(config) {
     };
     request.ontimeout = function handleTimeout() {
       var timeoutErrorMessage = config.timeout ? 'timeout of ' + config.timeout + 'ms exceeded' : 'timeout exceeded';
-      var transitional = config.transitional || defaults$4.transitional;
+      var transitional = config.transitional || transitionalDefaults$1;
       if (config.timeoutErrorMessage) {
         timeoutErrorMessage = config.timeoutErrorMessage;
       }
@@ -6852,6 +6858,7 @@ var xhr = function xhrAdapter(config) {
 var utils$6 = utils$e;
 var normalizeHeaderName = normalizeHeaderName$1;
 var enhanceError = enhanceError$2;
+var transitionalDefaults = transitional;
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
 };
@@ -6883,11 +6890,7 @@ function stringifySafely(rawValue, parser, encoder) {
   return (encoder || JSON.stringify)(rawValue);
 }
 var defaults$3 = {
-  transitional: {
-    silentJSONParsing: true,
-    forcedJSONParsing: true,
-    clarifyTimeoutError: false
-  },
+  transitional: transitionalDefaults,
   adapter: getDefaultAdapter(),
   transformRequest: [function transformRequest(data, headers) {
     normalizeHeaderName(headers, 'Accept');
@@ -7105,7 +7108,7 @@ var mergeConfig$2 = function mergeConfig(config1, config2) {
 };
 
 var data = {
-  "version": "0.26.0"
+  "version": "0.26.1"
 };
 
 var VERSION = data.version;
