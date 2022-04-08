@@ -4787,7 +4787,7 @@ var TOKEN_AUTO_SYNC_INTERVAL = 1000;
 var TOKEN_TYPE = 'token_type';
 var TOKEN_SCOPE = 'token_scope';
 var TOKEN_CHECK_SUM = 'token_checksum';
-var LOGOUT_TIME = 1000 * 86400;
+var LOGOUT_TIME = 1000 * 43200;
 var MAX_REQUEST_TIMES = 20;
 var MAX_REQUEST_MESSAGE = 'Number of requests exceeded limit.';
 
