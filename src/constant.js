@@ -18,8 +18,8 @@ export const TOKEN_TYPE = 'token_type';
 export const TOKEN_SCOPE = 'token_scope';
 // Token 檢查總時數
 export const TOKEN_CHECK_SUM = 'token_checksum';
-// 自動登出時間 (1天)
-export const LOGOUT_TIME = 1000 * 86400;
+// 自動登出時間 (12小時)
+export const LOGOUT_TIME = 1000 * 43200;
 // 同步刷新錯誤 重新請求次數最大限制
 export const MAX_REQUEST_TIMES = 20;
 // 同步刷新錯誤 重新請求次數超過最大限制回應訊息

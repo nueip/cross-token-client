@@ -126,7 +126,7 @@ class TokenInjection {
       rest
         .get(api.sync)
         .then((res) => {
-          const tokenInfo = res.data || {};
+          let tokenInfo = res.data || {}; //eslint-disable-line
 
           // 執行完成，暫存請求響應狀態
           instance.axiosPending.set('sync', res.request.readyState);
@@ -232,7 +232,7 @@ class TokenInjection {
   autoSync(interval = 0) {
     const instance = this;
     const { options } = this;
-    const tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+    let tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
     const syncReadyState = instance.axiosPending.get('sync');
     const getSyncState = () => {
       return typeof syncReadyState === 'undefined' || syncReadyState === null;
@@ -298,8 +298,9 @@ class TokenInjection {
     if (!instance.intervalRefresh) {
       const refreshReadyState = instance.axiosPending.get('refresh');
       const getRefreshState = () => {
-        // eslint-disable-next-line prettier/prettier
-        return typeof refreshReadyState === 'undefined' || refreshReadyState === null;
+        return (
+          typeof refreshReadyState === 'undefined' || refreshReadyState === null
+        );
       };
 
       instance.intervalRefresh = setInterval(() => {
@@ -319,8 +320,11 @@ class TokenInjection {
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-          // eslint-disable-next-line prettier/prettier
-          if (nowTime >= refreshTime && (getRefreshState() || refreshReadyState === 4)) {
+
+          if (
+            nowTime >= refreshTime &&
+            (getRefreshState() || refreshReadyState === 4)
+          ) {
             instance.refresh().catch(() => {
               // 執行錯誤時關閉自動同步30秒後重啟
               refreshStop();
@@ -357,7 +361,7 @@ class TokenInjection {
    */
   validate(token) {
     const { rest } = this;
-    const validateToken = token || '';
+    let validateToken = token || ''; //eslint-disable-line
 
     return rest.get(`${api.validate}?v=${rand(11111, 99999)}`, {
       headers: {
@@ -391,7 +395,7 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-    const ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+    let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
 
     window.open(ssoUrl, target || '_self');
   }
@@ -402,7 +406,7 @@ class TokenInjection {
   logoutIAM() {
     const instance = this;
     const { options } = this;
-    const ssoUrl = `${options.sso_url}/logout` || '';
+    let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
 
     // 重置初始建構屬性 & 清除 Token's Info.
     privateMethods.reset(instance).then(() => {
@@ -418,7 +422,7 @@ class TokenInjection {
    */
   isLogin() {
     const { options } = this;
-    const loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
+    let loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
     const loginCookie = cookies.get(loginKey);
 
     return loginCookie && loginCookie === '1';
