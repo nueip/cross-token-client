@@ -232,7 +232,7 @@ class TokenInjection {
   autoSync(interval = 0) {
     const instance = this;
     const { options } = this;
-    let tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+    let tkCheckSum = `${options.cookie_prefix}_tkchecksum` || 'tkchecksum'; //eslint-disable-line
     const syncReadyState = instance.axiosPending.get('sync');
     const getSyncState = () => {
       return typeof syncReadyState === 'undefined' || syncReadyState === null;
@@ -422,7 +422,7 @@ class TokenInjection {
    */
   isLogin() {
     const { options } = this;
-    let loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
+    let loginKey = `${options.cookie_prefix}_login` || 'login'; //eslint-disable-line
     const loginCookie = cookies.get(loginKey);
 
     return loginCookie && loginCookie === '1';
