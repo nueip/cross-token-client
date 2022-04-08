@@ -1,7 +1,11 @@
 import { isFunction } from 'lodash';
 import { LOGOUT_TIME } from './constant';
-// eslint-disable-next-line prettier/prettier
-import { removePending, addPending, cancelRequest, isCancel } from './helpers/request';
+import {
+  removePending,
+  addPending,
+  cancelRequest,
+  isCancel,
+} from './helpers/request';
 import { removeTokens } from './helpers/token';
 
 /**

@@ -113,7 +113,7 @@ function checkConfig(config = {}) {
  */
 export const httpRequset = (config) => {
   const keyExists = checkConfig(config);
-  const newOptions = keyExists ? {} : deepMerge(baseConfig, isPlainObject(config) && config); //eslint-disable-line
+  let newOptions = keyExists ? {} : deepMerge(baseConfig, isPlainObject(config) && config); //eslint-disable-line
 
   return axios.create(newOptions);
 };
