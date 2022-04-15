@@ -12,7 +12,6 @@ import path from 'path';
 const fileName = 'cross-token-access';
 const pluginName = 'TokenInjection';
 const entryFile = 'src/index.js';
-const pathResolve = (p) => path.resolve(__dirname, p);
 const pkgVer = require('./package.json').version;
 
 const globalPlugins = [
@@ -24,7 +23,7 @@ const globalPlugins = [
   }),
   json(),
   alias({
-    entries: [{ find: '@', replacement: pathResolve('src') }],
+    entries: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
   }),
   nodeResolve({ mainFields: ['jsnext', 'preferBuiltins', 'browser'] }),
   commonjs({
@@ -66,7 +65,7 @@ const globalPlugins = [
 const normalPlugins = [].concat(globalPlugins);
 const minifyPlugins = [].concat(globalPlugins).concat([terser()]);
 
-module.exports = [
+export default [
   {
     input: entryFile,
     output: [
