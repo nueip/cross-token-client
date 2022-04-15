@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### 2.1.3 (2022-04-15)
+### 2.1.4 (2022-04-15)
 ### Patch
 
 * Update package and improve rollup config  ([000f19b](https://github.com/nueip/cross-token-access/commit/000f19b135576bd664e4467c3aeb106983f7a9c4))
