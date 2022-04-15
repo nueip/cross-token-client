@@ -190,36 +190,38 @@ class TokenInjection {
     }
 
     // 執行刷新金鑰
-    return rest
-      .post(
-        `${api.refresh}?v=${rand(11111, 99999)}`,
-        queryString({ refresh_token: refreshToken }),
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }
-      )
-      .then((res) => {
-        // 請求次數計數歸零
-        instance.refreshTimes = 0;
+    return new Promise((resolve, reject) => {
+      rest
+        .post(
+          `${api.refresh}?v=${rand(11111, 99999)}`,
+          queryString({ refresh_token: refreshToken }),
+          {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          }
+        )
+        .then((res) => {
+          // 請求次數計數歸零
+          instance.refreshTimes = 0;
 
-        // 執行完成，暫存請求響應狀態
-        instance.axiosPending.set('refresh', {
-          readyState: res.request.readyState,
+          // 執行完成，暫存請求響應狀態
+          instance.axiosPending.set('refresh', {
+            readyState: res.request.readyState,
+          });
+
+          resolve(res);
+        })
+        .catch((error) => {
+          // 請求次數計數
+          instance.refreshTimes += 1;
+
+          // 請求次數超過最大限制，丟出例外錯誤
+          if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
+            throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
+          }
+
+          reject(error);
         });
-
-        return res;
-      })
-      .catch((error) => {
-        // 請求次數計數
-        instance.refreshTimes += 1;
-
-        // 請求次數超過最大限制，丟出例外錯誤
-        if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-          throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
-        }
-
-        return error;
-      });
+    });
   }
 
   /**
@@ -368,10 +370,19 @@ class TokenInjection {
     const { rest } = this;
      let validateToken = token || ''; //eslint-disable-line
 
-    return rest.get(`${api.validate}?v=${rand(11111, 99999)}`, {
-      headers: {
-        Authorization: `Bearer ${validateToken}`,
-      },
+    return new Promise((resolve, reject) => {
+      rest
+        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
+          headers: {
+            Authorization: `Bearer ${validateToken}`,
+          },
+        })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
