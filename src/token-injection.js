@@ -4,6 +4,7 @@
  * @author Grace.Wang
  */
 import cookies from 'js-cookie';
+import { isEmpty } from 'lodash';
 import * as TC from './constant';
 import { rand, deepMerge, queryString } from './lib';
 import { api, httpRequset } from './helpers/request';
@@ -39,6 +40,10 @@ class TokenInjection {
   constructor(options = {}) {
     // 選項屬性
     this.options = deepMerge(DEFAULTS, options);
+    // 處理自定義 Cookie 前綴字串
+    this.options.cookie_prefix = !isEmpty(this.options.cookie_prefix)
+      ? `${this.options.cookie_prefix}_`
+      : '';
 
     // Token Keys
     this.tokenKeys = [
@@ -126,7 +131,7 @@ class TokenInjection {
       rest
         .get(api.sync)
         .then((res) => {
-          let tokenInfo = res.data || {}; //eslint-disable-line
+           let tokenInfo = res.data || {}; //eslint-disable-line
 
           // 執行完成，暫存請求響應狀態
           instance.axiosPending.set('sync', res.request.readyState);
@@ -177,7 +182,7 @@ class TokenInjection {
     const { rest } = this;
 
     // Refresh Token 值
-    let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
+     let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
 
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
@@ -185,36 +190,38 @@ class TokenInjection {
     }
 
     // 執行刷新金鑰
-    return rest
-      .post(
-        `${api.refresh}?v=${rand(11111, 99999)}`,
-        queryString({ refresh_token: refreshToken }),
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }
-      )
-      .then((res) => {
-        // 請求次數計數歸零
-        instance.refreshTimes = 0;
+    return new Promise((resolve, reject) => {
+      rest
+        .post(
+          `${api.refresh}?v=${rand(11111, 99999)}`,
+          queryString({ refresh_token: refreshToken }),
+          {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          }
+        )
+        .then((res) => {
+          // 請求次數計數歸零
+          instance.refreshTimes = 0;
 
-        // 執行完成，暫存請求響應狀態
-        instance.axiosPending.set('refresh', {
-          readyState: res.request.readyState,
+          // 執行完成，暫存請求響應狀態
+          instance.axiosPending.set('refresh', {
+            readyState: res.request.readyState,
+          });
+
+          resolve(res);
+        })
+        .catch((error) => {
+          // 請求次數計數
+          instance.refreshTimes += 1;
+
+          // 請求次數超過最大限制，丟出例外錯誤
+          if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
+            throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
+          }
+
+          reject(error);
         });
-
-        return res;
-      })
-      .catch((error) => {
-        // 請求次數計數
-        instance.refreshTimes += 1;
-
-        // 請求次數超過最大限制，丟出例外錯誤
-        if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-          throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
-        }
-
-        return error;
-      });
+    });
   }
 
   /**
@@ -232,7 +239,7 @@ class TokenInjection {
   autoSync(interval = 0) {
     const instance = this;
     const { options } = this;
-    let tkCheckSum = `${options.cookie_prefix}tkchecksum` || 'tkchecksum'; //eslint-disable-line
+    const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
     const syncReadyState = instance.axiosPending.get('sync');
     const getSyncState = () => {
       return typeof syncReadyState === 'undefined' || syncReadyState === null;
@@ -248,7 +255,7 @@ class TokenInjection {
       instance.intervalSync = setInterval(async () => {
         // tkchecksum !== token_checksum，axios未執行或以執行完成
         // eslint-disable-next-line prettier/prettier
-        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
+         if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
           await instance.sync().catch(() => {
             // 執行錯誤時關閉自動同步30秒後重啟
             instance.autoSyncStop();
@@ -361,12 +368,21 @@ class TokenInjection {
    */
   validate(token) {
     const { rest } = this;
-    let validateToken = token || ''; //eslint-disable-line
+     let validateToken = token || ''; //eslint-disable-line
 
-    return rest.get(`${api.validate}?v=${rand(11111, 99999)}`, {
-      headers: {
-        Authorization: `Bearer ${validateToken}`,
-      },
+    return new Promise((resolve, reject) => {
+      rest
+        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
+          headers: {
+            Authorization: `Bearer ${validateToken}`,
+          },
+        })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   }
 
@@ -385,7 +401,8 @@ class TokenInjection {
    * @returns {string} 回傳語系代碼
    */
   getLang() {
-    return cookies.get('lang') || 'en';
+    const { options } = this;
+    return cookies.get(`${options.cookie_prefix}lang`) || 'en';
   }
 
   /**
@@ -395,7 +412,7 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-    let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+     let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
 
     window.open(ssoUrl, target || '_self');
   }
@@ -406,7 +423,7 @@ class TokenInjection {
   logoutIAM() {
     const instance = this;
     const { options } = this;
-    let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
+     let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
 
     // 重置初始建構屬性 & 清除 Token's Info.
     privateMethods.reset(instance).then(() => {
@@ -422,7 +439,7 @@ class TokenInjection {
    */
   isLogin() {
     const { options } = this;
-    let loginKey = `${options.cookie_prefix}login` || 'login'; //eslint-disable-line
+    const loginKey = `${options.cookie_prefix}login`;
     const loginCookie = cookies.get(loginKey);
 
     return loginCookie && loginCookie === '1';
