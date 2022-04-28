@@ -1,5 +1,6 @@
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+// eslint-disable-next-line import/no-unresolved
 import eslint from '@rollup/plugin-eslint';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
