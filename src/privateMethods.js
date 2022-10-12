@@ -1,4 +1,4 @@
-import { isFunction } from 'lodash';
+import { isFunction } from './lib';
 import { LOGOUT_TIME } from './constant';
 import {
   removePending,

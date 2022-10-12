@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { isPlainObject } from 'lodash';
-import { deepMerge } from '../lib';
+import { isPlainObject, deepMerge } from '../lib';
 
 const baseConfig = {
   // 服務終端

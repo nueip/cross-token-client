@@ -1,4 +1,3 @@
-import { forEach } from 'lodash';
 import webStorage from './storage';
 
 /**
@@ -21,7 +20,7 @@ export const setTokens = function seTokens(keyList = [], keyObj = {}) {
  * @param {array} keys - Token keys
  */
 export const removeTokens = function removeToken(keys = []) {
-  forEach(keys, (value) => {
+  keys.forEach((value) => {
     webStorage.remove(value);
   });
 };

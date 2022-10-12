@@ -4,9 +4,8 @@
  * @author Grace.Wang
  */
 import cookies from 'js-cookie';
-import { isEmpty } from 'lodash';
 import * as TC from './constant';
-import { rand, deepMerge, queryString } from './lib';
+import { isEmptyStr, rand, deepMerge, queryString } from './lib';
 import { api, httpRequset } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
@@ -41,7 +40,7 @@ class TokenInjection {
     // 選項屬性
     this.options = deepMerge(DEFAULTS, options);
     // 處理自定義 Cookie 前綴字串
-    this.options.cookie_prefix = !isEmpty(this.options.cookie_prefix)
+    this.options.cookie_prefix = !isEmptyStr(this.options.cookie_prefix)
       ? `${this.options.cookie_prefix}_`
       : '';
 
