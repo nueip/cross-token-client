@@ -1,6 +1,5 @@
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
-// eslint-disable-next-line import/no-unresolved
 import eslint from '@rollup/plugin-eslint';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -17,7 +16,6 @@ const pkgVer = require('./package.json').version;
 
 const globalPlugins = [
   eslint({
-    parser: '@babel/eslint-parser',
     throwOnError: true,
     include: ['src/**/*.js'],
     exclude: ['node_modules/**', 'dist/**'],
