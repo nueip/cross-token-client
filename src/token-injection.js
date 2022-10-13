@@ -16,7 +16,7 @@ import privateMethods from './privateMethods';
 require('promise.prototype.finally').shim();
 
 // 初始預設值
-const DEFAULTS = Object.freeze({
+const DEFAULTS = {
   // 是否自動初始化 & 刷新同步
   autopilot: true,
   // 單一登入網址
@@ -29,7 +29,7 @@ const DEFAULTS = Object.freeze({
   xhr_with: false,
   // 非登入狀態的 Callback
   onLogout: null,
-});
+};
 
 class TokenInjection {
   /**
