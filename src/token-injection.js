@@ -4,9 +4,8 @@
  * @author Grace.Wang
  */
 import cookies from 'js-cookie';
-import { isEmpty } from 'lodash';
 import * as TC from './constant';
-import { rand, deepMerge, queryString } from './lib';
+import { isEmptyStr, rand, deepMerge, queryString } from './lib';
 import { api, httpRequset } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
@@ -16,7 +15,7 @@ import privateMethods from './privateMethods';
 require('promise.prototype.finally').shim();
 
 // 初始預設值
-const DEFAULTS = Object.freeze({
+const DEFAULTS = {
   // 是否自動初始化 & 刷新同步
   autopilot: true,
   // 單一登入網址
@@ -29,7 +28,7 @@ const DEFAULTS = Object.freeze({
   xhr_with: false,
   // 非登入狀態的 Callback
   onLogout: null,
-});
+};
 
 class TokenInjection {
   /**
@@ -40,10 +39,11 @@ class TokenInjection {
   constructor(options = {}) {
     // 選項屬性
     this.options = deepMerge(DEFAULTS, options);
+
     // 處理自定義 Cookie 前綴字串
-    this.options.cookie_prefix = !isEmpty(this.options.cookie_prefix)
-      ? `${this.options.cookie_prefix}_`
-      : '';
+    if (!isEmptyStr(this.options.cookie_prefix)) {
+      this.options.cookie_prefix = `${this.options.cookie_prefix}_`;
+    }
 
     // Token Keys
     this.tokenKeys = [
@@ -124,12 +124,12 @@ class TokenInjection {
    */
   sync() {
     const instance = this;
-    const { rest, tokenKeys } = this;
+    const { rest, tokenKeys, options } = this;
 
     return new Promise((resolve, reject) => {
       // 抓取資料
       rest
-        .get(api.sync)
+        .get(`${options.sso_url}${api.sync}`)
         .then((res) => {
            let tokenInfo = res.data || {}; //eslint-disable-line
 
@@ -179,7 +179,7 @@ class TokenInjection {
    */
   refresh() {
     const instance = this;
-    const { rest } = this;
+    const { rest, options } = this;
 
     // Refresh Token 值
      let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
@@ -193,7 +193,7 @@ class TokenInjection {
     return new Promise((resolve, reject) => {
       rest
         .post(
-          `${api.refresh}?v=${rand(11111, 99999)}`,
+          `${options.sso_url}${api.refresh}?v=${rand(11111, 99999)}`,
           queryString({ refresh_token: refreshToken }),
           {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -254,12 +254,18 @@ class TokenInjection {
     if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
         // tkchecksum !== token_checksum，axios未執行或以執行完成
-        // eslint-disable-next-line prettier/prettier
-         if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
-          await instance.sync().catch(() => {
-            // 執行錯誤時關閉自動同步30秒後重啟
-            instance.autoSyncStop();
-            setTimeout(() => instance.autoSync(), 30000);
+        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
+          await instance.sync().catch((error) => {
+            // 取得 回覆資源
+            const { response } = error;
+            // 取得 錯誤狀態碼
+            let errorCode = response ? response.status : 0; //eslint-disable-line
+
+            // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
+            if (errorCode !== 401) {
+              instance.autoSyncStop();
+              setTimeout(() => instance.autoSync(), 30000);
+            }
           });
         }
       }, interval * 1000 || TC.TOKEN_AUTO_SYNC_INTERVAL);
@@ -367,12 +373,12 @@ class TokenInjection {
    * @returns {Promise}
    */
   validate(token) {
-    const { rest } = this;
+    const { rest, options } = this;
      let validateToken = token || ''; //eslint-disable-line
 
     return new Promise((resolve, reject) => {
       rest
-        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
+        .get(`${options.sso_url}${api.validate}?v=${rand(11111, 99999)}`, {
           headers: {
             Authorization: `Bearer ${validateToken}`,
           },

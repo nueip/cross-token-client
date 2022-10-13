@@ -6,7 +6,6 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import { terser } from 'rollup-plugin-terser';
 import cleanup from 'rollup-plugin-cleanup';
-import { optimizeLodashImports } from '@optimize-lodash/rollup-plugin';
 import path from 'path';
 
 const fileName = 'cross-token-access';
@@ -59,7 +58,6 @@ const globalPlugins = [
     extensions: ['.js'],
   }),
   cleanup({ comments: 'istanbul', extensions: ['js'] }),
-  optimizeLodashImports(),
 ];
 
 const normalPlugins = [].concat(globalPlugins);
