@@ -8423,9 +8423,11 @@ var TokenInjection = function () {
     value: function sync() {
       var instance = this;
       var rest = this.rest,
-        tokenKeys = this.tokenKeys;
+        tokenKeys = this.tokenKeys,
+        options = this.options;
       return new _Promise(function (resolve, reject) {
-        rest.get(api.sync).then(function (res) {
+        var _context;
+        rest.get(_concatInstanceProperty(_context = "".concat(options.sso_url)).call(_context, api.sync)).then(function (res) {
           var tokenInfo = res.data || {};
           instance.axiosPending.set('sync', res.request.readyState);
           instance.syncTimes = 0;
@@ -8450,14 +8452,15 @@ var TokenInjection = function () {
     key: "refresh",
     value: function refresh() {
       var instance = this;
-      var rest = this.rest;
+      var rest = this.rest,
+        options = this.options;
       var refreshToken = webStorage.get(REFRESH_TOKEN_NAME);
       if (!refreshToken) {
         throw privateMethods.exception(instance, 'Need Refresh Token !', 401);
       }
       return new _Promise(function (resolve, reject) {
-        var _context;
-        rest.post(_concatInstanceProperty(_context = "".concat(api.refresh, "?v=")).call(_context, rand(11111, 99999)), queryString({
+        var _context2, _context3;
+        rest.post(_concatInstanceProperty(_context2 = _concatInstanceProperty(_context3 = "".concat(options.sso_url)).call(_context3, api.refresh, "?v=")).call(_context2, rand(11111, 99999)), queryString({
           refresh_token: refreshToken
         }), {
           headers: {
@@ -8494,15 +8497,15 @@ var TokenInjection = function () {
       };
       if (!instance.intervalSync) {
         instance.intervalSync = _setInterval( _asyncToGenerator( regenerator.mark(function _callee() {
-          return regenerator.wrap(function _callee$(_context2) {
+          return regenerator.wrap(function _callee$(_context4) {
             while (1) {
-              switch (_context2.prev = _context2.next) {
+              switch (_context4.prev = _context4.next) {
                 case 0:
                   if (!(checkSumNoEqual() && (getSyncState() || syncReadyState === 4))) {
-                    _context2.next = 3;
+                    _context4.next = 3;
                     break;
                   }
-                  _context2.next = 3;
+                  _context4.next = 3;
                   return instance.sync().catch(function () {
                     instance.autoSyncStop();
                     _setTimeout(function () {
@@ -8511,7 +8514,7 @@ var TokenInjection = function () {
                   });
                 case 3:
                 case "end":
-                  return _context2.stop();
+                  return _context4.stop();
               }
             }
           }, _callee);
@@ -8558,8 +8561,8 @@ var TokenInjection = function () {
               });
             }
           } catch (e) {
-            var _context3;
-            console.log(_concatInstanceProperty(_context3 = "[".concat(e.code, "]")).call(_context3, e.message));
+            var _context5;
+            console.log(_concatInstanceProperty(_context5 = "[".concat(e.code, "]")).call(_context5, e.message));
             refreshStop();
           }
         }, interval * 1000 || TOKEN_AUTO_REFRESH_INTERVAL * 1000);
@@ -8578,11 +8581,12 @@ var TokenInjection = function () {
   }, {
     key: "validate",
     value: function validate(token) {
-      var rest = this.rest;
+      var rest = this.rest,
+        options = this.options;
       var validateToken = token || '';
       return new _Promise(function (resolve, reject) {
-        var _context4;
-        rest.get(_concatInstanceProperty(_context4 = "".concat(api.validate, "?v=")).call(_context4, rand(11111, 99999)), {
+        var _context6, _context7;
+        rest.get(_concatInstanceProperty(_context6 = _concatInstanceProperty(_context7 = "".concat(options.sso_url)).call(_context7, api.validate, "?v=")).call(_context6, rand(11111, 99999)), {
           headers: {
             Authorization: "Bearer ".concat(validateToken)
           }
@@ -8607,10 +8611,10 @@ var TokenInjection = function () {
   }, {
     key: "loginIAM",
     value: function loginIAM() {
-      var _context5;
+      var _context8;
       var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
       var options = this.options;
-      var ssoUrl = _concatInstanceProperty(_context5 = "".concat(options.sso_url, "/login?redirect_uri=")).call(_context5, options.redirect_url) || '';
+      var ssoUrl = _concatInstanceProperty(_context8 = "".concat(options.sso_url, "/login?redirect_uri=")).call(_context8, options.redirect_url) || '';
       window.open(ssoUrl, target || '_self');
     }
   }, {

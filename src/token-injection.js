@@ -123,12 +123,12 @@ class TokenInjection {
    */
   sync() {
     const instance = this;
-    const { rest, tokenKeys } = this;
+    const { rest, tokenKeys, options } = this;
 
     return new Promise((resolve, reject) => {
       // 抓取資料
       rest
-        .get(api.sync)
+        .get(`${options.sso_url}${api.sync}`)
         .then((res) => {
            let tokenInfo = res.data || {}; //eslint-disable-line
 
@@ -178,7 +178,7 @@ class TokenInjection {
    */
   refresh() {
     const instance = this;
-    const { rest } = this;
+    const { rest, options } = this;
 
     // Refresh Token 值
      let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
@@ -192,7 +192,7 @@ class TokenInjection {
     return new Promise((resolve, reject) => {
       rest
         .post(
-          `${api.refresh}?v=${rand(11111, 99999)}`,
+          `${options.sso_url}${api.refresh}?v=${rand(11111, 99999)}`,
           queryString({ refresh_token: refreshToken }),
           {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -366,12 +366,12 @@ class TokenInjection {
    * @returns {Promise}
    */
   validate(token) {
-    const { rest } = this;
+    const { rest, options } = this;
      let validateToken = token || ''; //eslint-disable-line
 
     return new Promise((resolve, reject) => {
       rest
-        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
+        .get(`${options.sso_url}${api.validate}?v=${rand(11111, 99999)}`, {
           headers: {
             Authorization: `Bearer ${validateToken}`,
           },
