@@ -254,12 +254,18 @@ class TokenInjection {
     if (!instance.intervalSync) {
       instance.intervalSync = setInterval(async () => {
         // tkchecksum !== token_checksum，axios未執行或以執行完成
-        // eslint-disable-next-line prettier/prettier
-         if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
-          await instance.sync().catch(() => {
-            // 執行錯誤時關閉自動同步30秒後重啟
-            instance.autoSyncStop();
-            setTimeout(() => instance.autoSync(), 30000);
+        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
+          await instance.sync().catch((error) => {
+            // 取得 回覆資源
+            const { response } = error;
+            // 取得 錯誤狀態碼
+            let errorCode = response ? response.status : 0; //eslint-disable-line
+
+            // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
+            if (errorCode !== 401) {
+              instance.autoSyncStop();
+              setTimeout(() => instance.autoSync(), 30000);
+            }
           });
         }
       }, interval * 1000 || TC.TOKEN_AUTO_SYNC_INTERVAL);
