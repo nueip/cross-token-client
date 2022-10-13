@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.1.7 (2022-10-13)
+### Patch
+
+* Update package ([000f19b](https://github.com/nueip/cross-token-access/commit/478e88009678f3c06ff9a4f3520eb4a7505cd010))
+
+* Uninstall `lodash` and Optimize APIs url  ([f9cb2db](https://github.com/nueip/cross-token-access/commit/980180cdfa594f0c24d81b8aa17ae1f235b60730))
+
+* Auto sync exclude 401 error  ([f5456d1](https://github.com/nueip/cross-token-access/commit/8e82247813660d972c06e1dc5dab35577f6e1d8c))
+
 ### 2.1.4 (2022-04-15)
 ### Patch
 
