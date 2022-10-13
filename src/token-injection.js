@@ -4,9 +4,8 @@
  * @author Grace.Wang
  */
 import cookies from 'js-cookie';
-import { isEmpty } from 'lodash';
 import * as TC from './constant';
-import { rand, deepMerge, queryString } from './lib';
+import { isEmptyStr, rand, deepMerge, queryString } from './lib';
 import { api, httpRequset } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
@@ -40,10 +39,11 @@ class TokenInjection {
   constructor(options = {}) {
     // 選項屬性
     this.options = deepMerge(DEFAULTS, options);
+
     // 處理自定義 Cookie 前綴字串
-    this.options.cookie_prefix = !isEmpty(this.options.cookie_prefix)
-      ? `${this.options.cookie_prefix}_`
-      : '';
+    if (!isEmptyStr(this.options.cookie_prefix)) {
+      this.options.cookie_prefix = `${this.options.cookie_prefix}_`;
+    }
 
     // Token Keys
     this.tokenKeys = [
@@ -124,12 +124,12 @@ class TokenInjection {
    */
   sync() {
     const instance = this;
-    const { rest, tokenKeys } = this;
+    const { rest, tokenKeys, options } = this;
 
     return new Promise((resolve, reject) => {
       // 抓取資料
       rest
-        .get(api.sync)
+        .get(`${options.sso_url}${api.sync}`)
         .then((res) => {
            let tokenInfo = res.data || {}; //eslint-disable-line
 
@@ -179,7 +179,7 @@ class TokenInjection {
    */
   refresh() {
     const instance = this;
-    const { rest } = this;
+    const { rest, options } = this;
 
     // Refresh Token 值
      let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
@@ -193,7 +193,7 @@ class TokenInjection {
     return new Promise((resolve, reject) => {
       rest
         .post(
-          `${api.refresh}?v=${rand(11111, 99999)}`,
+          `${options.sso_url}${api.refresh}?v=${rand(11111, 99999)}`,
           queryString({ refresh_token: refreshToken }),
           {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -367,12 +367,12 @@ class TokenInjection {
    * @returns {Promise}
    */
   validate(token) {
-    const { rest } = this;
+    const { rest, options } = this;
      let validateToken = token || ''; //eslint-disable-line
 
     return new Promise((resolve, reject) => {
       rest
-        .get(`${api.validate}?v=${rand(11111, 99999)}`, {
+        .get(`${options.sso_url}${api.validate}?v=${rand(11111, 99999)}`, {
           headers: {
             Authorization: `Bearer ${validateToken}`,
           },

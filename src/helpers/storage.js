@@ -1,4 +1,4 @@
-import { isString } from 'lodash';
+import { isString } from '../lib';
 
 // 錯誤訊息
 const errorMsg = {
