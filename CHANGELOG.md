@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.1.8 (2022-10-13)
+### Patch
+
+* Update package ([000f19b](https://github.com/nueip/cross-token-access/commit/b76750ebf4e3aca93917d393818898b0eeeb36ca))
+
 ### 2.1.7 (2022-10-13)
 ### Patch
 
