@@ -86,7 +86,7 @@ class TokenInjection {
    *
    * @returns {Promise}
    */
-  init() {
+  async init() {
     const instance = this;
 
     return instance
