@@ -104,11 +104,8 @@ class TokenInjection {
         privateMethods.autoLogout(instance);
       })
       .catch((error) => {
-        // 捕獲錯誤為登出狀態，轉導回 IAM 中心
-        // 反之直接丟出例外錯誤
-        if (error.isLogout) {
-          instance.loginIAM();
-        }
+        // 捕獲錯誤為登出狀態，轉導回 IAM 登出頁
+        if (error.isLogout) instance.logoutIAM();
 
         throw new Error(error);
       });
@@ -131,7 +128,7 @@ class TokenInjection {
       rest
         .get(`${options.sso_url}${api.sync}`)
         .then((res) => {
-           let tokenInfo = res.data || {}; //eslint-disable-line
+          let tokenInfo = res.data || {}; //eslint-disable-line
 
           // 執行完成，暫存請求響應狀態
           instance.axiosPending.set('sync', res.request.readyState);
@@ -182,7 +179,7 @@ class TokenInjection {
     const { rest, options } = this;
 
     // Refresh Token 值
-     let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
+    let refreshToken = webStorage.get(TC.REFRESH_TOKEN_NAME); //eslint-disable-line
 
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
@@ -232,7 +229,7 @@ class TokenInjection {
    * - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
    * - axios未執行過或已執行完成
    * - 多視窗時有可能同時執行，待觀察
-   * - 執行錯誤時關閉自動同步3秒後重啟
+   * - 執行錯誤時關閉自動同步30g秒後重啟
    *
    * @param {number} interval - 多少個間隔，每個間為500毫秒
    */
@@ -251,14 +248,13 @@ class TokenInjection {
     };
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
-    if (!instance.intervalSync) {
-      instance.intervalSync = setInterval(async () => {
+    instance.intervalSync =
+      !instance.intervalSync &&
+      setInterval(async () => {
         // tkchecksum !== token_checksum，axios未執行或以執行完成
         if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
           await instance.sync().catch((error) => {
-            // 取得 回覆資源
             const { response } = error;
-            // 取得 錯誤狀態碼
             let errorCode = response ? response.status : 0; //eslint-disable-line
 
             // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
@@ -269,7 +265,6 @@ class TokenInjection {
           });
         }
       }, interval * 1000 || TC.TOKEN_AUTO_SYNC_INTERVAL);
-    }
   }
 
   /**
@@ -345,7 +340,7 @@ class TokenInjection {
           }
         } catch (e) {
           // 例外訊息
-          console.log(`[${e.code}]${e.message}`);
+          console.error(`[${e.code}]${e.message}`);
           refreshStop();
         }
       }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
@@ -374,7 +369,7 @@ class TokenInjection {
    */
   validate(token) {
     const { rest, options } = this;
-     let validateToken = token || ''; //eslint-disable-line
+    let validateToken = token || ''; //eslint-disable-line
 
     return new Promise((resolve, reject) => {
       rest
@@ -418,7 +413,7 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-     let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+    let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
 
     window.open(ssoUrl, target || '_self');
   }
@@ -429,7 +424,7 @@ class TokenInjection {
   logoutIAM() {
     const instance = this;
     const { options } = this;
-     let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
+    let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
 
     // 重置初始建構屬性 & 清除 Token's Info.
     privateMethods.reset(instance).then(() => {

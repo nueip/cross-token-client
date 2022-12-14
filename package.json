@@ -1,9 +1,9 @@
 {
   "name": "@nueip/cross-token-access",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "Cross-client access tokens",
-  "main": "dist/cross-token-access-2.1.8.cjs.js",
-  "browser": "dist/cross-token-access-2.1.8.umd.js",
+  "main": "dist/cross-token-access-2.1.9.cjs.js",
+  "browser": "dist/cross-token-access-2.1.9.umd.js",
   "files": [
     "dist",
     "src"
@@ -30,20 +30,20 @@
   "author": "Grace Wang",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.19.3",
+    "@babel/core": "^7.20.5",
     "@babel/eslint-parser": "^7.19.1",
-    "@babel/plugin-transform-runtime": "^7.19.1",
-    "@babel/preset-env": "^7.19.4",
-    "@babel/runtime-corejs3": "^7.19.4",
+    "@babel/plugin-transform-runtime": "^7.19.6",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/runtime-corejs3": "^7.20.6",
     "@rollup/plugin-alias": "^3.1.9",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-eslint": "^8.0.2",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^14.1.0",
-    "commitizen": "^4.2.5",
+    "commitizen": "^4.2.6",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "^8.25.0",
+    "eslint": "^8.29.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -58,7 +58,6 @@
     "axios": ">=0.24.0",
     "core-js": ">=3.20.2",
     "js-cookie": ">=3.0.1",
-    "lodash": ">=4.17.21",
     "promise.prototype.finally": ">=3.1.3"
   }
 }
