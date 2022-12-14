@@ -328,7 +328,7 @@ var ordinaryToPrimitive$2 = ordinaryToPrimitive$3;
 var wellKnownSymbol$n = wellKnownSymbol$o;
 var $TypeError$g = TypeError;
 var TO_PRIMITIVE$1 = wellKnownSymbol$n('toPrimitive');
-var toPrimitive$3 = function (input, pref) {
+var toPrimitive$9 = function (input, pref) {
   if (!isObject$l(input) || isSymbol$6(input)) return input;
   var exoticToPrim = getMethod$4(input, TO_PRIMITIVE$1);
   var result;
@@ -342,10 +342,10 @@ var toPrimitive$3 = function (input, pref) {
   return ordinaryToPrimitive$2(input, pref);
 };
 
-var toPrimitive$2 = toPrimitive$3;
+var toPrimitive$8 = toPrimitive$9;
 var isSymbol$5 = isSymbol$7;
 var toPropertyKey$7 = function (argument) {
-  var key = toPrimitive$2(argument, 'string');
+  var key = toPrimitive$8(argument, 'string');
   return isSymbol$5(key) ? key : key + '';
 };
 
@@ -2312,11 +2312,11 @@ for (var COLLECTION_NAME in DOMIterables$1) {
   Iterators$1[COLLECTION_NAME] = Iterators$1.Array;
 }
 
-var parent$F = promise$6;
-var promise$5 = parent$F;
+var parent$I = promise$6;
+var promise$5 = parent$I;
 
-var parent$E = promise$5;
-var promise$4 = parent$E;
+var parent$H = promise$5;
+var promise$4 = parent$H;
 
 var $$n = _export$1;
 var newPromiseCapabilityModule = newPromiseCapability$2;
@@ -2330,8 +2330,8 @@ $$n({ target: 'Promise', stat: true, forced: true }, {
   }
 });
 
-var parent$D = promise$4;
-var promise$3 = parent$D;
+var parent$G = promise$4;
+var promise$3 = parent$G;
 
 var promise$2 = promise$3;
 
@@ -2390,40 +2390,18 @@ var defineProperty$d = defineProperty$f.exports = function defineProperty(it, ke
 };
 if (Object$5.defineProperty.sham) defineProperty$d.sham = true;
 
-var parent$C = defineProperty$f.exports;
-var defineProperty$c = parent$C;
+var parent$F = defineProperty$f.exports;
+var defineProperty$c = parent$F;
 
-var parent$B = defineProperty$c;
-var defineProperty$b = parent$B;
+var parent$E = defineProperty$c;
+var defineProperty$b = parent$E;
 
-var parent$A = defineProperty$b;
-var defineProperty$a = parent$A;
+var parent$D = defineProperty$b;
+var defineProperty$a = parent$D;
 
 var defineProperty$9 = defineProperty$a;
 
 var defineProperty$8 = defineProperty$9;
-
-function _defineProperties(target, props) {
-  for (var i = 0; i < props.length; i++) {
-    var descriptor = props[i];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    defineProperty$8(target, descriptor.key, descriptor);
-  }
-}
-function _createClass(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties(Constructor, staticProps);
-  defineProperty$8(Constructor, "prototype", {
-    writable: false
-  });
-  return Constructor;
-}
-
-var regeneratorRuntime$1 = {exports: {}};
-
-var _typeof$1 = {exports: {}};
 
 var classof$5 = classofRaw$3;
 var isArray$7 = Array.isArray || function isArray(argument) {
@@ -3012,11 +2990,11 @@ setToStringTag$1(global$r.JSON, 'JSON', true);
 var path$c = path$i;
 var symbol$5 = path$c.Symbol;
 
-var parent$z = symbol$5;
-var symbol$4 = parent$z;
+var parent$C = symbol$5;
+var symbol$4 = parent$C;
 
-var parent$y = symbol$4;
-var symbol$3 = parent$y;
+var parent$B = symbol$4;
+var symbol$3 = parent$B;
 
 var defineWellKnownSymbol$7 = wellKnownSymbolDefine;
 defineWellKnownSymbol$7('asyncDispose');
@@ -3042,28 +3020,91 @@ defineWellKnownSymbol$1('patternMatch');
 var defineWellKnownSymbol = wellKnownSymbolDefine;
 defineWellKnownSymbol('replaceAll');
 
-var parent$x = symbol$3;
-var symbol$2 = parent$x;
+var parent$A = symbol$3;
+var symbol$2 = parent$A;
 
 var symbol$1 = symbol$2;
 
 var symbol = symbol$1;
 
-var WrappedWellKnownSymbolModule$1 = wellKnownSymbolWrapped;
-var iterator$5 = WrappedWellKnownSymbolModule$1.f('iterator');
+var WrappedWellKnownSymbolModule$2 = wellKnownSymbolWrapped;
+var iterator$5 = WrappedWellKnownSymbolModule$2.f('iterator');
 
-var parent$w = iterator$5;
-var iterator$4 = parent$w;
+var parent$z = iterator$5;
+var iterator$4 = parent$z;
 
-var parent$v = iterator$4;
-var iterator$3 = parent$v;
+var parent$y = iterator$4;
+var iterator$3 = parent$y;
 
-var parent$u = iterator$3;
-var iterator$2 = parent$u;
+var parent$x = iterator$3;
+var iterator$2 = parent$x;
 
 var iterator$1 = iterator$2;
 
 var iterator = iterator$1;
+
+function _typeof$1(obj) {
+  "@babel/helpers - typeof";
+  return _typeof$1 = "function" == typeof symbol && "symbol" == typeof iterator ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && "function" == typeof symbol && obj.constructor === symbol && obj !== symbol.prototype ? "symbol" : typeof obj;
+  }, _typeof$1(obj);
+}
+
+var WrappedWellKnownSymbolModule$1 = wellKnownSymbolWrapped;
+var toPrimitive$7 = WrappedWellKnownSymbolModule$1.f('toPrimitive');
+
+var parent$w = toPrimitive$7;
+var toPrimitive$6 = parent$w;
+
+var parent$v = toPrimitive$6;
+var toPrimitive$5 = parent$v;
+
+var parent$u = toPrimitive$5;
+var toPrimitive$4 = parent$u;
+
+var toPrimitive$3 = toPrimitive$4;
+
+var toPrimitive$2 = toPrimitive$3;
+
+function _toPrimitive(input, hint) {
+  if (_typeof$1(input) !== "object" || input === null) return input;
+  var prim = input[toPrimitive$2];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (_typeof$1(res) !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return _typeof$1(key) === "symbol" ? key : String(key);
+}
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    defineProperty$8(target, _toPropertyKey(descriptor.key), descriptor);
+  }
+}
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  defineProperty$8(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+
+var regeneratorRuntime$1 = {exports: {}};
+
+var _typeof = {exports: {}};
 
 (function (module) {
 var _Symbol = symbol;
@@ -3077,8 +3118,8 @@ function _typeof(obj) {
   }, module.exports.__esModule = true, module.exports["default"] = module.exports), _typeof(obj);
 }
 module.exports = _typeof, module.exports.__esModule = true, module.exports["default"] = module.exports;
-}(_typeof$1));
-getDefaultExportFromCjs(_typeof$1.exports);
+}(_typeof));
+getDefaultExportFromCjs(_typeof.exports);
 
 var $$f = _export$1;
 var DESCRIPTORS$a = descriptors$1;
@@ -3315,9 +3356,9 @@ var slice$3 = slice$4;
 var slice$2 = slice$3;
 
 (function (module) {
-var _typeof = _typeof$1.exports["default"];
-var _Symbol = symbol;
+var _typeof$1 = _typeof.exports["default"];
 var _Object$defineProperty = defineProperty$8;
+var _Symbol = symbol;
 var _Object$create = create$1;
 var _Object$getPrototypeOf = getPrototypeOf$1;
 var _forEachInstanceProperty = forEach$3;
@@ -3332,6 +3373,9 @@ function _regeneratorRuntime() {
   var exports = {},
     Op = Object.prototype,
     hasOwn = Op.hasOwnProperty,
+    defineProperty = _Object$defineProperty || function (obj, key, desc) {
+      obj[key] = desc.value;
+    },
     $Symbol = "function" == typeof _Symbol ? _Symbol : {},
     iteratorSymbol = $Symbol.iterator || "@@iterator",
     asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator",
@@ -3355,40 +3399,9 @@ function _regeneratorRuntime() {
     var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator,
       generator = _Object$create(protoGenerator.prototype),
       context = new Context(tryLocsList || []);
-    return generator._invoke = function (innerFn, self, context) {
-      var state = "suspendedStart";
-      return function (method, arg) {
-        if ("executing" === state) throw new Error("Generator is already running");
-        if ("completed" === state) {
-          if ("throw" === method) throw arg;
-          return doneResult();
-        }
-        for (context.method = method, context.arg = arg;;) {
-          var delegate = context.delegate;
-          if (delegate) {
-            var delegateResult = maybeInvokeDelegate(delegate, context);
-            if (delegateResult) {
-              if (delegateResult === ContinueSentinel) continue;
-              return delegateResult;
-            }
-          }
-          if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) {
-            if ("suspendedStart" === state) throw state = "completed", context.arg;
-            context.dispatchException(context.arg);
-          } else "return" === context.method && context.abrupt("return", context.arg);
-          state = "executing";
-          var record = tryCatch(innerFn, self, context);
-          if ("normal" === record.type) {
-            if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue;
-            return {
-              value: record.arg,
-              done: context.done
-            };
-          }
-          "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg);
-        }
-      };
-    }(innerFn, self, context), generator;
+    return defineProperty(generator, "_invoke", {
+      value: makeInvokeMethod(innerFn, self, context)
+    }), generator;
   }
   function tryCatch(fn, obj, arg) {
     try {
@@ -3430,7 +3443,7 @@ function _regeneratorRuntime() {
       if ("throw" !== record.type) {
         var result = record.arg,
           value = result.value;
-        return value && "object" == _typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) {
+        return value && "object" == _typeof$1(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) {
           invoke("next", value, resolve, reject);
         }, function (err) {
           invoke("throw", err, resolve, reject);
@@ -3443,24 +3456,55 @@ function _regeneratorRuntime() {
       reject(record.arg);
     }
     var previousPromise;
-    this._invoke = function (method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new PromiseImpl(function (resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
+    defineProperty(this, "_invoke", {
+      value: function value(method, arg) {
+        function callInvokeWithMethodAndArg() {
+          return new PromiseImpl(function (resolve, reject) {
+            invoke(method, arg, resolve, reject);
+          });
+        }
+        return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
       }
-      return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
+    });
+  }
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = "suspendedStart";
+    return function (method, arg) {
+      if ("executing" === state) throw new Error("Generator is already running");
+      if ("completed" === state) {
+        if ("throw" === method) throw arg;
+        return doneResult();
+      }
+      for (context.method = method, context.arg = arg;;) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+        if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) {
+          if ("suspendedStart" === state) throw state = "completed", context.arg;
+          context.dispatchException(context.arg);
+        } else "return" === context.method && context.abrupt("return", context.arg);
+        state = "executing";
+        var record = tryCatch(innerFn, self, context);
+        if ("normal" === record.type) {
+          if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue;
+          return {
+            value: record.arg,
+            done: context.done
+          };
+        }
+        "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg);
+      }
     };
   }
   function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (undefined === method) {
-      if (context.delegate = null, "throw" === context.method) {
-        if (delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method)) return ContinueSentinel;
-        context.method = "throw", context.arg = new TypeError("The iterator does not provide a 'throw' method");
-      }
-      return ContinueSentinel;
-    }
+    var methodName = context.method,
+      method = delegate.iterator[methodName];
+    if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel;
     var record = tryCatch(method, delegate.iterator, context.arg);
     if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel;
     var info = record.arg;
@@ -3507,7 +3551,13 @@ function _regeneratorRuntime() {
       done: !0
     };
   }
-  return GeneratorFunction.prototype = GeneratorFunctionPrototype, define(Gp, "constructor", GeneratorFunctionPrototype), define(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) {
+  return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", {
+    value: GeneratorFunctionPrototype,
+    configurable: !0
+  }), defineProperty(GeneratorFunctionPrototype, "constructor", {
+    value: GeneratorFunction,
+    configurable: !0
+  }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) {
     var ctor = "function" == typeof genFun && genFun.constructor;
     return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name));
   }, exports.mark = function (genFun) {
@@ -3528,8 +3578,9 @@ function _regeneratorRuntime() {
     return this;
   }), define(Gp, "toString", function () {
     return "[object Generator]";
-  }), exports.keys = function (object) {
-    var keys = [];
+  }), exports.keys = function (val) {
+    var object = Object(val),
+      keys = [];
     for (var key in object) {
       keys.push(key);
     }
@@ -5421,15 +5472,6 @@ var LOGOUT_TIME = 1000 * 43200;
 var MAX_REQUEST_TIMES = 20;
 var MAX_REQUEST_MESSAGE = 'Number of requests exceeded limit.';
 
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-  return _typeof = "function" == typeof symbol && "symbol" == typeof iterator ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && "function" == typeof symbol && obj.constructor === symbol && obj !== symbol.prototype ? "symbol" : typeof obj;
-  }, _typeof(obj);
-}
-
 var check = function (it) {
   return it && it.Math == Math && it;
 };
@@ -6351,7 +6393,7 @@ function isFunction$1(value) {
   return typeof value === 'function';
 }
 function isPlainObject$1(value) {
-  if (_typeof(value) !== 'object' || value === null) {
+  if (_typeof$1(value) !== 'object' || value === null) {
     return false;
   }
   var prototype = getPrototypeOf(value);
@@ -7587,21 +7629,21 @@ var stringTypeVerify = function stringTypeVerify(string) {
   return !(!isString$1(string) && console.error(errorMsg.typeVerify('string')));
 };
 var webStorage = {
-set: function set(key, value) {
+  set: function set(key, value) {
     if (stringTypeVerify(key)) {
       localStorage.setItem(key, stringify(value));
     }
   },
-get: function get(key) {
+  get: function get(key) {
     return stringTypeVerify(key) ? JSON.parse(localStorage.getItem(key)) : null;
   },
-remove: function remove(key) {
+  remove: function remove(key) {
     if (!stringTypeVerify(key)) {
       return;
     }
     localStorage.removeItem(key);
   },
-clear: function clear() {
+  clear: function clear() {
     localStorage.clear();
   }
 };
@@ -7761,9 +7803,7 @@ var TokenInjection = function () {
         instance.autoRefresh();
         privateMethods.autoLogout(instance);
       }).catch(function (error) {
-        if (error.isLogout) {
-          instance.loginIAM();
-        }
+        if (error.isLogout) instance.logoutIAM();
         throw new Error(error);
       });
     }
@@ -7844,35 +7884,33 @@ var TokenInjection = function () {
       var checkSumNoEqual = function checkSumNoEqual() {
         return api$1.get(tkCheckSum) !== webStorage.get('token_checksum');
       };
-      if (!instance.intervalSync) {
-        instance.intervalSync = setInterval( _asyncToGenerator( regenerator.mark(function _callee() {
-          return regenerator.wrap(function _callee$(_context4) {
-            while (1) {
-              switch (_context4.prev = _context4.next) {
-                case 0:
-                  if (!(checkSumNoEqual() && (getSyncState() || syncReadyState === 4))) {
-                    _context4.next = 3;
-                    break;
-                  }
+      instance.intervalSync = !instance.intervalSync && setInterval( _asyncToGenerator( regenerator.mark(function _callee() {
+        return regenerator.wrap(function _callee$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (!(checkSumNoEqual() && (getSyncState() || syncReadyState === 4))) {
                   _context4.next = 3;
-                  return instance.sync().catch(function (error) {
-                    var response = error.response;
-                    var errorCode = response ? response.status : 0;
-                    if (errorCode !== 401) {
-                      instance.autoSyncStop();
-                      setTimeout$1(function () {
-                        return instance.autoSync();
-                      }, 30000);
-                    }
-                  });
-                case 3:
-                case "end":
-                  return _context4.stop();
-              }
+                  break;
+                }
+                _context4.next = 3;
+                return instance.sync().catch(function (error) {
+                  var response = error.response;
+                  var errorCode = response ? response.status : 0;
+                  if (errorCode !== 401) {
+                    instance.autoSyncStop();
+                    setTimeout$1(function () {
+                      return instance.autoSync();
+                    }, 30000);
+                  }
+                });
+              case 3:
+              case "end":
+                return _context4.stop();
             }
-          }, _callee);
-        })), interval * 1000 || TOKEN_AUTO_SYNC_INTERVAL);
-      }
+          }
+        }, _callee);
+      })), interval * 1000 || TOKEN_AUTO_SYNC_INTERVAL);
     }
   }, {
     key: "autoSyncStop",
@@ -7915,7 +7953,7 @@ var TokenInjection = function () {
             }
           } catch (e) {
             var _context5;
-            console.log(concat$3(_context5 = "[".concat(e.code, "]")).call(_context5, e.message));
+            console.error(concat$3(_context5 = "[".concat(e.code, "]")).call(_context5, e.message));
             refreshStop();
           }
         }, interval * 1000 || TOKEN_AUTO_REFRESH_INTERVAL * 1000);

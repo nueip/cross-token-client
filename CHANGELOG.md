@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.1.9 (2022-12-14)
+### Patch
+
+* Update package ([eafc5e5](https://github.com/nueip/cross-token-access/pull/46/commits/eafc5e5c1626e062a30e12d532f338e3d04dbcaf))
+
+* Sync Initialization - Redirect to IAM logout page when logout status changes  ([4da5f16](https://github.com/nueip/cross-token-access/pull/46/commits/4da5f169636e31fbdc915e1979b9a3933396e5b4))
+
 ### 2.1.8 (2022-10-13)
 ### Patch
 
