@@ -6386,9 +6386,6 @@ var forEach$1 = forEach$7;
 function isString$1(str) {
   return typeof str === 'string';
 }
-function isEmptyStr(str) {
-  return !str || str.length === 0;
-}
 function isFunction$1(value) {
   return typeof value === 'function';
 }
@@ -7774,9 +7771,6 @@ var TokenInjection = function () {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     _classCallCheck(this, TokenInjection);
     this.options = deepMerge(DEFAULTS, options);
-    if (!isEmptyStr(this.options.cookie_prefix)) {
-      this.options.cookie_prefix = "".concat(this.options.cookie_prefix, "_");
-    }
     this.tokenKeys = [ACCESS_TOKEN_NAME, TOKEN_EXPIRED_NAME, TOKEN_TYPE, TOKEN_SCOPE, REFRESH_TOKEN_NAME, TOKEN_CHECK_SUM, TOKEN_CREATE_TIME_NAME];
     this.intervalSync = null;
     this.intervalRefresh = null;

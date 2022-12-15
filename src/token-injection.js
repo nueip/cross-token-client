@@ -5,7 +5,7 @@
  */
 import cookies from 'js-cookie';
 import * as TC from './constant';
-import { isEmptyStr, rand, deepMerge, queryString } from './lib';
+import { rand, deepMerge, queryString } from './lib';
 import { api, httpRequset } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import webStorage from './helpers/storage';
@@ -39,11 +39,6 @@ class TokenInjection {
   constructor(options = {}) {
     // 選項屬性
     this.options = deepMerge(DEFAULTS, options);
-
-    // 處理自定義 Cookie 前綴字串
-    if (!isEmptyStr(this.options.cookie_prefix)) {
-      this.options.cookie_prefix = `${this.options.cookie_prefix}_`;
-    }
 
     // Token Keys
     this.tokenKeys = [
