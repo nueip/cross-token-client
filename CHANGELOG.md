@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 2.1.10(2022-12-15)
+### Patch
+
+* Improve `cookie_prefix` string  ([d280483](https://github.com/nueip/cross-token-access/pull/47/commits/d280483c058323c44f34937775570687679fe91b))
+
 ### 2.1.9 (2022-12-14)
 ### Patch
 
