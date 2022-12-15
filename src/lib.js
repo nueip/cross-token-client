@@ -9,15 +9,6 @@ export function isString(str) {
 }
 
 /**
- * 是否為空字串
- * @param {string} str - 字串
- * @return {boolean}
- */
-export function isEmptyStr(str) {
-  return !str || str.length === 0;
-}
-
-/**
  * 是否為函示類型
  *
  * @param {*} value
