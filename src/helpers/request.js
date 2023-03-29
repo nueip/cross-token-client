@@ -49,7 +49,7 @@ function checkConfig(config = {}) {
  * @param {object} config - axios 請求參數
  * @returns {*}
  */
-export const httpRequset = (config) => {
+export const httpRequest = (config) => {
   const keyExists = checkConfig(config);
   const newOptions = keyExists
     ? {}

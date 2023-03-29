@@ -6,7 +6,7 @@
 import cookies from 'js-cookie';
 import * as TC from './constant';
 import { rand, deepMerge, queryString } from './lib';
-import { api, httpRequset } from './helpers/request';
+import { api, httpRequest } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import errorMsg from './helpers/error-message';
 import webStorage from './helpers/storage';
@@ -66,7 +66,7 @@ class TokenInjection {
     this.axiosPending = new Map();
 
     // 實例化 axios
-    this.rest = httpRequset({
+    this.rest = httpRequest({
       baseURL: this.options.sso_url,
       // 判斷是否為 Ajax 非同步請求，跨域時須自行配置此 header access
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -455,7 +455,7 @@ class TokenInjection {
     const instance = this;
 
     instance.options.sso_url = config.baseURL || '';
-    instance.rest = httpRequset(config);
+    instance.rest = httpRequest(config);
 
     return instance;
   }
