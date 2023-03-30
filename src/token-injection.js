@@ -311,43 +311,45 @@ class TokenInjection {
       setTimeout(() => instance.autoRefresh(), 30000);
     };
 
-    // 定期執行
-    if (!instance.intervalRefresh) {
-      instance.intervalRefresh = setInterval(() => {
-        try {
-          // 現在時間
-          const nowTime = parseInt(Date.now() / 1000, 10);
-
-          // Token建立時間
-          const createKey = webStorage.get(TC.TOKEN_CREATE_TIME_NAME);
-          const createTime = parseInt(createKey, 10);
-
-          // Token過期時間
-          const expiredKey = webStorage.get(TC.TOKEN_EXPIRED_NAME);
-          const expireTime = parseInt(expiredKey, 10);
-
-          // 過期時間 - TokenRefreshBefore
-          const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
-
-          const refreshReadyState = instance.axiosPending.get('refresh');
-
-          // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-          if (
-            nowTime >= refreshTime &&
-            (!isSet(refreshReadyState) || refreshReadyState === 4)
-          ) {
-            instance.refresh().catch(() => {
-              // 執行錯誤時關閉自動同步30秒後重啟
-              refreshStop();
-            });
-          }
-        } catch (e) {
-          // 例外訊息
-          console.error(`[${e.code}]${e.message}`);
-          refreshStop();
-        }
-      }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
+    // 已定期執行則中斷處理
+    if (instance.intervalRefresh) {
+      return;
     }
+
+    instance.intervalRefresh = setInterval(() => {
+      try {
+        // 若 refresh request 正在處理，則略過本次處理
+        if (instance.isProcessing('refresh')) {
+          return;
+        }
+
+        // 現在時間
+        const nowTime = parseInt(Date.now() / 1000, 10);
+
+        // Token建立時間
+        const createKey = webStorage.get(TC.TOKEN_CREATE_TIME_NAME);
+        const createTime = parseInt(createKey, 10);
+
+        // Token過期時間
+        const expiredKey = webStorage.get(TC.TOKEN_EXPIRED_NAME);
+        const expireTime = parseInt(expiredKey, 10);
+
+        // 過期時間 - TokenRefreshBefore
+        const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
+
+        // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
+        if (nowTime >= refreshTime) {
+          instance.refresh().catch(() => {
+            // 執行錯誤時關閉自動同步30秒後重啟
+            refreshStop();
+          });
+        }
+      } catch (e) {
+        // 例外訊息
+        console.error(`[${e.code}]${e.message}`);
+        refreshStop();
+      }
+    }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
   }
 
   /**
