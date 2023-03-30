@@ -238,9 +238,18 @@ class TokenInjection {
     // 從 axiosPending 對映表取得同步接口回應狀態
     const getSyncState = () => instance.axiosPending.get('sync');
 
-    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
-    const checkSumNoEqual = () =>
-      cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
+    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否不一致
+    const checkSumNoEqual = () => {
+      const checksumFromCookie = cookies.get(tkCheckSum);
+      const checksumFromLocalStorage = webStorage.get('token_checksum');
+
+      // 若 checksum 未設定則回傳 true 表示不一致 (避免皆為 null 或 undefined 時誤判)
+      if (!isSet(checksumFromCookie, checksumFromLocalStorage)) {
+        return true;
+      }
+
+      return checksumFromCookie !== checksumFromLocalStorage;
+    };
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
     instance.intervalSync =
