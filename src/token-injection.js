@@ -5,7 +5,7 @@
  */
 import cookies from 'js-cookie';
 import * as TC from './constant';
-import { rand, deepMerge, queryString } from './lib';
+import { rand, deepMerge, queryString, isSet } from './lib';
 import { api, httpRequest } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
 import errorMsg from './helpers/error-message';
@@ -235,13 +235,10 @@ class TokenInjection {
     const instance = this;
     const { options } = this;
     const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
-    const syncReadyState = instance.axiosPending.get('sync');
+    // 從 axiosPending 對映表取得同步接口回應狀態
+    const getSyncState = () => instance.axiosPending.get('sync');
 
-    // 取得同步接口回應狀態
-    const getSyncState = () =>
-      typeof syncReadyState === 'undefined' || syncReadyState === null;
-
-    // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
     const checkSumNoEqual = () =>
       cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
 
@@ -249,8 +246,9 @@ class TokenInjection {
     instance.intervalSync =
       !instance.intervalSync &&
       setInterval(async () => {
+        const syncReadyState = getSyncState();
         // tkchecksum !== token_checksum，axios未執行或以執行完成
-        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
+        if (checkSumNoEqual() && (!isSet(syncReadyState) || syncReadyState === 4)) {
           await instance.sync().catch((error) => {
             // 取得 回覆資源
             const { response } = error;
