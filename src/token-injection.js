@@ -234,44 +234,48 @@ class TokenInjection {
   autoSync(interval = 0) {
     const instance = this;
     const { options } = this;
-    const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
-    // 從 axiosPending 對映表取得同步接口回應狀態
-    const getSyncState = () => instance.axiosPending.get('sync');
-
-    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否不一致
-    const checkSumNoEqual = () => {
-      const checksumFromCookie = cookies.get(tkCheckSum);
+    const tkCheckSumCookieName = `${options.cookie_prefix}tkchecksum`;
+    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+    const validateChecksum = () => {
+      const checksumFromCookie = cookies.get(tkCheckSumCookieName);
       const checksumFromLocalStorage = webStorage.get('token_checksum');
 
-      // 若 checksum 未設定則回傳 true 表示不一致 (避免皆為 null 或 undefined 時誤判)
+      // 若 checksum 未設定則回傳 false 表示不一致 (避免皆為 null 或 undefined 時誤判)
       if (!isSet(checksumFromCookie, checksumFromLocalStorage)) {
-        return true;
+        return false;
       }
 
-      return checksumFromCookie !== checksumFromLocalStorage;
+      return checksumFromCookie === checksumFromLocalStorage;
     };
 
-    // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
-    instance.intervalSync =
-      !instance.intervalSync &&
-      setInterval(async () => {
-        const syncReadyState = getSyncState();
-        // tkchecksum !== token_checksum，axios未執行或以執行完成
-        if (checkSumNoEqual() && (!isSet(syncReadyState) || syncReadyState === 4)) {
-          await instance.sync().catch((error) => {
-            // 取得 回覆資源
-            const { response } = error;
-            // 取得 錯誤狀態碼
-            let errorCode = response ? response.status : 0; //eslint-disable-line
+    // 若已定期執行則中斷處理
+    if (instance.intervalSync) {
+      return;
+    }
 
-            // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
-            if (errorCode !== 401) {
-              instance.autoSyncStop();
-              setTimeout(() => instance.autoSync(), TC.TOKEN_AUTO_SYNC_RESTART);
-            }
-          });
+    // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
+    instance.intervalSync = setInterval(async () => {
+      // 若 tkchecksum 與 token_checksum 一致 或 正在處理同步中，則略過本次處理
+      if (validateChecksum() || instance.isProcessing('sync')) {
+        return;
+      }
+
+      await instance.sync().catch((error) => {
+        // 取得 回覆資源
+        const { response } = error;
+        // 取得 錯誤狀態碼
+        let errorCode = response ? response.status : 0; //eslint-disable-line
+
+        // 排除 401 Code：Token 失效發還狀態
+        if (errorCode === 401) {
+          return;
         }
-      }, 1000 * 60 * Math.abs(interval) || TC.TOKEN_AUTO_SYNC_INTERVAL);
+
+        // 執行錯誤時關閉自動同步 等待30秒鐘後重啟
+        instance.autoSyncStop();
+        setTimeout(() => instance.autoSync(), TC.TOKEN_AUTO_SYNC_RESTART);
+      });
+    }, 1000 * 60 * Math.abs(interval) || TC.TOKEN_AUTO_SYNC_INTERVAL);
   }
 
   /**
@@ -450,6 +454,18 @@ class TokenInjection {
     const loginCookie = cookies.get(loginKey);
 
     return loginCookie && loginCookie === '1';
+  }
+
+  /**
+   * 檢查目標 requestName 的 readyState 狀態是否正在處理中
+   *
+   * @param {string} requestName 'sync', 'refresh'
+   * @returns {boolean}
+   */
+  isProcessing(requestName) {
+    const requestReadyState = this.axiosPending.get(requestName);
+
+    return isSet(requestReadyState) && requestReadyState !== 4;
   }
 
   /**
