@@ -199,9 +199,7 @@ class TokenInjection {
           instance.refreshTimes = 0;
 
           // 執行完成，暫存請求響應狀態
-          instance.axiosPending.set('refresh', {
-            readyState: res.request.readyState,
-          });
+          instance.axiosPending.set('refresh', res.request.readyState);
 
           resolve(res);
         })
@@ -315,13 +313,6 @@ class TokenInjection {
 
     // 定期執行
     if (!instance.intervalRefresh) {
-      const refreshReadyState = instance.axiosPending.get('refresh');
-      const getRefreshState = () => {
-        return (
-          typeof refreshReadyState === 'undefined' || refreshReadyState === null
-        );
-      };
-
       instance.intervalRefresh = setInterval(() => {
         try {
           // 現在時間
@@ -338,10 +329,12 @@ class TokenInjection {
           // 過期時間 - TokenRefreshBefore
           const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
 
+          const refreshReadyState = instance.axiosPending.get('refresh');
+
           // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
           if (
             nowTime >= refreshTime &&
-            (getRefreshState() || refreshReadyState === 4)
+            (!isSet(refreshReadyState) || refreshReadyState === 4)
           ) {
             instance.refresh().catch(() => {
               // 執行錯誤時關閉自動同步30秒後重啟
