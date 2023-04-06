@@ -11,6 +11,7 @@ import { setTokens, removeTokens } from './helpers/token';
 import errorMsg from './helpers/error-message';
 import webStorage from './helpers/storage';
 import privateMethods from './privateMethods';
+import RateLimitError from './errors/rate-limit-error';
 
 // Axios 支援 finally 方法
 require('promise.prototype.finally').shim();
@@ -31,6 +32,10 @@ const DEFAULTS = {
   onLogout: null,
   // 401 未授權的 Callback
   unauthorized: null,
+  // 每分鐘同步 token 最大次數限制
+  maxSyncTimesPerMinute: 1,
+  // 每分鐘刷新 token 最大次數限制
+  maxRefreshTimesPerMinute: 1,
 };
 
 class TokenInjection {
@@ -61,6 +66,16 @@ class TokenInjection {
     // 自動同步/刷新 Token 請求錯誤次數計數
     this.syncTimes = 0;
     this.refreshTimes = 0;
+
+    // 初始化同步 token 計數、刷新 token 計數
+    this.syncCount = 0;
+    this.refreshCount = 0;
+
+    // 定期每 60 秒 (1 分鐘) 重置計數
+    setInterval(() => {
+      this.syncCount = 0;
+      this.refreshCount = 0;
+    }, 60 * 1000);
 
     // 暫存執行中的請求資訊
     this.axiosPending = new Map();
@@ -105,6 +120,11 @@ class TokenInjection {
         // 捕獲錯誤為登出狀態，轉導回 IAM 登出頁
         if (error.isLogout) instance.logoutIAM();
 
+        // rate limit error 處理
+        if (error instanceof RateLimitError) {
+          throw error;
+        }
+
         throw new Error(error);
       });
   }
@@ -120,6 +140,16 @@ class TokenInjection {
   sync() {
     const instance = this;
     const { rest, tokenKeys, options } = this;
+
+    // 同步 Token 計數 + 1
+    instance.syncCount += 1;
+
+    // 檢查是否超過每分鐘同步 token 最大次數限制
+    if (instance.syncCount > options.maxSyncTimesPerMinute) {
+      return new Promise((resolve, reject) => {
+        reject(new RateLimitError('sync'));
+      });
+    }
 
     return new Promise((resolve, reject) => {
       // 抓取資料
@@ -182,6 +212,16 @@ class TokenInjection {
     // 金鑰不存在時丟出例外
     if (!refreshToken) {
       throw privateMethods.exception(instance, 'Need Refresh Token !', 401);
+    }
+
+    // 刷新 Token 計數 + 1
+    instance.refreshCount += 1;
+
+    // 檢查是否超過每分鐘刷新 token 最大次數限制
+    if (instance.refreshCount > options.maxRefreshTimesPerMinute) {
+      return new Promise((resolve, reject) => {
+        reject(new RateLimitError('refresh'));
+      });
     }
 
     // 執行刷新金鑰
@@ -269,6 +309,11 @@ class TokenInjection {
           return;
         }
 
+        // rate limit error 處理
+        if (error instanceof RateLimitError) {
+          console.error(error);
+        }
+
         // 執行錯誤時關閉自動同步 等待30秒鐘後重啟
         instance.autoSyncStop();
         setTimeout(() => instance.autoSync(), TC.TOKEN_AUTO_SYNC_RESTART);
@@ -339,7 +384,11 @@ class TokenInjection {
 
         // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
         if (nowTime >= refreshTime) {
-          instance.refresh().catch(() => {
+          instance.refresh().catch((error) => {
+            // rate limit error 處理
+            if (error instanceof RateLimitError) {
+              console.error(error);
+            }
             // 執行錯誤時關閉自動同步30秒後重啟
             refreshStop();
           });
