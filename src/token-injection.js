@@ -316,7 +316,19 @@ class TokenInjection {
 
         // 執行錯誤時關閉自動同步 等待30秒鐘後重啟
         instance.autoSyncStop();
-        setTimeout(() => instance.autoSync(), TC.TOKEN_AUTO_SYNC_RESTART);
+        // 重啟前先占用，避免 30 內重啟期間內再次執行 autoSync 時誤判，導致重複建立定期同步 Token
+        instance.intervalSync = -1;
+        setTimeout(() => {
+          // 檢查非占用狀態則不處理 (排除已重新執行 autoSync 或執行後又再停止的情況)
+          if (instance.intervalSync !== -1) {
+            return;
+          }
+
+          // 清除占用
+          instance.intervalSync = null;
+          // 重啟定期執行同步 Token
+          instance.autoSync();
+        }, TC.TOKEN_AUTO_SYNC_RESTART);
       });
     }, 1000 * 60 * Math.abs(interval) || TC.TOKEN_AUTO_SYNC_INTERVAL);
   }
@@ -351,9 +363,21 @@ class TokenInjection {
     const instance = this;
 
     // 執行錯誤時關閉自動同步30秒後重啟
-    const refreshStop = () => {
+    const restartAutoRefresh = () => {
       instance.autoRefreshStop();
-      setTimeout(() => instance.autoRefresh(), 30000);
+      // 重啟前先占用，避免 30 內重啟期間內再次執行 autoRefresh 時誤判，導致重複建立定期刷新 Token
+      instance.intervalRefresh = -1;
+      setTimeout(() => {
+        // 檢查非占用狀態則不處理 (排除已重新執行 autoRefresh 或執行後又再停止的情況)
+        if (instance.intervalSync !== -1) {
+          return;
+        }
+
+        // 清除占用
+        instance.intervalRefresh = null;
+        // 重啟定期刷新 Token
+        instance.autoRefresh();
+      }, 30000);
     };
 
     // 已定期執行則中斷處理
@@ -390,13 +414,13 @@ class TokenInjection {
               console.error(error);
             }
             // 執行錯誤時關閉自動同步30秒後重啟
-            refreshStop();
+            restartAutoRefresh();
           });
         }
       } catch (e) {
         // 例外訊息
         console.error(`[${e.code}]${e.message}`);
-        refreshStop();
+        restartAutoRefresh();
       }
     }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
   }
