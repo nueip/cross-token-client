@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/nueip/cross-token-access/compare/v2.1.10...v2.2.0) (2023-05-03)
+
+
+### Features
+
+* **lib:** 增加 `isSet()` 函式 ([15edea0](https://github.com/nueip/cross-token-access/commit/15edea01abe59ad6c5d84052839fd1f6fbddfced))
+* 增加每分鐘同步/刷新 token 次數限制 ([8af0df0](https://github.com/nueip/cross-token-access/commit/8af0df04185929aa92aebde9d1ac0d5757e7f8af))
+
+
+### Bug Fixes
+
+* 修正 `autoRefresh()` 函式 ([d62b272](https://github.com/nueip/cross-token-access/commit/d62b2721428273c3f671a384be2f272e44b837f8))
+* 修正 autoSync 同步回應狀態判斷 ([2348abc](https://github.com/nueip/cross-token-access/commit/2348abc09f072f3c522253f85977002fbe815d48))
+* 修正 autoSync 檢核碼檢查函式 ([6960c18](https://github.com/nueip/cross-token-access/commit/6960c184f4993e195b9058137dc2cc7ea82744ca))
+* 定期同步/刷新 token 重啟前先佔用，避免重啟期間再次執行函式時誤判問題 ([66f9957](https://github.com/nueip/cross-token-access/commit/66f9957c17dff814b41dcfe3179df2c5a9b1489c))
+
 ### 2.1.10(2022-12-15)
 ### Patch
 
