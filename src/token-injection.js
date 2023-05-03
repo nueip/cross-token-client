@@ -5,11 +5,13 @@
  */
 import cookies from 'js-cookie';
 import * as TC from './constant';
-import { rand, deepMerge, queryString } from './lib';
-import { api, httpRequset } from './helpers/request';
+import { rand, deepMerge, queryString, isSet } from './lib';
+import { api, httpRequest } from './helpers/request';
 import { setTokens, removeTokens } from './helpers/token';
+import errorMsg from './helpers/error-message';
 import webStorage from './helpers/storage';
 import privateMethods from './privateMethods';
+import RateLimitError from './errors/rate-limit-error';
 
 // Axios 支援 finally 方法
 require('promise.prototype.finally').shim();
@@ -25,9 +27,15 @@ const DEFAULTS = {
   // 重新定向網址
   redirect_url: '',
   // 是否配置 X-Requested-With 抬頭
-  xhr_with: false,
+  xhr_with: true,
   // 非登入狀態的 Callback
   onLogout: null,
+  // 401 未授權的 Callback
+  unauthorized: null,
+  // 每分鐘同步 token 最大次數限制
+  maxSyncTimesPerMinute: 1,
+  // 每分鐘刷新 token 最大次數限制
+  maxRefreshTimesPerMinute: 1,
 };
 
 class TokenInjection {
@@ -59,11 +67,21 @@ class TokenInjection {
     this.syncTimes = 0;
     this.refreshTimes = 0;
 
+    // 初始化同步 token 計數、刷新 token 計數
+    this.syncCount = 0;
+    this.refreshCount = 0;
+
+    // 定期每 60 秒 (1 分鐘) 重置計數
+    setInterval(() => {
+      this.syncCount = 0;
+      this.refreshCount = 0;
+    }, 60 * 1000);
+
     // 暫存執行中的請求資訊
     this.axiosPending = new Map();
 
     // 實例化 axios
-    this.rest = httpRequset({
+    this.rest = httpRequest({
       baseURL: this.options.sso_url,
       // 判斷是否為 Ajax 非同步請求，跨域時須自行配置此 header access
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -83,7 +101,7 @@ class TokenInjection {
    *
    * @returns {Promise}
    */
-  init() {
+  async init() {
     const instance = this;
 
     return instance
@@ -102,6 +120,11 @@ class TokenInjection {
         // 捕獲錯誤為登出狀態，轉導回 IAM 登出頁
         if (error.isLogout) instance.logoutIAM();
 
+        // rate limit error 處理
+        if (error instanceof RateLimitError) {
+          throw error;
+        }
+
         throw new Error(error);
       });
   }
@@ -117,6 +140,16 @@ class TokenInjection {
   sync() {
     const instance = this;
     const { rest, tokenKeys, options } = this;
+
+    // 同步 Token 計數 + 1
+    instance.syncCount += 1;
+
+    // 檢查是否超過每分鐘同步 token 最大次數限制
+    if (instance.syncCount > options.maxSyncTimesPerMinute) {
+      return new Promise((resolve, reject) => {
+        reject(new RateLimitError('sync'));
+      });
+    }
 
     return new Promise((resolve, reject) => {
       // 抓取資料
@@ -148,9 +181,9 @@ class TokenInjection {
           // 請求次數計數
           instance.syncTimes += 1;
 
-          // 請求次數超過最大限制，丟出例外錯誤
+          // 請求次數超過最大限制錯誤訊息
           if (instance.syncTimes >= TC.MAX_REQUEST_TIMES) {
-            throw new Error(TC.MAX_REQUEST_MESSAGE, instance.syncTimes);
+            console.error(`[Sync]: ${errorMsg.maxRequest}`);
           }
 
           reject(error);
@@ -181,6 +214,16 @@ class TokenInjection {
       throw privateMethods.exception(instance, 'Need Refresh Token !', 401);
     }
 
+    // 刷新 Token 計數 + 1
+    instance.refreshCount += 1;
+
+    // 檢查是否超過每分鐘刷新 token 最大次數限制
+    if (instance.refreshCount > options.maxRefreshTimesPerMinute) {
+      return new Promise((resolve, reject) => {
+        reject(new RateLimitError('refresh'));
+      });
+    }
+
     // 執行刷新金鑰
     return new Promise((resolve, reject) => {
       rest
@@ -196,9 +239,7 @@ class TokenInjection {
           instance.refreshTimes = 0;
 
           // 執行完成，暫存請求響應狀態
-          instance.axiosPending.set('refresh', {
-            readyState: res.request.readyState,
-          });
+          instance.axiosPending.set('refresh', res.request.readyState);
 
           resolve(res);
         })
@@ -206,9 +247,9 @@ class TokenInjection {
           // 請求次數計數
           instance.refreshTimes += 1;
 
-          // 請求次數超過最大限制，丟出例外錯誤
+          // 請求次數超過最大限制錯誤訊息
           if (instance.refreshTimes >= TC.MAX_REQUEST_TIMES) {
-            throw new Error(TC.MAX_REQUEST_MESSAGE, instance.refreshTimes);
+            console.error(`[Refresh]: ${errorMsg.maxRequest}`);
           }
 
           reject(error);
@@ -224,42 +265,72 @@ class TokenInjection {
    * - Cookie 中 tkchecksum 是否與 LocalStorage 中的 token_checksum 不一樣
    * - axios未執行過或已執行完成
    * - 多視窗時有可能同時執行，待觀察
-   * - 執行錯誤時關閉自動同步30g秒後重啟
+   * - 執行錯誤時關閉自動同步30秒後重啟
    *
-   * @param {number} interval - 多少個間隔，每個間為500毫秒
+   * @param {number} interval - 多少個間隔，每個間隔為1分鐘
    */
   autoSync(interval = 0) {
     const instance = this;
     const { options } = this;
-    const tkCheckSum = `${options.cookie_prefix}tkchecksum`;
-    const syncReadyState = instance.axiosPending.get('sync');
-    const getSyncState = () => {
-      return typeof syncReadyState === 'undefined' || syncReadyState === null;
+    const tkCheckSumCookieName = `${options.cookie_prefix}tkchecksum`;
+    // 檢查 LocalStorage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
+    const validateChecksum = () => {
+      const checksumFromCookie = cookies.get(tkCheckSumCookieName);
+      const checksumFromLocalStorage = webStorage.get('token_checksum');
+
+      // 若 checksum 未設定則回傳 false 表示不一致 (避免皆為 null 或 undefined 時誤判)
+      if (!isSet(checksumFromCookie, checksumFromLocalStorage)) {
+        return false;
+      }
+
+      return checksumFromCookie === checksumFromLocalStorage;
     };
 
-    // 檢查 LocalStroage 金鑰檢核碼與 Cookie 金鑰檢核碼是否一致
-    const checkSumNoEqual = () => {
-      return cookies.get(tkCheckSum) !== webStorage.get('token_checksum');
-    };
+    // 若已定期執行則中斷處理
+    if (instance.intervalSync) {
+      return;
+    }
 
     // 定期執行 (Cookie 中的金鑰檢核碼必須存在)
-    instance.intervalSync =
-      !instance.intervalSync &&
-      setInterval(async () => {
-        // tkchecksum !== token_checksum，axios未執行或以執行完成
-        if (checkSumNoEqual() && (getSyncState() || syncReadyState === 4)) {
-          await instance.sync().catch((error) => {
-            const { response } = error;
-            let errorCode = response ? response.status : 0; //eslint-disable-line
+    instance.intervalSync = setInterval(async () => {
+      // 若 tkchecksum 與 token_checksum 一致 或 正在處理同步中，則略過本次處理
+      if (validateChecksum() || instance.isProcessing('sync')) {
+        return;
+      }
 
-            // 執行錯誤時關閉自動同步 等待30秒鐘後重啟 (排除 401 Code：Token 失效發還狀態)
-            if (errorCode !== 401) {
-              instance.autoSyncStop();
-              setTimeout(() => instance.autoSync(), 30000);
-            }
-          });
+      await instance.sync().catch((error) => {
+        // 取得 回覆資源
+        const { response } = error;
+        // 取得 錯誤狀態碼
+        let errorCode = response ? response.status : 0; //eslint-disable-line
+
+        // 排除 401 Code：Token 失效發還狀態
+        if (errorCode === 401) {
+          return;
         }
-      }, interval * 1000 || TC.TOKEN_AUTO_SYNC_INTERVAL);
+
+        // rate limit error 處理
+        if (error instanceof RateLimitError) {
+          console.error(error);
+        }
+
+        // 執行錯誤時關閉自動同步 等待30秒鐘後重啟
+        instance.autoSyncStop();
+        // 重啟前先占用，避免 30 內重啟期間內再次執行 autoSync 時誤判，導致重複建立定期同步 Token
+        instance.intervalSync = -1;
+        setTimeout(() => {
+          // 檢查非占用狀態則不處理 (排除已重新執行 autoSync 或執行後又再停止的情況)
+          if (instance.intervalSync !== -1) {
+            return;
+          }
+
+          // 清除占用
+          instance.intervalSync = null;
+          // 重啟定期執行同步 Token
+          instance.autoSync();
+        }, TC.TOKEN_AUTO_SYNC_RESTART);
+      });
+    }, 1000 * 60 * Math.abs(interval) || TC.TOKEN_AUTO_SYNC_INTERVAL);
   }
 
   /**
@@ -292,54 +363,66 @@ class TokenInjection {
     const instance = this;
 
     // 執行錯誤時關閉自動同步30秒後重啟
-    const refreshStop = () => {
+    const restartAutoRefresh = () => {
       instance.autoRefreshStop();
-      setTimeout(() => instance.autoRefresh(), 30000);
+      // 重啟前先占用，避免 30 內重啟期間內再次執行 autoRefresh 時誤判，導致重複建立定期刷新 Token
+      instance.intervalRefresh = -1;
+      setTimeout(() => {
+        // 檢查非占用狀態則不處理 (排除已重新執行 autoRefresh 或執行後又再停止的情況)
+        if (instance.intervalSync !== -1) {
+          return;
+        }
+
+        // 清除占用
+        instance.intervalRefresh = null;
+        // 重啟定期刷新 Token
+        instance.autoRefresh();
+      }, 30000);
     };
 
-    // 定期執行
-    if (!instance.intervalRefresh) {
-      const refreshReadyState = instance.axiosPending.get('refresh');
-      const getRefreshState = () => {
-        return (
-          typeof refreshReadyState === 'undefined' || refreshReadyState === null
-        );
-      };
-
-      instance.intervalRefresh = setInterval(() => {
-        try {
-          // 現在時間
-          const nowTime = parseInt(Date.now() / 1000, 10);
-
-          // Token建立時間
-          const createKey = webStorage.get(TC.TOKEN_CREATE_TIME_NAME);
-          const createTime = parseInt(createKey, 10);
-
-          // Token過期時間
-          const expiredKey = webStorage.get(TC.TOKEN_EXPIRED_NAME);
-          const expireTime = parseInt(expiredKey, 10);
-
-          // 過期時間 - TokenRefreshBefore
-          const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
-
-          // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
-
-          if (
-            nowTime >= refreshTime &&
-            (getRefreshState() || refreshReadyState === 4)
-          ) {
-            instance.refresh().catch(() => {
-              // 執行錯誤時關閉自動同步30秒後重啟
-              refreshStop();
-            });
-          }
-        } catch (e) {
-          // 例外訊息
-          console.error(`[${e.code}]${e.message}`);
-          refreshStop();
-        }
-      }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
+    // 已定期執行則中斷處理
+    if (instance.intervalRefresh) {
+      return;
     }
+
+    instance.intervalRefresh = setInterval(() => {
+      try {
+        // 若 refresh request 正在處理，則略過本次處理
+        if (instance.isProcessing('refresh')) {
+          return;
+        }
+
+        // 現在時間
+        const nowTime = parseInt(Date.now() / 1000, 10);
+
+        // Token建立時間
+        const createKey = webStorage.get(TC.TOKEN_CREATE_TIME_NAME);
+        const createTime = parseInt(createKey, 10);
+
+        // Token過期時間
+        const expiredKey = webStorage.get(TC.TOKEN_EXPIRED_NAME);
+        const expireTime = parseInt(expiredKey, 10);
+
+        // 過期時間 - TokenRefreshBefore
+        const refreshTime = createTime + expireTime - TC.TOKEN_REFRESH_BEFORE;
+
+        // 當 現在時間 超過 過期時間 - TokenRefreshBefore 時觸發更新 Token
+        if (nowTime >= refreshTime) {
+          instance.refresh().catch((error) => {
+            // rate limit error 處理
+            if (error instanceof RateLimitError) {
+              console.error(error);
+            }
+            // 執行錯誤時關閉自動同步30秒後重啟
+            restartAutoRefresh();
+          });
+        }
+      } catch (e) {
+        // 例外訊息
+        console.error(`[${e.code}]${e.message}`);
+        restartAutoRefresh();
+      }
+    }, interval * 1000 || TC.TOKEN_AUTO_REFRESH_INTERVAL * 1000);
   }
 
   /**
@@ -442,6 +525,18 @@ class TokenInjection {
   }
 
   /**
+   * 檢查目標 requestName 的 readyState 狀態是否正在處理中
+   *
+   * @param {string} requestName 'sync', 'refresh'
+   * @returns {boolean}
+   */
+  isProcessing(requestName) {
+    const requestReadyState = this.axiosPending.get(requestName);
+
+    return isSet(requestReadyState) && requestReadyState !== 4;
+  }
+
+  /**
    * axios 全域設定方法
    *
    * @param {object} config - axios options
@@ -451,7 +546,7 @@ class TokenInjection {
     const instance = this;
 
     instance.options.sso_url = config.baseURL || '';
-    instance.rest = httpRequset(config);
+    instance.rest = httpRequest(config);
 
     return instance;
   }

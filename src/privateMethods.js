@@ -1,11 +1,5 @@
 import { isFunction } from './lib';
 import { LOGOUT_TIME } from './constant';
-import {
-  removePending,
-  addPending,
-  cancelRequest,
-  isCancel,
-} from './helpers/request';
 import { removeTokens } from './helpers/token';
 
 /**
@@ -54,16 +48,6 @@ function interceptors(instance) {
         delete config.headers['X-Requested-With'];
       }
 
-      // 先判斷是否有重複的請求要取消
-      removePending(config);
-
-      // 登入時，把此次請求加入暫存 反之取消請求
-      if (instance.isLogin()) {
-        addPending(config);
-      } else {
-        cancelRequest(config);
-      }
-
       return config;
     },
     (error) => {
@@ -77,26 +61,33 @@ function interceptors(instance) {
   // 回應攔截器
   instance.rest.interceptors.response.use(
     (res) => {
-      // 請求已完成，從暫存中移除
-      removePending(res);
       return res;
     },
     (error) => {
-      // 取消請求，重置初始建構並轉導 SSO 回登入頁
-      if (isCancel(error)) {
-        instance.cancelTimes += 1;
-        // 捕獲錯誤 增加登出狀態
-        error.isLogout = true;
+      // 取得 回覆資源
+      const { response } = error;
+      // 取得 錯誤狀態碼
+      let errorCode = response?.status ?? 0; //eslint-disable-line
 
-        reset(instance).then(() => {
-          // 非登入狀態的 Callback，避免自動排程持續執行，設置計數器強制執行一次
-          if (
-            isFunction(instance.options.onLogout) &&
-            instance.cancelTimes === 1
-          ) {
-            instance.options.onLogout();
-          }
-        });
+      instance.cancelTimes += 1;
+      // 捕獲錯誤 增加登出狀態
+      error.isLogout = true;
+
+      reset(instance).then(() => {
+        // 非登入狀態的 Callback，避免自動排程持續執行，設置計數器強制執行一次
+        if (
+          isFunction(instance.options.onLogout) &&
+          instance.cancelTimes === 1
+        ) {
+          instance.options.onLogout();
+        }
+      });
+
+      if (errorCode === 401) {
+        // 401 未授權的 Callback
+        if (isFunction(instance.options.unauthorized)) {
+          instance.options.unauthorized();
+        }
       }
 
       return Promise.reject(error);

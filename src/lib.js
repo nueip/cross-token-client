@@ -84,3 +84,33 @@ export const deepMerge =
 
     return target;
   };
+
+/**
+ * 檢查傳入的所有參數是否皆已設定值 (值非 null 或 undefined 表示有設定)
+ *
+ * @param {...*} values
+ * @returns {boolean}
+ *
+ * @example
+ * isSet(null) // false
+ * isSet(undefined) // false
+ * isSet(-123, 'hello') // true
+ * isSet(() => {}, {}, []) // true
+ * isSet(0, '', false, NaN) // true
+ * isSet(0, '', false, NaN, null) // false
+ */
+export function isSet(...values) {
+  if (values.length === 0) {
+    throw new Error('You must pass at least one parameter');
+  }
+
+  for (const value of values) { // eslint-disable-line
+    // 若找到未設定的值，則立即回傳 false
+    if ((value ?? null) === null) {
+      return false;
+    }
+  }
+
+  // 全部傳入參數皆已設定，回傳 true
+  return true;
+}
