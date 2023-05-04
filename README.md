@@ -29,7 +29,7 @@ dist/
 # 跨域信任域名
 
 - `nueip.com`
-- `nueip.dev`
+- `nueip.site`
 
 # 使用說明
 
