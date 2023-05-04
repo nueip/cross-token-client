@@ -33,9 +33,9 @@ const DEFAULTS = {
   // 401 未授權的 Callback
   unauthorized: null,
   // 每分鐘同步 token 最大次數限制
-  maxSyncTimesPerMinute: 1,
+  maxSyncTimesPerMinute: 3,
   // 每分鐘刷新 token 最大次數限制
-  maxRefreshTimesPerMinute: 1,
+  maxRefreshTimesPerMinute: 3,
 };
 
 class TokenInjection {
