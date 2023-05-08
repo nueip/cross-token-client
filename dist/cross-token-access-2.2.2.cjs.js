@@ -5547,7 +5547,7 @@ var TOKEN_CREATE_TIME_NAME = 'token_createtime';
 var TOKEN_EXPIRED_NAME = 'token_expires_in';
 var TOKEN_REFRESH_BEFORE = _parseInt(2000 + Math.random() * 300, 10);
 var TOKEN_AUTO_REFRESH_INTERVAL = 300;
-var TOKEN_AUTO_SYNC_INTERVAL = 1000 * 60 * 5;
+var TOKEN_AUTO_SYNC_INTERVAL = 1000 * 60;
 var TOKEN_AUTO_SYNC_RESTART = 1000 * 60;
 var TOKEN_TYPE = 'token_type';
 var TOKEN_SCOPE = 'token_scope';
@@ -7765,17 +7765,19 @@ function reset(_x) {
 function _reset() {
   _reset = _asyncToGenerator( regenerator.mark(function _callee(instance) {
     return regenerator.wrap(function _callee$(_context) {
-      while (1) switch (_context.prev = _context.next) {
-        case 0:
-          removeTokens(instance.tokenKeys);
-          instance.intervalSync = null;
-          instance.intervalRefresh = null;
-          instance.syncTimes = 0;
-          instance.refreshTimes = 0;
-          instance.axiosPending.clear();
-        case 6:
-        case "end":
-          return _context.stop();
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            removeTokens(instance.tokenKeys);
+            instance.autoSyncStop();
+            instance.autoRefreshStop();
+            instance.syncTimes = 0;
+            instance.refreshTimes = 0;
+            instance.axiosPending.clear();
+          case 6:
+          case "end":
+            return _context.stop();
+        }
       }
     }, _callee);
   }));
@@ -8580,8 +8582,8 @@ var DEFAULTS = {
   xhr_with: true,
   onLogout: null,
   unauthorized: null,
-  maxSyncTimesPerMinute: 1,
-  maxRefreshTimesPerMinute: 1
+  maxSyncTimesPerMinute: 3,
+  maxRefreshTimesPerMinute: 3
 };
 var TokenInjection = function () {
   function TokenInjection() {
@@ -8618,23 +8620,25 @@ var TokenInjection = function () {
       var _init = _asyncToGenerator( regenerator.mark(function _callee() {
         var instance;
         return regenerator.wrap(function _callee$(_context) {
-          while (1) switch (_context.prev = _context.next) {
-            case 0:
-              instance = this;
-              return _context.abrupt("return", instance.sync().then(function () {
-                instance.autoSync();
-                instance.autoRefresh();
-                privateMethods.autoLogout(instance);
-              }).catch(function (error) {
-                if (error.isLogout) instance.logoutIAM();
-                if (error instanceof RateLimitError) {
-                  throw error;
-                }
-                throw new Error(error);
-              }));
-            case 2:
-            case "end":
-              return _context.stop();
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                instance = this;
+                return _context.abrupt("return", instance.sync().then(function () {
+                  instance.autoSync();
+                  instance.autoRefresh();
+                  privateMethods.autoLogout(instance);
+                }).catch(function (error) {
+                  if (error.isLogout) instance.logoutIAM();
+                  if (error instanceof RateLimitError) {
+                    throw error;
+                  }
+                  throw new Error(error);
+                }));
+              case 2:
+              case "end":
+                return _context.stop();
+            }
           }
         }, _callee, this);
       }));
@@ -8736,37 +8740,39 @@ var TokenInjection = function () {
       }
       instance.intervalSync = setInterval( _asyncToGenerator( regenerator.mark(function _callee2() {
         return regenerator.wrap(function _callee2$(_context5) {
-          while (1) switch (_context5.prev = _context5.next) {
-            case 0:
-              if (!(validateChecksum() || instance.isProcessing('sync'))) {
-                _context5.next = 2;
-                break;
-              }
-              return _context5.abrupt("return");
-            case 2:
-              _context5.next = 4;
-              return instance.sync().catch(function (error) {
-                var response = error.response;
-                var errorCode = response ? response.status : 0;
-                if (errorCode === 401) {
-                  return;
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (!(validateChecksum() || instance.isProcessing('sync'))) {
+                  _context5.next = 2;
+                  break;
                 }
-                if (error instanceof RateLimitError) {
-                  console.error(error);
-                }
-                instance.autoSyncStop();
-                instance.intervalSync = -1;
-                setTimeout$1(function () {
-                  if (instance.intervalSync !== -1) {
+                return _context5.abrupt("return");
+              case 2:
+                _context5.next = 4;
+                return instance.sync().catch(function (error) {
+                  var response = error.response;
+                  var errorCode = response ? response.status : 0;
+                  if (errorCode === 401) {
                     return;
                   }
-                  instance.intervalSync = null;
-                  instance.autoSync();
-                }, TOKEN_AUTO_SYNC_RESTART);
-              });
-            case 4:
-            case "end":
-              return _context5.stop();
+                  if (error instanceof RateLimitError) {
+                    console.error(error);
+                  }
+                  instance.autoSyncStop();
+                  instance.intervalSync = -1;
+                  setTimeout$1(function () {
+                    if (instance.intervalSync !== -1) {
+                      return;
+                    }
+                    instance.intervalSync = null;
+                    instance.autoSync();
+                  }, TOKEN_AUTO_SYNC_RESTART);
+                });
+              case 4:
+              case "end":
+                return _context5.stop();
+            }
           }
         }, _callee2);
       })), 1000 * 60 * Math.abs(interval) || TOKEN_AUTO_SYNC_INTERVAL);
