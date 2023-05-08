@@ -10,8 +10,8 @@ export const TOKEN_EXPIRED_NAME = 'token_expires_in';
 export const TOKEN_REFRESH_BEFORE = parseInt(2000 + Math.random() * 300, 10);
 // Token 過期 前 x 秒 時， 每 y 秒 更新一次 - y = 300
 export const TOKEN_AUTO_REFRESH_INTERVAL = 300;
-// 每 5 分鐘 檢查是否需與後端同步Token
-export const TOKEN_AUTO_SYNC_INTERVAL = 1000 * 60 * 5;
+// 每 1 分鐘 檢查是否需與後端同步Token
+export const TOKEN_AUTO_SYNC_INTERVAL = 1000 * 60;
 // Token 同步錯誤/異常重啟時間，預設等待ㄧ分鐘
 export const TOKEN_AUTO_SYNC_RESTART = 1000 * 60;
 // Token 授權類型

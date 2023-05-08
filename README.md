@@ -29,7 +29,7 @@ dist/
 # 跨域信任域名
 
 - `nueip.com`
-- `nueip.dev`
+- `nueip.site`
 
 # 使用說明
 
@@ -60,89 +60,7 @@ var tokenInjection = new TokenInjection(options);
 
 ## 範例
 
-#### 方法示例
-
-```js
-// 實體化 TokenInjection
-var tokenInjection = new TokenInjection({
-  sso_url: "Your sso server url",
-  cookie_prefix: "Your cookie prefix",
-  redirect_url: "Your redirect url",
-  onLogout: function() {
-    tokenInjection.loginIAM();
-  }
-});
-
-/**
- * 登入頁面
- */
-function loginIAM() {
-  tokenInjection.loginIAM();
-}
-
-/**
- * 登出頁面
- */
-function logoutIAM() {
-  tokenInjection.logoutIAM();
-}
-
-/**
- * 驗證 Token
- */
-function validate() {
-  // 取得本地 local storage 的 token
-  var localToken = tokenInjection.getToken();
-
-  // 持此 token 進行驗證
-  tokenInjection
-    .validate(localToken)
-    .then(function (res) {
-      // 驗證成功
-      console.log("Success: " + res.data);
-    })
-    .catch(function (error) {
-      // 驗證失敗
-      console.log("Error: " + error);
-    })
-    .finally(function () {
-      console.log("Always executed");
-    });
-}
-
-/**
- * 取得 Token
- *
- * @param ScheduleEvent - flag, 是否開啟同步
- */
-function tokenSync(ScheduleEvent = 1) {
-  // 取得Token資料
-
-  if (ScheduleEvent == null) {
-    // 開啟自動同步
-    ScheduleEvent = 1;
-    tokenInjection.autoSync();
-    console.log("tokenSync On");
-  } else {
-    // 關閉自動同步
-    ScheduleEvent = null;
-    tokenInjection.autoSyncStop();
-    console.log("tokenSync Off");
-  }
-}
-
-/**
- * 更新 Token
- */
-function refresh() {
-  try {
-    // 更新Token資料
-    tokenInjection.refresh();
-  } catch (e) {
-    console.log("[" + e.code + "] " + e.message);
-  }
-}
-```
+請見[範例](./examples/index.html)
 
 # Options
 
@@ -181,6 +99,24 @@ function refresh() {
 - Type: `Function`
 - Default: `null`
 - note: 非登入狀態的回調函式
+
+### unauthorized
+
+- Type: `Function`
+- Default: `null`
+- note: 401 未授權的 Callback
+
+### maxSyncTimesPerMinute
+
+- Type: `number`
+- Default: 3
+- note: 每分鐘同步 token 最大次數限制
+
+### maxRefreshTimesPerMinute
+
+- Type: `number`
+- Default: 3
+- note: 每分鐘刷新 token 最大次數限制
 
 # Methods
 

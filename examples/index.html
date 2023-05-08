@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cross-token-access</title>
+</head>
+
+<body>
+  <h3>Cross Site2 - 自有系統SSO簡化流程範例程式</h3>
+  <!-- <input type="button" value="login" id="login"> -->
+  <p id="msg"></p>
+  <input type="button" value="refresh" id="refresh">
+  <input type="button" value="tokenSync On" id="tokenSync">
+
+  <input type="button" value="Login Page" id="login">
+  <input type="button" value="Logout Pag" id="logout">
+  <p></p>
+  <input type="button" value="validate token" id="validate">
+  <div id="token-status"></div>
+  <br>
+  <input type="text" name="token" id="token" size="200">
+  <input type="text" name="token_refresh" id="token_refresh" hidden>
+  <input type="text" name="token_checksum" id="token_checksum" hidden>
+  <div id="token-detail"></div>
+  <pre id="user"></pre>
+
+  <!-- Jquery -->
+  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <!-- cross-token-access@2.x -->
+  <script src="https://cdn.jsdelivr.net/npm/@nueip/cross-token-access@2"></script>
+  <script>
+    $(document).ready(function () {
+
+      /**
+       * 實體化 TokenInjection
+       */
+      tokenInjection = new TokenInjection({
+        sso_url: '',
+        cookie_prefix: '',
+        redirect_url: '',
+      });
+
+      // 綁定登入頁面事件
+      $("#login").on("click", function () {
+        tokenInjection.loginIAM();
+      });
+
+      // 綁定登出頁面事件
+      $("#logout").on("click", function () {
+        tokenInjection.logoutIAM();
+      });
+
+      // 綁定驗證事件
+      $('#validate').on('click', function () {
+        // 驗證Token
+        validate();
+      });
+
+      // 綁定取得Token事件
+      var ScheduleEvent = 1;
+      $('#tokenSync').on('click', function () {
+        // 取得Token資料
+
+        if (ScheduleEvent == null) {
+          // 開啟自動同步
+          ScheduleEvent = 1;
+          tokenInjection.autoSync();
+          $(this).val('tokenSync On');
+        } else {
+          // 關閉自動同步
+          ScheduleEvent = null
+          tokenInjection.autoSyncStop();
+          $(this).val('tokenSync Off');
+        }
+      });
+
+      // 綁定更新Token事件
+      $('#refresh').on('click', function () {
+        try {
+          // 更新Token資料
+          tokenInjection.refresh();
+        } catch (e) {
+          console.error(`[${e.code}] ${e.message}`, e);
+        }
+      });
+
+      // 定期更新頁面 - 顯示Token資料
+      setInterval(showToken, 100);
+    });
+
+    /**
+     * 驗證Token
+     */
+    function validate() {
+      // 清除 Token 驗證狀態
+      $('#token-status').text('');
+
+      tokenInjection.validate($('#token').val()).then(function (res) {
+        $('#token-status').html('Success: ' + res.data).css({ color: 'blue' });
+      }).catch(function (error) {
+        $('#token-status').html('Error: ' + error).css({ color: 'red' });
+      }).finally(function () {
+        console.log('Always executed');
+      });
+    }
+
+    /**
+     * 顯示Token資料 - 從LocalStorage
+     */
+    function showToken() {
+      // localStorage.getItem('token_checksum') 與 $('#token_checksum').val() 相同時不更新
+      if (JSON.parse(localStorage.getItem('token_checksum')) == $('#token_checksum').val()) {
+        return true;
+      }
+
+      var token = {
+        'token_refresh_token': '',
+        'token_scope': '',
+        'token_type': '',
+        'token_expires_in': '',
+        'token_access_token': '',
+        'token_checksum': '',
+        'token_createtime': '',
+      };
+
+      // 清除Token驗證狀態、Token內容
+      $('#token-status').text('');
+      $('#token-detail').text('');
+
+      // 印出資料
+      $.each(token, function (key, value) {
+        // 寫到本Domain的localStorage
+        value = JSON.parse(localStorage.getItem(key));
+
+        $('<div>').text(`${key}: ${value}`).appendTo($('#token-detail'));
+        if (key == 'token_access_token') {
+          // 更新Token - Validate用
+          $('#token').val(value);
+        } else if (key == 'token_refresh_token') {
+          // 更新 Refresh Token - 更新Token用
+          $('#token_refresh').val(value);
+        } else if (key == 'token_checksum') {
+          // 比對顯示資料&LocalStorage資料用
+          $('#token_checksum').val(value);
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

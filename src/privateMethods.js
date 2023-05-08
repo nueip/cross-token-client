@@ -15,8 +15,8 @@ async function reset(instance) {
   removeTokens(instance.tokenKeys);
 
   // 清除定期器
-  instance.intervalSync = null;
-  instance.intervalRefresh = null;
+  instance.autoSyncStop();
+  instance.autoRefreshStop();
 
   // 請求計數歸零
   instance.syncTimes = 0;
