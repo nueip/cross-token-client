@@ -521,7 +521,7 @@ class TokenInjection {
     const loginKey = `${options.cookie_prefix}login`;
     const loginCookie = cookies.get(loginKey);
 
-    return loginCookie && loginCookie === '1';
+    return Boolean(loginCookie);
   }
 
   /**
