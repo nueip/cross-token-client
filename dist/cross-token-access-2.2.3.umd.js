@@ -7769,19 +7769,17 @@
 	function _reset() {
 	  _reset = _asyncToGenerator( regenerator.mark(function _callee(instance) {
 	    return regenerator.wrap(function _callee$(_context) {
-	      while (1) {
-	        switch (_context.prev = _context.next) {
-	          case 0:
-	            removeTokens(instance.tokenKeys);
-	            instance.autoSyncStop();
-	            instance.autoRefreshStop();
-	            instance.syncTimes = 0;
-	            instance.refreshTimes = 0;
-	            instance.axiosPending.clear();
-	          case 6:
-	          case "end":
-	            return _context.stop();
-	        }
+	      while (1) switch (_context.prev = _context.next) {
+	        case 0:
+	          removeTokens(instance.tokenKeys);
+	          instance.autoSyncStop();
+	          instance.autoRefreshStop();
+	          instance.syncTimes = 0;
+	          instance.refreshTimes = 0;
+	          instance.axiosPending.clear();
+	        case 6:
+	        case "end":
+	          return _context.stop();
 	      }
 	    }, _callee);
 	  }));
@@ -8624,25 +8622,23 @@
 	      var _init = _asyncToGenerator( regenerator.mark(function _callee() {
 	        var instance;
 	        return regenerator.wrap(function _callee$(_context) {
-	          while (1) {
-	            switch (_context.prev = _context.next) {
-	              case 0:
-	                instance = this;
-	                return _context.abrupt("return", instance.sync().then(function () {
-	                  instance.autoSync();
-	                  instance.autoRefresh();
-	                  privateMethods.autoLogout(instance);
-	                }).catch(function (error) {
-	                  if (error.isLogout) instance.logoutIAM();
-	                  if (error instanceof RateLimitError) {
-	                    throw error;
-	                  }
-	                  throw new Error(error);
-	                }));
-	              case 2:
-	              case "end":
-	                return _context.stop();
-	            }
+	          while (1) switch (_context.prev = _context.next) {
+	            case 0:
+	              instance = this;
+	              return _context.abrupt("return", instance.sync().then(function () {
+	                instance.autoSync();
+	                instance.autoRefresh();
+	                privateMethods.autoLogout(instance);
+	              }).catch(function (error) {
+	                if (error.isLogout) instance.logoutIAM();
+	                if (error instanceof RateLimitError) {
+	                  throw error;
+	                }
+	                throw new Error(error);
+	              }));
+	            case 2:
+	            case "end":
+	              return _context.stop();
 	          }
 	        }, _callee, this);
 	      }));
@@ -8744,39 +8740,37 @@
 	      }
 	      instance.intervalSync = setInterval( _asyncToGenerator( regenerator.mark(function _callee2() {
 	        return regenerator.wrap(function _callee2$(_context5) {
-	          while (1) {
-	            switch (_context5.prev = _context5.next) {
-	              case 0:
-	                if (!(validateChecksum() || instance.isProcessing('sync'))) {
-	                  _context5.next = 2;
-	                  break;
+	          while (1) switch (_context5.prev = _context5.next) {
+	            case 0:
+	              if (!(validateChecksum() || instance.isProcessing('sync'))) {
+	                _context5.next = 2;
+	                break;
+	              }
+	              return _context5.abrupt("return");
+	            case 2:
+	              _context5.next = 4;
+	              return instance.sync().catch(function (error) {
+	                var response = error.response;
+	                var errorCode = response ? response.status : 0;
+	                if (errorCode === 401) {
+	                  return;
 	                }
-	                return _context5.abrupt("return");
-	              case 2:
-	                _context5.next = 4;
-	                return instance.sync().catch(function (error) {
-	                  var response = error.response;
-	                  var errorCode = response ? response.status : 0;
-	                  if (errorCode === 401) {
+	                if (error instanceof RateLimitError) {
+	                  console.error(error);
+	                }
+	                instance.autoSyncStop();
+	                instance.intervalSync = -1;
+	                setTimeout$1(function () {
+	                  if (instance.intervalSync !== -1) {
 	                    return;
 	                  }
-	                  if (error instanceof RateLimitError) {
-	                    console.error(error);
-	                  }
-	                  instance.autoSyncStop();
-	                  instance.intervalSync = -1;
-	                  setTimeout$1(function () {
-	                    if (instance.intervalSync !== -1) {
-	                      return;
-	                    }
-	                    instance.intervalSync = null;
-	                    instance.autoSync();
-	                  }, TOKEN_AUTO_SYNC_RESTART);
-	                });
-	              case 4:
-	              case "end":
-	                return _context5.stop();
-	            }
+	                  instance.intervalSync = null;
+	                  instance.autoSync();
+	                }, TOKEN_AUTO_SYNC_RESTART);
+	              });
+	            case 4:
+	            case "end":
+	              return _context5.stop();
 	          }
 	        }, _callee2);
 	      })), 1000 * 60 * Math.abs(interval) || TOKEN_AUTO_SYNC_INTERVAL);
@@ -8901,7 +8895,7 @@
 	      var options = this.options;
 	      var loginKey = "".concat(options.cookie_prefix, "login");
 	      var loginCookie = api$1.get(loginKey);
-	      return loginCookie && loginCookie === '1';
+	      return Boolean(loginCookie);
 	    }
 	  }, {
 	    key: "isProcessing",

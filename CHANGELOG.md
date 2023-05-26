@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.3](https://github.com/nueip/cross-token-access/compare/v2.2.2...v2.2.3) (2023-05-26)
+
+
+### Bug Fixes
+
+* 調整登入狀態判斷 ([a853a8a](https://github.com/nueip/cross-token-access/commit/a853a8a6c1b005a6eab6a3319d995aa66d649203))
+
 ### [2.2.2](https://github.com/nueip/cross-token-access/compare/v2.2.1...v2.2.2) (2023-05-08)
 
 
