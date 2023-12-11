@@ -481,6 +481,18 @@ class TokenInjection {
   }
 
   /**
+   * 取得可用子系統清單
+   *
+   * @returns {Array} 回傳系統清單
+   */
+  getSubSystem() {
+    const subList = cookies.get('login')?.split('.') ?? [];
+    const subSystemSort = ['hrm', 'bpm', 'crm', 'sales', 'bi'];
+
+    return subSystemSort.filter((subSystem) => subList.includes(subSystem));
+  }
+
+  /**
    * 開啟登入頁面
    *
    * @param {string} target - _self | _blank
