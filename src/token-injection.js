@@ -146,9 +146,7 @@ class TokenInjection {
 
     // 檢查是否超過每分鐘同步 token 最大次數限制
     if (instance.syncCount > options.maxSyncTimesPerMinute) {
-      return new Promise((resolve, reject) => {
-        reject(new RateLimitError('sync'));
-      });
+      return Promise.reject(new RateLimitError('sync'));
     }
 
     return new Promise((resolve, reject) => {
@@ -219,9 +217,7 @@ class TokenInjection {
 
     // 檢查是否超過每分鐘刷新 token 最大次數限制
     if (instance.refreshCount > options.maxRefreshTimesPerMinute) {
-      return new Promise((resolve, reject) => {
-        reject(new RateLimitError('refresh'));
-      });
+      return Promise.reject(new RateLimitError('refresh'));
     }
 
     // 執行刷新金鑰
@@ -491,7 +487,7 @@ class TokenInjection {
    */
   loginIAM(target = '') {
     const { options } = this;
-    let ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}` || ''; //eslint-disable-line
+    const ssoUrl = `${options.sso_url}/login?redirect_uri=${options.redirect_url}`;
 
     window.open(ssoUrl, target || '_self');
   }
@@ -502,7 +498,7 @@ class TokenInjection {
   logoutIAM() {
     const instance = this;
     const { options } = this;
-    let ssoUrl = `${options.sso_url}/logout` || ''; //eslint-disable-line
+    const ssoUrl = `${options.sso_url}/logout`;
 
     // 重置初始建構屬性 & 清除 Token's Info.
     privateMethods.reset(instance).then(() => {
