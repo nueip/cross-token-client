@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/nueip/cross-token-access/compare/v2.2.3...v2.3.0) (2023-12-13)
+
+
+### Features
+
+* 擴充取得子系統可用清單方法 ([40da2df](https://github.com/nueip/cross-token-access/commit/40da2df81b4b4f6b501033b97cd84e5f5ab0057f))
+
+
+### Bug Fixes
+
+* **sonarlint:** 修正邏輯語法 ([e81b406](https://github.com/nueip/cross-token-access/commit/e81b4063ad0790c5b2723ddda17bbe276372090d))
+
 ### [2.2.3](https://github.com/nueip/cross-token-access/compare/v2.2.2...v2.2.3) (2023-05-26)
 
 
